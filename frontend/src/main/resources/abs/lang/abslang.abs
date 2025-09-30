@@ -55,7 +55,7 @@ export Deadline, Critical;
 export Spec, ObjInv, Ensures, Requires, WhileInv, Resolves, Local, Role, Succeeds, Overlaps;
 
 // Various annotations
-export Annotation, TypeAnnotation, LocationType, Far, Near, Somewhere, Infer, NullableType, Nonnull, Nullable;
+export Annotation, TypeAnnotation, LocationType, Far, Near, Somewhere, Infer, NullableType, Nonnull, Nullable, Secrecy;
 export COG, Plain, Final, Atomic, Readonly;
 export HTTPName, HTTPCallable;
 export Expansion, ExpansionCall;
@@ -655,6 +655,9 @@ data Annotation = TypeAnnotation;
 
 [TypeAnnotation]
 data LocationType = Far | Near | Somewhere | Infer;
+
+[TypeAnnotation]
+data Secrecy = Int;
 
 [TypeAnnotation]
 data NullableType = Nonnull | Nullable;
@@ -1286,6 +1289,8 @@ def DeploymentComponent thisDC() = builtin;
 
 // Annotation for method definitions: runtime cost specification
 type Cost = Duration;
+
+//type Secrecy = Int;
 
 // Annotation for async method calls: size of sent data
 type DataSize = Rat;
