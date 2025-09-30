@@ -1290,8 +1290,6 @@ def DeploymentComponent thisDC() = builtin;
 // Annotation for method definitions: runtime cost specification
 type Cost = Duration;
 
-//type Secrecy = Int;
-
 // Annotation for async method calls: size of sent data
 type DataSize = Rat;
 
