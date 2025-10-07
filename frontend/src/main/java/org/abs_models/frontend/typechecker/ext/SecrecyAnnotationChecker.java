@@ -9,23 +9,11 @@ package org.abs_models.frontend.typechecker.ext;
 import org.abs_models.frontend.analyser.AnnotationHelper;
 import org.abs_models.frontend.analyser.ErrorMessage;
 import org.abs_models.frontend.analyser.TypeError;
-import org.abs_models.frontend.ast.ASTNode;
-import org.abs_models.frontend.ast.PureExp;
-import org.abs_models.frontend.ast.NewExp;
-import org.abs_models.frontend.ast.AssignStmt;
-import org.abs_models.frontend.ast.ExpressionStmt;
-import org.abs_models.frontend.ast.Model;
-import org.abs_models.frontend.ast.ReturnStmt;
-import org.abs_models.frontend.ast.VarDeclStmt;
-import org.abs_models.frontend.ast.DataTypeDecl;
-import org.abs_models.frontend.ast.ClassDecl;
-import org.abs_models.frontend.ast.InterfaceDecl;
-import org.abs_models.frontend.ast.Annotation;
-import org.abs_models.frontend.ast.TypedAnnotation;
-import org.abs_models.frontend.ast.TypeUse;
-import org.abs_models.frontend.ast.UnresolvedTypeUse;
+import org.abs_models.frontend.ast.*;
 import org.abs_models.frontend.typechecker.Type;
-import org.abs_models.frontend.ast.IntLiteral;
+import org.abs_models.frontend.typechecker.TypeAnnotation;
+import org.abs_models.frontend.typechecker.ext.DefaultTypeSystemExtension;
+import org.abs_models.frontend.typechecker.ext.AdaptDirection;
 
 
 public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
@@ -37,6 +25,12 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
     @Override
     public void checkInterfaceDecl(InterfaceDecl decl) {
         for (Annotation annotation : decl.getAnnotations()) {
+            
+            if (annotation instanceof TypedAnnotation typedAnn) {
+                    PureExp secrecy = typedAnn.getValue(); // Extract the value safely
+                    checkSecrecyAnnotationCorrect(decl, secrecy);
+            }
+
             for (int i = 0; i < annotation.getNumChild(); i++) {
                 ASTNode<?> child = annotation.getChild(i);
 
@@ -49,16 +43,22 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
 
                         // Save to metadata
                         System.out.println("TODO MISSING METADATA ATTACHEMENT");
+
+                        decl.getType().addMetaData("Secrecy", level);
+
+                        System.out.println("Should be added");
+
+                        System.out.println(decl.getType().getMetaData("Secrecy"));
                     }
                 }
+                
             }
         }
     }
 
-
     // Checks that the input secrecy is a number and that it is neither 0 nor null
     private void checkSecrecyAnnotationCorrect(ASTNode<?> n, PureExp secrecy) {
-        System.out.println("Called Secrecy Correct");
+        //System.out.println("Called Secrecy Correct");
         if (secrecy == null) return;
         secrecy.typeCheck(errors);
         if (!secrecy.getType().isNumericType()) {
