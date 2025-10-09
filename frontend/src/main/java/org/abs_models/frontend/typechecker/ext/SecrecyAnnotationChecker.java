@@ -21,54 +21,70 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
         super(m);
     }
 
-    /*
-    for (MethodSig sig : decl.getMethodList()) {
-            // Check return type annotations
-            for (Annotation ann : sig.getTypeUse().getAnnotationList()) {
-                handleAnnotation(ann, sig);
-            }
-
-            // Check parameter annotations
-            for (ParamDecl param : sig.getParamList()) {
-                for (Annotation ann : param.getAnnotationList()) {
-                    handleAnnotation(ann, param);
-                }
-            }
-        }
-    */
+    //Classes of annotations
+    // 1 return types of methods
+    // 2 parameters
+    // 3 fields
 
     @Override
     public void checkInterfaceDecl(InterfaceDecl decl) {
 
-        //if (decl.getModuleDecl().getName().equals("Test")) { //Helper stmt to ignore inherited classes from .Object class
-            for (MethodSig sig : decl.getBodyList()) {
-                
-                //System.out.println(sig.toString());  //Prints the MethodSig
+        for (MethodSig sig : decl.getBodyList()) {
 
-                TypeUse returnType = sig.getReturnType();
-                
-                for (Annotation annotation : returnType.getAnnotationList()) {
-                    //System.out.println(annotation); //Prints the Annotations for the ReturnValues
+            processTypeAnnotations(sig.getReturnType());
 
-                    extractAnnotationSafely(returnType, annotation); //Helper Function to extract and then check the SecrecyValue
-                }
-
-                for (ParamDecl parameter : sig.getParamList()) {
-                
-                    //System.out.println("  Param: " + parameter.getName() + " : " + parameter.getTypeUse().getName()); //Prints the Parameter Name and Type
-
-                    for(Annotation annotation : parameter.getAnnotationList()){
-                        //System.out.println(annotation); //Prints the Annotations for the ParameterValues
-
-                        extractAnnotationSafely(parameter.getTypeUse(), annotation); //Helper Function to extract and then check the SecrecyValue
-                    }
+            for (ParamDecl parameter : sig.getParamList()) {
+                for(Annotation annotation : parameter.getAnnotationList()){
+                    extractSecrecySafely(parameter.getTypeUse(), annotation); //Helper Function to extract and then check the SecrecyValue
                 }
             }
-        //}
+        }
     }
 
+    @Override
+    public void checkClassDecl(ClassDecl decl) {
+        for(FieldDecl fieldDecl : decl.getFields()) {
+            processTypeAnnotations(fieldDecl.getTypeUse());
+        }
+    }
+
+    @Override
+    public void checkVarDeclStmt(VarDeclStmt varDeclStmt) {
+
+        VarOrFieldDecl varDecl = varDeclStmt.getVarDecl();
+
+        if(varDecl instanceof TypedVarOrFieldDecl typedVar) {
+            for(Annotation annotation : varDeclStmt.getAnnotationList()) {
+                //System.out.println(annotation);
+                extractSecrecySafely(typedVar.getTypeUse(), annotation);
+            }
+        }
+    }
+
+    @Override
+    public void checkMethodImpl(MethodImpl method) {
+
+        //Annotations for the returntype
+        processTypeAnnotations(method.getMethodSig().getReturnType());
+
+        //Annotations for the parameteres
+        for (ParamDecl parameter : method.getMethodSig().getParamList()) {
+            for(Annotation annotation : parameter.getAnnotationList()){
+                extractSecrecySafely(parameter.getTypeUse(), annotation); //Helper Function to extract and then check the SecrecyValue
+            }
+        }
+    }
+
+    private void processTypeAnnotations(TypeUse typeUse) {
+        for (Annotation annotation : typeUse.getAnnotationList()) {
+            //System.out.println("Process: " + annotation);
+            extractSecrecySafely(typeUse, annotation);
+        }
+    }
+    
+
     //Extracts the PureExp from an Annotation after running the checkSecrecyAnnotationCheck it extracts the value and adds it as metadata to the node
-    private void extractAnnotationSafely(TypeUse typeU, Annotation annotation) {
+    private void extractSecrecySafely(TypeUse typeU, Annotation annotation) {
 
         if (annotation instanceof TypedAnnotation typedAnnotation) {
 
