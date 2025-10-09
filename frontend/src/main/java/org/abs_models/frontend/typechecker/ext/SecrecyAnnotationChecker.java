@@ -31,11 +31,13 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
 
         for (MethodSig sig : decl.getBodyList()) {
 
+            //Annotations for the returntype
             processTypeAnnotations(sig.getReturnType());
 
+            //Annotations for the parameters
             for (ParamDecl parameter : sig.getParamList()) {
                 for(Annotation annotation : parameter.getAnnotationList()){
-                    extractSecrecySafely(parameter.getTypeUse(), annotation); //Helper Function to extract and then check the SecrecyValue
+                    extractSecrecySafely(parameter.getTypeUse(), annotation);
                 }
             }
         }
@@ -43,6 +45,7 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
 
     @Override
     public void checkClassDecl(ClassDecl decl) {
+        //Annotations for the fields of a class
         for(FieldDecl fieldDecl : decl.getFields()) {
             processTypeAnnotations(fieldDecl.getTypeUse());
         }
@@ -53,9 +56,9 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
 
         VarOrFieldDecl varDecl = varDeclStmt.getVarDecl();
 
+        //Annotations for methodvariables
         if(varDecl instanceof TypedVarOrFieldDecl typedVar) {
             for(Annotation annotation : varDeclStmt.getAnnotationList()) {
-                //System.out.println(annotation);
                 extractSecrecySafely(typedVar.getTypeUse(), annotation);
             }
         }
@@ -75,9 +78,11 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
         }
     }
 
+    //TODO: add rules here
+
     private void processTypeAnnotations(TypeUse typeUse) {
         for (Annotation annotation : typeUse.getAnnotationList()) {
-            //System.out.println("Process: " + annotation);
+            //System.out.println("ProcessAnnotation: " + annotation);
             extractSecrecySafely(typeUse, annotation);
         }
     }
@@ -107,7 +112,7 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
                     int level = Integer.parseInt(intLit.getContent());
 
                     typeU.getType().addMetaData("Secrecy", level); //Add to metadata of the node
-                    System.out.println(typeU.getType().getMetaData("Secrecy")); //Check if it got attached right
+                    System.out.println("Metadata, Secrecy:" + typeU.getType().getMetaData("Secrecy")); //Check if it got attached right
                 }
             }
 
