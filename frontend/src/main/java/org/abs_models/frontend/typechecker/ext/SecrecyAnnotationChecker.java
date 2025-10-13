@@ -5,7 +5,7 @@
  */
 package org.abs_models.frontend.typechecker.ext;
 
-
+import java.util.HashMap;
 import org.abs_models.frontend.analyser.AnnotationHelper;
 import org.abs_models.frontend.analyser.ErrorMessage;
 import org.abs_models.frontend.analyser.TypeError;
@@ -17,79 +17,115 @@ import org.abs_models.frontend.typechecker.ext.AdaptDirection;
 
 public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
 
+    private HashMap<String,Integer> _secrecy = new HashMap<>();
+
     protected SecrecyAnnotationChecker(Model m) {
         super(m);
     }
 
     //Classes of annotations
-    // 1 return types of methods
-    // 2 parameters
-    // 3 fields
+    // 1 return types of methods : return_methodName
+    // 2 parameters of methods   : parameterName_methodName
+    // 3 fields                  : variablename
 
     @Override
-    public void checkInterfaceDecl(InterfaceDecl decl) {
+    public void checkModel(Model model) {
+        for (CompilationUnit cu : model.getCompilationUnits()) {
+            for (ModuleDecl moduleDecl : cu.getModuleDecls()) {
+                for (Decl decl : moduleDecl.getDecls()) {
+                    if (decl instanceof ClassDecl classDecl) {
 
-        for (MethodSig sig : decl.getBodyList()) {
+                        //Extract field annotations and store them to the secrecy hashmap
+                        for(FieldDecl fieldDecl : classDecl.getFields()) {
 
-            //Annotations for the returntype
-            processTypeAnnotations(sig.getReturnType());
+                            String name = fieldDecl.getName();
+                            
+                            processTypeAnnotations(fieldDecl.getTypeUse(), name);
+                            
+                        }
 
-            //Annotations for the parameters
-            for (ParamDecl parameter : sig.getParamList()) {
-                for(Annotation annotation : parameter.getAnnotationList()){
-                    extractSecrecySafely(parameter.getTypeUse(), annotation);
+                        //Extracts the annotation for methods of the class for their return values and their parameters
+                        for (MethodImpl method : classDecl.getMethods()) {
+                            
+                            getAnnotationsForMethodSig(method.getMethodSig());               
+
+                            //Here are the checks for the Stmts
+                            Block block = method.getBlock();
+
+                            for (Stmt stmt : block.getStmtList()) {
+
+                                if (stmt instanceof AssignStmt assignStmt) {
+
+                                    Exp rightSide = assignStmt.getValue();
+
+                                    if(_secrecy.get(assignStmt.getVar().getName()) != null) {
+                                        Integer LHSsecLevel = _secrecy.get(assignStmt.getVar().getName());
+                                        //System.out.println("LHS: " + LHSsecLevel);
+
+                                        if (rightSide instanceof VarOrFieldUse varUse) {
+
+                                            if(_secrecy.get(varUse.getName()) != null) {
+                                                Integer RHSsecLevel = _secrecy.get(varUse.getName());
+                                                //System.out.println("RHS: " + RHSsecLevel);
+
+                                                if(LHSsecLevel < RHSsecLevel) {
+                                                    System.out.println("ERROR: LEAKAGE FOUND " + varUse.getName() + " TO " + assignStmt.getVar().getName());
+                                                }
+                                            }
+                                        }
+                                    }
+
+                                } else if (stmt instanceof VarDeclStmt varDeclStmt) {
+                                    
+                                    VarOrFieldDecl varDecl = varDeclStmt.getVarDecl();
+                                    
+                                    //Annotations for variables in methods
+                                    if(varDecl instanceof TypedVarOrFieldDecl typedVar) {
+                                        for(Annotation annotation : varDeclStmt.getAnnotationList()) {
+                                            extractSecrecySafely(typedVar.getTypeUse(), annotation, varDecl.getName());
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                    } else if (decl instanceof InterfaceDecl interfaceDecl) {
+                        for (MethodSig methodSig : interfaceDecl.getBodyList()) {
+                            getAnnotationsForMethodSig(methodSig);
+                        }
+                    }
                 }
             }
         }
+        System.out.println(_secrecy.toString());
     }
 
-    @Override
-    public void checkClassDecl(ClassDecl decl) {
-        //Annotations for the fields of a class
-        for(FieldDecl fieldDecl : decl.getFields()) {
-            processTypeAnnotations(fieldDecl.getTypeUse());
-        }
-    }
+    private void getAnnotationsForMethodSig(MethodSig methodSig) {
 
-    @Override
-    public void checkVarDeclStmt(VarDeclStmt varDeclStmt) {
+        //Extracts for the return value
+        String methodName = methodSig.getName();
+        String returnTypeName = "return_" + methodName;
+        processTypeAnnotations(methodSig.getReturnType(), returnTypeName);
 
-        VarOrFieldDecl varDecl = varDeclStmt.getVarDecl();
-
-        //Annotations for methodvariables
-        if(varDecl instanceof TypedVarOrFieldDecl typedVar) {
-            for(Annotation annotation : varDeclStmt.getAnnotationList()) {
-                extractSecrecySafely(typedVar.getTypeUse(), annotation);
+        //Extracts for the parameters
+        for(ParamDecl parameter : methodSig.getParamList()) {
+            for(Annotation annotation : parameter.getAnnotationList()) {
+                String parameterName = parameter.getName() + "_" + methodName;
+                extractSecrecySafely(parameter.getTypeUse(), annotation, parameterName);
             }
         }
     }
 
-    @Override
-    public void checkMethodImpl(MethodImpl method) {
-
-        //Annotations for the returntype
-        processTypeAnnotations(method.getMethodSig().getReturnType());
-
-        //Annotations for the parameteres
-        for (ParamDecl parameter : method.getMethodSig().getParamList()) {
-            for(Annotation annotation : parameter.getAnnotationList()){
-                extractSecrecySafely(parameter.getTypeUse(), annotation); //Helper Function to extract and then check the SecrecyValue
-            }
-        }
-    }
-
-    //TODO: add rules here
-
-    private void processTypeAnnotations(TypeUse typeUse) {
+    private void processTypeAnnotations(TypeUse typeUse, String variablename) {
         for (Annotation annotation : typeUse.getAnnotationList()) {
             //System.out.println("ProcessAnnotation: " + annotation);
-            extractSecrecySafely(typeUse, annotation);
+            extractSecrecySafely(typeUse, annotation, variablename);
         }
     }
     
 
-    //Extracts the PureExp from an Annotation after running the checkSecrecyAnnotationCheck it extracts the value and adds it as metadata to the node
-    private void extractSecrecySafely(TypeUse typeU, Annotation annotation) {
+    //Extracts the PureExp from an Annotation after running the checkSecrecyAnnotationCheck it extracts the value and stores the metadata in the _secrecy Hashmap
+    private void extractSecrecySafely(TypeUse typeU, Annotation annotation, String variablename) {
 
         if (annotation instanceof TypedAnnotation typedAnnotation) {
 
@@ -111,8 +147,7 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
 
                     int level = Integer.parseInt(intLit.getContent());
 
-                    typeU.getType().addMetaData("Secrecy", level); //Add to metadata of the node
-                    System.out.println("Metadata, Secrecy:" + typeU.getType().getMetaData("Secrecy")); //Check if it got attached right
+                    _secrecy.put(variablename, level);
                 }
             }
 
