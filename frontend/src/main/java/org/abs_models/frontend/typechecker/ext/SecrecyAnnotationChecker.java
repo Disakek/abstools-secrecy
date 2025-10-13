@@ -28,6 +28,7 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
     // 2 parameters of methods   : parameterName_methodName
     // 3 fields                  : variablename
 
+    //TODO: MISSING IF I ASSIGN A SECRECY VALUE THERE MIGHT ALREADY BE ONE (OVERWRITING)!!!!
     @Override
     public void checkModel(Model model) {
         for (CompilationUnit cu : model.getCompilationUnits()) {
@@ -39,7 +40,6 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
                         for(FieldDecl fieldDecl : classDecl.getFields()) {
 
                             String name = fieldDecl.getName();
-                            
                             processTypeAnnotations(fieldDecl.getTypeUse(), name);
                             
                         }
@@ -60,13 +60,11 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
 
                                     if(_secrecy.get(assignStmt.getVar().getName()) != null) {
                                         Integer LHSsecLevel = _secrecy.get(assignStmt.getVar().getName());
-                                        //System.out.println("LHS: " + LHSsecLevel);
 
                                         if (rightSide instanceof VarOrFieldUse varUse) {
 
                                             if(_secrecy.get(varUse.getName()) != null) {
                                                 Integer RHSsecLevel = _secrecy.get(varUse.getName());
-                                                //System.out.println("RHS: " + RHSsecLevel);
 
                                                 if(LHSsecLevel < RHSsecLevel) {
                                                     System.out.println("ERROR: LEAKAGE FOUND " + varUse.getName() + " TO " + assignStmt.getVar().getName());
@@ -148,6 +146,8 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
                     int level = Integer.parseInt(intLit.getContent());
 
                     _secrecy.put(variablename, level);
+
+                    System.out.println("Metadata,Secrecy: " + level);
                 }
             }
 
@@ -157,7 +157,6 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
     // Checks that the input secrecy is a number and that it is not null
     // TODO: remove the option to set the secrecy to 0 (assume / set this as base value later)
     private void checkSecrecyAnnotationCorrect(ASTNode<?> n, PureExp secrecy) {
-        //System.out.println("Called Secrecy Correct");
         if (secrecy == null) return;
         secrecy.typeCheck(errors);
         if (!secrecy.getType().isNumericType()) {
