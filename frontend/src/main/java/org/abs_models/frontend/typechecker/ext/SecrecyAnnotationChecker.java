@@ -47,6 +47,8 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
                         //Extracts the annotation for methods of the class for their return values and their parameters
                         for (MethodImpl method : classDecl.getMethods()) {
                             
+                            //System.out.println("ClassDecl");
+
                             getAnnotationsForMethodSig(method.getMethodSig());               
 
                             //Here are the checks for the Stmts
@@ -88,6 +90,7 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
                         }
 
                     } else if (decl instanceof InterfaceDecl interfaceDecl) {
+                        //System.out.println("InterfaceDecl");
                         for (MethodSig methodSig : interfaceDecl.getBodyList()) {
                             getAnnotationsForMethodSig(methodSig);
                         }
@@ -144,6 +147,10 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
                 if (otherChild.toString().equals("Secrecy")) {
 
                     int level = Integer.parseInt(intLit.getContent());
+
+                    if(_secrecy.get(variablename) != null) {
+                        System.out.println("Overwrite");
+                    }
 
                     _secrecy.put(variablename, level);
 

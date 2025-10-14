@@ -107,3 +107,28 @@ In addition, a TA keeps track of the SPL products that it represents. A TA will 
 #### The Delta Trie
 
 The _Product Family Generation Trie (PFGT)_ is built by `ProductLineTypeAnalysisHelper.buildPFGT(..)`. Essentially, for each valid feature combination defined by the feature model (i.e. the products of the SPL -- represented as `ImplicitProduct` AST nodes), a type abstraction is built and stored in a trie data structure. 
+
+#### Extending the Annotation Type System
+
+This is a short inoffical explanation of how you can plugin your own annotation type into the system.
+(Note: This explanation is oriented on the Secrecy TypeAnnotation but should be general enough to be transferable)
+
+1.Add the Type/Type Synonym
+
+First you need to add your new Type/TypedAnnotation/Type Synonym to the abslang.abs. Also make sure to export it properly.
+To figure out which one you need and how you can export it you can have look at size/cost/Secrecy for comparison.
+
+2.Register your new NewTypeAnnotationChecker.java
+
+In the frontend/typechecker/ext add your NewTypeAnnotationChecker.java file also add the class base. If wanted/needed you can extend from the DefaultTypeSystemExtension.java.
+Then register you new checker in the TypeExtensionHelper.java in the same folder.
+
+3.Implementing the typerules
+
+To implement different rules for your Type have a look at the DefaultTypeSystemExtension.java or its basis the TypeSystemExtension.java.
+Here you can find different methods that can be implemented which can make your addition faster and easier.
+
+4.(Extra about the Secrecy Example)
+
+Since Secrecy is special in it's own way and needs the AST to be handled top to botton in order of appearance for the nodes it required it's own implementation of the checkModel() method.
+Depending on what you are trying to add it might be easier to do the same.
