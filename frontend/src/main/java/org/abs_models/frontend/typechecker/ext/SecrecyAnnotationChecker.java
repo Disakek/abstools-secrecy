@@ -5,11 +5,14 @@
  */
 package org.abs_models.frontend.typechecker.ext;
 
+import java.util.HashSet;
+import java.util.Set;
 import java.util.HashMap;
 import org.abs_models.frontend.analyser.AnnotationHelper;
 import org.abs_models.frontend.analyser.ErrorMessage;
 import org.abs_models.frontend.analyser.TypeError;
 import org.abs_models.frontend.ast.*;
+import org.abs_models.frontend.ast.DeltaDecl;
 import org.abs_models.frontend.typechecker.Type;
 import org.abs_models.frontend.typechecker.TypeAnnotation;
 import org.abs_models.frontend.typechecker.ext.DefaultTypeSystemExtension;
@@ -17,10 +20,26 @@ import org.abs_models.frontend.typechecker.ext.AdaptDirection;
 
 public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
 
-    private HashMap<String,Integer> _secrecy = new HashMap<>();
+    private HashMap<String,String> _secrecy = new HashMap<>();
+
+    // Store all known secrecy levels
+    private Set<String> _secrecyLevels = new HashSet<>();
+
+    //Store the order for the levels
+    private HashMap<String, Set<String>> _latticeOrder = new HashMap<>();
+
+    //Keeps track whether we have a custom lattice input or not
+    private boolean custom_lattice = false;
 
     protected SecrecyAnnotationChecker(Model m) {
         super(m);
+
+        // Define ordering
+        // Each key maps to the set of levels it is *less than or equal to* (upper bounds)
+        // For example: Low < High, High <= High, Low <= Low
+        _latticeOrder.put("Low", Set.of("High"));
+        _latticeOrder.put("High", Set.of());
+
     }
 
     //Classes of annotations
@@ -29,11 +48,39 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
     // 3 fields                  : variablename
 
     //TODO: MISSING IF I ASSIGN A SECRECY VALUE THERE MIGHT ALREADY BE ONE (OVERWRITING)!!!!
+    //TODO: MISSING LATTICE AND IT'S ORDER NOT AS INPUT SO FAR (tried it with delta doesn't work well so far)
     @Override
     public void checkModel(Model model) {
         for (CompilationUnit cu : model.getCompilationUnits()) {
+
+            for(DeltaDecl deltaDecl : cu.getDeltaDecls()){
+
+                List<ModuleModifier> modifications = deltaDecl.getModuleModifierList();
+
+                for (ModuleModifier modifier : modifications) {
+                    if(modifier instanceof ModifyDataTypeModifier dataTypeModifier) {
+
+                        DataTypeDecl dataType = dataTypeModifier.getDataTypeDecl();
+                        
+                        if(dataType.getName().equals("Secrecy")) {
+                            for (DataConstructor cons : dataType.getDataConstructors()) {
+                                _secrecyLevels.add(cons.getName()); // Extracts the user definde lattice levels from modifier
+                                custom_lattice = true;
+                            }
+                        }
+                    }
+                }
+            }
+
+            if(!custom_lattice) {
+                _secrecyLevels.add("Low");
+                _secrecyLevels.add("High");
+            }
+
             for (ModuleDecl moduleDecl : cu.getModuleDecls()) {
+
                 for (Decl decl : moduleDecl.getDecls()) {
+
                     if (decl instanceof ClassDecl classDecl) {
 
                         //Extract field annotations and store them to the secrecy hashmap
@@ -46,9 +93,7 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
 
                         //Extracts the annotation for methods of the class for their return values and their parameters
                         for (MethodImpl method : classDecl.getMethods()) {
-                            
-                            //System.out.println("ClassDecl");
-
+                    
                             getAnnotationsForMethodSig(method.getMethodSig());               
 
                             //Here are the checks for the Stmts
@@ -61,15 +106,21 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
                                     Exp rightSide = assignStmt.getValue();
 
                                     if(_secrecy.get(assignStmt.getVar().getName()) != null) {
-                                        Integer LHSsecLevel = _secrecy.get(assignStmt.getVar().getName());
+                                        
+                                        String  LHSsecLevel = _secrecy.get(assignStmt.getVar().getName());
 
                                         if (rightSide instanceof VarOrFieldUse varUse) {
 
                                             if(_secrecy.get(varUse.getName()) != null) {
-                                                Integer RHSsecLevel = _secrecy.get(varUse.getName());
+                                                
+                                                String RHSsecLevel = _secrecy.get(varUse.getName());
+                                                
+                                                Set<String> LHScontainedIn = _latticeOrder.get(LHSsecLevel);
 
-                                                if(LHSsecLevel < RHSsecLevel) {
+                                                if(!LHScontainedIn.contains(RHSsecLevel)) {
                                                     System.out.println("ERROR: LEAKAGE FOUND " + varUse.getName() + " TO " + assignStmt.getVar().getName());
+                                                } else {
+                                                    System.out.println("No error"); //TODO: remove ultimatly
                                                 }
                                             }
                                         }
@@ -98,7 +149,10 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
                 }
             }
         }
-        System.out.println(_secrecy.toString());
+
+        System.out.println("Print annotated Values: " + _secrecy.toString());
+        System.out.println("Print all Levels: " + _secrecyLevels.toString());
+        System.out.println("Print the order" + _latticeOrder.toString());
     }
 
     private void getAnnotationsForMethodSig(MethodSig methodSig) {
@@ -130,45 +184,24 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
 
         if (annotation instanceof TypedAnnotation typedAnnotation) {
 
-            PureExp secrecy = typedAnnotation.getValue(); // Extract the value safely
+            ASTNode<?> valueNode = annotation.getChild(0); // value
+            ASTNode<?> nameNode  = annotation.getChild(1); // name
 
-            checkSecrecyAnnotationCorrect(typeU, secrecy);
-        }
+            if (nameNode.toString().equals("Secrecy") && valueNode instanceof DataConstructorExp dataConExp) {
+           
+                String levelName = dataConExp.getConstructor(); 
 
-        for (int i = 0; i < annotation.getNumChild(); i++) {
-                ASTNode<?> child = annotation.getChild(i);
+                if(_secrecy.get(variablename) != null)System.out.println("Overwrite");
 
-            if (child instanceof IntLiteral intLit) {
-            
-            // Look at the other child to ensure it's a Secrecy annotation
-            
-            ASTNode<?> otherChild = annotation.getChild(1 - i); // the child that is not intLit
-
-                if (otherChild.toString().equals("Secrecy")) {
-
-                    int level = Integer.parseInt(intLit.getContent());
-
-                    if(_secrecy.get(variablename) != null) {
-                        System.out.println("Overwrite");
-                    }
-
-                    _secrecy.put(variablename, level);
-
-                    System.out.println("Metadata,Secrecy: " + level);
+                if (_secrecyLevels.contains(levelName)) {
+                    _secrecy.put(variablename, levelName);
+                    System.out.println("Metadata,Secrecy: " + levelName);
+                } else {
+                    System.out.println("ERROR: INVALID SECRECY LATTICE");
+                    System.out.println(levelName + " NOT FOUND");
                 }
             }
-
         }
     }
 
-    // Checks that the input secrecy is a number and that it is not null
-    // TODO: remove the option to set the secrecy to 0 (assume / set this as base value later)
-    private void checkSecrecyAnnotationCorrect(ASTNode<?> n, PureExp secrecy) {
-        if (secrecy == null) return;
-        secrecy.typeCheck(errors);
-        if (!secrecy.getType().isNumericType()) {
-            errors.add(new TypeError(n, ErrorMessage.WRONG_SECRECY_ANNOTATION_TYPE,
-                                     secrecy.getType().getQualifiedName()));
-        }
-    }
 }
