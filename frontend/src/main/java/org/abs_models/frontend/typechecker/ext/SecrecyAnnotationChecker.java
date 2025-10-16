@@ -34,8 +34,7 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
     protected SecrecyAnnotationChecker(Model m) {
         super(m);
 
-        // Define ordering
-        // Each key maps to the set of levels it is *less than or equal to* (upper bounds)
+        // Define ordering each key maps to the set of levels it is *less than or equal to* (upper bounds)
         // For example: Low < High, High <= High, Low <= Low
         _latticeOrder.put("Low", Set.of("High"));
         _latticeOrder.put("High", Set.of());
@@ -48,30 +47,12 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
     // 3 fields                  : variablename
 
     //TODO: MISSING IF I ASSIGN A SECRECY VALUE THERE MIGHT ALREADY BE ONE (OVERWRITING)!!!!
-    //TODO: MISSING LATTICE AND IT'S ORDER NOT AS INPUT SO FAR (tried it with delta doesn't work well so far)
+    //TODO: MISSING LATTICE AND IT'S ORDER AS USERINPUT NEEDS IMPLEMENTATION STEPS
     @Override
     public void checkModel(Model model) {
         for (CompilationUnit cu : model.getCompilationUnits()) {
 
-            for(DeltaDecl deltaDecl : cu.getDeltaDecls()){
-
-                List<ModuleModifier> modifications = deltaDecl.getModuleModifierList();
-
-                for (ModuleModifier modifier : modifications) {
-                    if(modifier instanceof ModifyDataTypeModifier dataTypeModifier) {
-
-                        DataTypeDecl dataType = dataTypeModifier.getDataTypeDecl();
-                        
-                        if(dataType.getName().equals("Secrecy")) {
-                            for (DataConstructor cons : dataType.getDataConstructors()) {
-                                _secrecyLevels.add(cons.getName()); // Extracts the user definde lattice levels from modifier
-                                custom_lattice = true;
-                            }
-                        }
-                    }
-                }
-            }
-
+           //TODO: remove this and rewrite it together with my new input option
             if(!custom_lattice) {
                 _secrecyLevels.add("Low");
                 _secrecyLevels.add("High");
