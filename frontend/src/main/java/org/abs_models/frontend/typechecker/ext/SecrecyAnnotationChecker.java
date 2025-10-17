@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2009-2011, The HATS Consortium. All rights reserved. 
  * This file is licensed under the terms of the Modified BSD License.
- * Written by @Disakek for questions please refer to uukln@student.kit.edu
+ * Written by @Maximilian_Paul for questions please refer to uukln@student.kit.edu
  */
 package org.abs_models.frontend.typechecker.ext;
 
@@ -12,7 +12,6 @@ import org.abs_models.frontend.analyser.AnnotationHelper;
 import org.abs_models.frontend.analyser.ErrorMessage;
 import org.abs_models.frontend.analyser.TypeError;
 import org.abs_models.frontend.ast.*;
-import org.abs_models.frontend.ast.DeltaDecl;
 import org.abs_models.frontend.typechecker.Type;
 import org.abs_models.frontend.typechecker.TypeAnnotation;
 import org.abs_models.frontend.typechecker.ext.DefaultTypeSystemExtension;
@@ -28,17 +27,23 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
     //Store the order for the levels
     private HashMap<String, Set<String>> _latticeOrder = new HashMap<>();
 
-    //Keeps track whether we have a custom lattice input or not
-    private boolean custom_lattice = false;
-
     protected SecrecyAnnotationChecker(Model m) {
         super(m);
 
-        // Define ordering each key maps to the set of levels it is *less than or equal to* (upper bounds)
-        // For example: Low < High, High <= High, Low <= Low
-        _latticeOrder.put("Low", Set.of("High"));
-        _latticeOrder.put("High", Set.of());
+        if (m.secrecyExtension != null) {
 
+            SecrecyExtension userInput = m.secrecyExtension;
+            _secrecyLevels = new HashSet<>(userInput.getSecrecyLevels());
+            _latticeOrder = new HashMap<>(userInput.getLatticeOrder());
+        
+        } else {
+            //Default if there is no user input for --secrecy
+            //Levels: Low, High and Order: Low < High
+            _secrecyLevels.add("Low");
+            _secrecyLevels.add("High");
+            _latticeOrder.put("Low", Set.of("High"));
+            _latticeOrder.put("High", Set.of());
+        }
     }
 
     //Classes of annotations
@@ -47,16 +52,9 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
     // 3 fields                  : variablename
 
     //TODO: MISSING IF I ASSIGN A SECRECY VALUE THERE MIGHT ALREADY BE ONE (OVERWRITING)!!!!
-    //TODO: MISSING LATTICE AND IT'S ORDER AS USERINPUT NEEDS IMPLEMENTATION STEPS
     @Override
     public void checkModel(Model model) {
         for (CompilationUnit cu : model.getCompilationUnits()) {
-
-           //TODO: remove this and rewrite it together with my new input option
-            if(!custom_lattice) {
-                _secrecyLevels.add("Low");
-                _secrecyLevels.add("High");
-            }
 
             for (ModuleDecl moduleDecl : cu.getModuleDecls()) {
 
@@ -99,9 +97,7 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
                                                 Set<String> LHScontainedIn = _latticeOrder.get(LHSsecLevel);
 
                                                 if(!LHScontainedIn.contains(RHSsecLevel)) {
-                                                    System.out.println("ERROR: LEAKAGE FOUND " + varUse.getName() + " TO " + assignStmt.getVar().getName());
-                                                } else {
-                                                    System.out.println("No error"); //TODO: remove ultimatly
+                                                    errors.add(new TypeError(assignStmt, ErrorMessage.SECRECY_LEAKAGE_ERROR, LHSsecLevel, varUse.getName(), RHSsecLevel, assignStmt.getVar().getName()));
                                                 }
                                             }
                                         }
@@ -178,8 +174,7 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
                     _secrecy.put(variablename, levelName);
                     System.out.println("Metadata,Secrecy: " + levelName);
                 } else {
-                    System.out.println("ERROR: INVALID SECRECY LATTICE");
-                    System.out.println(levelName + " NOT FOUND");
+                    errors.add(new TypeError(annotation, ErrorMessage.WRONG_SECRECY_ANNOTATION_VALUE, levelName));
                 }
             }
         }

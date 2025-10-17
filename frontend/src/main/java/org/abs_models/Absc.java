@@ -265,14 +265,6 @@ public class Absc implements Callable<Integer> {
      * @param args
      */
     public static void main(String[] args) {
-
-        //TODO: remove from here up to 
-        Absc options = CommandLine.populateCommand(new Absc(), args);
-        if (options.secrecyLattice != null) {
-            System.out.println("Using secrecy lattice: " + options.secrecyLattice);
-        }
-        //TODO: up to here the things below need to be there
-
         int exitCode = new CommandLine(new Absc()).execute(args);
         if (exitCode != 0) System.exit(exitCode);
     }

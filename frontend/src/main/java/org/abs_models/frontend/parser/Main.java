@@ -17,6 +17,9 @@ import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.jar.JarEntry;
+import java.util.HashMap;
+import java.util.Set;
+import java.util.HashSet;
 
 import org.abs_models.Absc;
 import org.abs_models.backend.autodeploy.Tester;
@@ -54,6 +57,7 @@ import org.abs_models.frontend.delta.DeltaModellingException;
 import org.abs_models.frontend.typechecker.locationtypes.LocationType;
 import org.abs_models.frontend.typechecker.locationtypes.LocationTypeInferenceExtension;
 import org.abs_models.frontend.typechecker.nullable.NullCheckerExtension;
+import org.abs_models.frontend.typechecker.ext.SecrecyExtension;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CommonTokenStream;
@@ -226,6 +230,12 @@ public class Main {
             return;
         }
 
+        //Adds parsing for the --secrecy option and makes it usable via the model
+        if (arguments.secrecyLattice != null) {
+            SecrecyExtension secrecyInput = parseSecrecyInput(arguments.secrecyLattice);
+            m.secrecyExtension = secrecyInput;
+        }
+
         m.evaluateAllProductDeclarations(); // resolve ProductExpressions to simple sets of features
         rewriteModel(m, arguments.product);
         m.flattenTraitOnly();
@@ -263,6 +273,80 @@ public class Main {
             typeCheckModel(m);
         }
     }
+
+    /**
+    * @author Maximilian Paul
+    *
+    */
+    private SecrecyExtension parseSecrecyInput(String inputString) {
+
+        Set<String> levels = new HashSet<>();
+        HashMap<String, Set<String>> order = new HashMap<>();
+        String[] relations = inputString.split(",");
+
+        for (String relation : relations) {
+            relation = relation.trim();
+            if (relation.isEmpty()) continue;
+
+            String[] parts = relation.split("<");
+            if (parts.length < 2) {
+                throw new IllegalArgumentException("Invalid secrecy input just one secrecy level!");
+            }
+
+            for (String level : parts) {
+                level = level.trim();
+                if (level.isEmpty()) {
+                    throw new IllegalArgumentException("Secrecy level cannot be empty in!");
+                }
+                levels.add(level);
+                order.putIfAbsent(level, new HashSet<>());
+            }
+
+
+            // Adds direct order from a chain
+            for (int i = 0; i < parts.length - 1; i++) {
+                String lower = parts[i].trim();
+                for (int j = i + 1; j < parts.length; j++) {
+                    String higher = parts[j].trim();
+
+                    if (lower.equals(higher)) {
+                        throw new IllegalArgumentException("Secrecy level cannot point to itself: " + lower + " < " + higher);
+                    }
+
+                    order.get(lower).add(higher);
+                }
+            }
+
+            // Computes the transitive edges for all levels
+            for (String level : order.keySet()) {
+                Set<String> toProcess = new HashSet<>(order.get(level));
+                Set<String> seen = new HashSet<>();
+
+                while (!toProcess.isEmpty()) {
+                    Set<String> next = new HashSet<>();
+                    for (String higher : toProcess) {
+                        if (seen.add(higher)) {
+
+                            if (level.equals(higher)) {
+                                throw new IllegalArgumentException("Secrecy level cannot point to itself: " + level + " < " + higher);
+                            }
+
+                            order.get(level).add(higher);
+                            next.addAll(order.get(higher));
+                        }
+                    }
+                    toProcess = next;
+                }
+            }
+        }
+
+        if (levels.isEmpty()) {
+            throw new IllegalArgumentException("No secrecy levels input found!");
+        }
+
+        return new SecrecyExtension(levels, order);
+    }
+
 
     /**
      * Perform various rewrites that cannot be done in JastAdd.

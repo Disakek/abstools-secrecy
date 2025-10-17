@@ -654,7 +654,7 @@ type Critical = Bool;
 data Annotation = TypeAnnotation;
 
 [TypeAnnotation]
-data Secrecy = Low | High;
+data Secrecy;
 
 [TypeAnnotation]
 data LocationType = Far | Near | Somewhere | Infer;
