@@ -1,0 +1,18 @@
+
+aspect VisitorAdd {
+  public void Stmt.accept(SecrecyStmtVisitor v) { 
+    v.visit(this); 
+  }
+
+  @Override
+  public void AssignStmt.accept(SecrecyStmtVisitor v) { 
+    v.visit(this); 
+  }
+
+  @Override
+  public void ReturnStmt.accept(SecrecyStmtVisitor v) { 
+    v.visit(this); 
+  }
+}
+
+//TODO: add all stmt's here

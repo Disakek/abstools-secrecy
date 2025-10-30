@@ -17,33 +17,33 @@ import org.abs_models.frontend.typechecker.Type;
 import org.abs_models.frontend.typechecker.TypeAnnotation;
 import org.abs_models.frontend.typechecker.ext.DefaultTypeSystemExtension;
 import org.abs_models.frontend.typechecker.ext.AdaptDirection;
+import org.abs_models.frontend.typechecker.ext.SecrecyStmtVisitor;
 
 public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
 
+    //TODO: this probably should not safe the secrecy values as string but as objects
     private HashMap<String,String> _secrecy = new HashMap<>();
 
-    // Store all known secrecy levels
+    //TODO: get rid of by implementing what I might need to the SecrecyExtention
     private Set<String> _secrecyLevels = new HashSet<>();
-
-    //Store the order for the levels
     private HashMap<String, Set<String>> _latticeOrder = new HashMap<>();
+
+    SecrecyExtension secrecyLatticeStructure;
+
+    //TODO: get rid of by using objects for the variables & interface/implementation of methods
+    private final String classMethodName = "methodImp";
+    private final String interfaceMethodName = "methodIfc";
 
     protected SecrecyAnnotationChecker(Model m) {
         super(m);
 
         if (m.secrecyExtension != null) {
 
+            secrecyLatticeStructure = m.secrecyExtension;
+
             SecrecyExtension userInput = m.secrecyExtension;
             _secrecyLevels = new HashSet<>(userInput.getSecrecyLevels());
             _latticeOrder = new HashMap<>(userInput.getLatticeOrder());
-        
-        } else {
-            //Default if there is no user input for --secrecy
-            //Levels: Low, High and Order: Low < High
-            _secrecyLevels.add("Low");
-            _secrecyLevels.add("High");
-            _latticeOrder.put("Low", Set.of("High"));
-            _latticeOrder.put("High", Set.of());
         }
     }
 
@@ -51,10 +51,11 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
     // 1 return types of methods : return_methodName_{methodImpl | methDecl}
     // 2 parameters of methods   : parameterName_methodName_{methodImpl | methDecl}
     // 3 fields                  : variablename
-
-    //TODO: MISSING IF I ASSIGN A SECRECY VALUE THERE MIGHT ALREADY BE ONE (OVERWRITING)!!!!
     @Override
     public void checkModel(Model model) {
+
+        //TODO: FirstExtractionPassPhase
+
         for (CompilationUnit cu : model.getCompilationUnits()) {
 
             for (ModuleDecl moduleDecl : cu.getModuleDecls()) {
@@ -65,47 +66,19 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
                         
                         //Extract field annotations and store them to the secrecy hashmap
                         for(FieldDecl fieldDecl : classDecl.getFields()) {
-
                             String name = fieldDecl.getName();
                             processTypeAnnotations(fieldDecl.getTypeUse(), name);
-                            
                         }
 
                         //Extracts the annotation for methods of the class for their return values and their parameters
                         for (MethodImpl method : classDecl.getMethods()) {
+                            getAnnotationsForMethodSig(method.getMethodSig(), classMethodName + "_" +classDecl.getName());               
 
-                            //TODO: ADD A CHECK IF IT IMPLEMENTS AN INTERFACE IF SO -> CHECK NOT EXTRACT
-                            getAnnotationsForMethodSig(method.getMethodSig());               
-
-                            //Here are the checks for the Stmts
                             Block block = method.getBlock();
 
                             for (Stmt stmt : block.getStmtList()) {
 
-                                if (stmt instanceof AssignStmt assignStmt) {
-
-                                    Exp rightSide = assignStmt.getValue();
-
-                                    if(_secrecy.get(assignStmt.getVar().getName()) != null) {
-                                        
-                                        String  LHSsecLevel = _secrecy.get(assignStmt.getVar().getName());
-
-                                        if (rightSide instanceof VarOrFieldUse varUse) {
-
-                                            if(_secrecy.get(varUse.getName()) != null) {
-                                                
-                                                String RHSsecLevel = _secrecy.get(varUse.getName());
-                                                
-                                                Set<String> LHScontainedIn = _latticeOrder.get(LHSsecLevel);
-
-                                                if(!LHScontainedIn.contains(RHSsecLevel)) {
-                                                    errors.add(new TypeError(assignStmt, ErrorMessage.SECRECY_LEAKAGE_ERROR_FROM_TO, LHSsecLevel, varUse.getName(), RHSsecLevel, assignStmt.getVar().getName()));
-                                                }
-                                            }
-                                        }
-                                    }
-
-                                } else if (stmt instanceof VarDeclStmt varDeclStmt) {
+                                if (stmt instanceof VarDeclStmt varDeclStmt) {
                                     
                                     VarOrFieldDecl varDecl = varDeclStmt.getVarDecl();
                                     
@@ -120,9 +93,42 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
                         }
 
                     } else if (decl instanceof InterfaceDecl interfaceDecl) {
-                        //System.out.println("InterfaceDecl");
                         for (MethodSig methodSig : interfaceDecl.getBodyList()) {
-                            getAnnotationsForMethodSig(methodSig);
+                            getAnnotationsForMethodSig(methodSig, interfaceMethodName);
+                        }
+                    }
+                }
+            }
+        }
+
+        SecrecyStmtVisitor visitor = new SecrecyStmtVisitor(_secrecy, secrecyLatticeStructure);
+
+        //TODO: SecondTypecheckPassPhase
+        //TODO: add more checks that should be performed
+
+        for (CompilationUnit cu : model.getCompilationUnits()) {
+
+            for (ModuleDecl moduleDecl : cu.getModuleDecls()) {
+
+                for (Decl decl : moduleDecl.getDecls()) {
+
+                    if (decl instanceof ClassDecl classDecl) {
+
+                        for (MethodImpl method : classDecl.getMethods()) {
+
+                            Block block = method.getBlock();
+
+                            for (Stmt stmt : block.getStmtList()) {
+
+                                //TODO: implement the stmt visitors for all possible stmt's
+                                stmt.accept(visitor); 
+
+                            }
+                        }
+
+                    } else if (decl instanceof InterfaceDecl interfaceDecl) {
+                        for (MethodSig methodSig : interfaceDecl.getBodyList()) {
+                            //TODO: deleted extraction here not sure if we have something to check here
                         }
                     }
                 }
@@ -134,28 +140,49 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
         System.out.println("Print the order" + _latticeOrder.toString());
     }
 
+    private void firstExtractionPhasePass(){}
+    private void secondTypecheckPhasePass(){}
 
-    private void getAnnotationsForMethodSig(MethodSig methodSig) {
+
+    private void handleAssignCheck(AssignStmt assignStmt) {
+
+        Exp RhsExp = assignStmt.getValue();
+
+        //TODO: Change the way I store the secrecy annotations from string to objects to make it more usable and allow different kinds
+        String  LHSsecLevel = _secrecy.get(assignStmt.getVar().getName());
+
+            //TODO: if it is a variable on the right hand side
+        if (RhsExp instanceof VarOrFieldUse varUse) {
+
+                //TODO: If the right hand side is a variable but doesnt have a secrecy value what do we do?
+            if(_secrecy.get(varUse.getName()) == null)return;
+                                                
+            String RHSsecLevel = _secrecy.get(varUse.getName());
+                                                
+            Set<String> LHScontainedIn = _latticeOrder.get(LHSsecLevel);
+
+            if(!LHScontainedIn.contains(RHSsecLevel)) {
+                errors.add(new TypeError(assignStmt, ErrorMessage.SECRECY_LEAKAGE_ERROR_FROM_TO, LHSsecLevel, varUse.getName(), RHSsecLevel, assignStmt.getVar().getName()));
+            } else {
+                System.out.println("found no errors in values on two sides");
+            }
+        }
+    }
+
+    private void getAnnotationsForMethodSig(MethodSig methodSig, String name) {
 
         if(methodSig.getParent() != null) {
             ASTNode parentNode = methodSig.getParent();
 
-            String parentIs = "";
-
-            if(parentNode instanceof MethodImpl)parentIs = "methodImpl";
-            if(parentNode instanceof List)parentIs = "methDecl";
-
-            //System.out.println(parentIst);
-
             //Extracts for the return value
             String methodName = methodSig.getName();
-            String returnTypeName = "return_" + methodName + "_" + parentIs;
+            String returnTypeName = "return_" + methodName + "_" + name;
             processTypeAnnotations(methodSig.getReturnType(), returnTypeName);
 
             //Extracts for the parameters
             for(ParamDecl parameter : methodSig.getParamList()) {
                 for(Annotation annotation : parameter.getAnnotationList()) {
-                    String parameterName = parameter.getName() + "_" + methodName + "_" + parentIs;
+                    String parameterName = parameter.getName() + "_" + methodName + "_" + name;
                     extractSecrecySafely(parameter.getTypeUse(), annotation, parameterName);
                 }
             }
@@ -190,23 +217,23 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
                     _secrecy.put(variablename, levelName);
                     //System.out.println("Metadata,Secrecy: " + levelName); //TODO: remove print
 
-                    if (variablename.contains("methodImpl")){    
+                    if (variablename.contains(classMethodName)){    
                         String[] parts = variablename.split("_");
-                        String interfaceWouldBe = parts[0] + "_" +parts[1] + "_methDecl";
+                        String InterfaceName = parts[0] + "_" +parts[1] + "_" + interfaceMethodName;
 
-                        if(_secrecy.get(interfaceWouldBe) != null) {
+                        if(_secrecy.get(InterfaceName) != null) {
                         
-                            String interfaceMethodSecrecyLevel = _secrecy.get(interfaceWouldBe);
-                            String implementationMethodSecrecyLevel = _secrecy.get(variablename);
-                            Set<String> setForInterface = _latticeOrder.get(interfaceMethodSecrecyLevel);
+                            String IfcSecrecyVal = _secrecy.get(InterfaceName); //Ifc - Interface
+                            String ImpSecrecyVal = _secrecy.get(variablename); //Imp - Implementation
+                            Set<String> setForInterface = _latticeOrder.get(IfcSecrecyVal);
 
                             if(variablename.contains("return")){
-                                if(!interfaceMethodSecrecyLevel.equals(implementationMethodSecrecyLevel) && !(setForInterface.contains(implementationMethodSecrecyLevel))) {
-                                    errors.add(new TypeError(annotation, ErrorMessage.SECRECY_LEAKAGE_ERROR_AT_LEAST, interfaceMethodSecrecyLevel, implementationMethodSecrecyLevel));
+                                if(!IfcSecrecyVal.equals(ImpSecrecyVal) && !(setForInterface.contains(ImpSecrecyVal))) {
+                                    errors.add(new TypeError(annotation, ErrorMessage.SECRECY_LEAKAGE_ERROR_AT_LEAST, IfcSecrecyVal, ImpSecrecyVal));
                                 }
                             } else {
-                                if(!interfaceMethodSecrecyLevel.equals(implementationMethodSecrecyLevel) && setForInterface.contains(implementationMethodSecrecyLevel)) {
-                                    errors.add(new TypeError(annotation, ErrorMessage.SECRECY_LEAKAGE_ERROR_AT_MOST, interfaceMethodSecrecyLevel, implementationMethodSecrecyLevel));
+                                if(!IfcSecrecyVal.equals(ImpSecrecyVal) && setForInterface.contains(ImpSecrecyVal)) {
+                                    errors.add(new TypeError(annotation, ErrorMessage.SECRECY_LEAKAGE_ERROR_AT_MOST, IfcSecrecyVal, ImpSecrecyVal));
                                 }
                             }
                         }

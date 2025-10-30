@@ -230,11 +230,13 @@ public class Main {
             return;
         }
 
-        //Adds parsing for the --secrecy option and makes it usable via the model
-        if (arguments.secrecyLattice != null) {
-            SecrecyExtension secrecyInput = parseSecrecyInput(arguments.secrecyLattice);
-            m.secrecyExtension = secrecyInput;
-        }
+        //Adds parsing for the --secrecy option and makes it usable via the model sets default: Low < High otherwise
+        String secrecyTypeValues = "Low < High";
+        if (arguments.secrecyLattice != null)secrecyTypeValues = arguments.secrecyLattice;
+        
+        SecrecyExtension secrecyInput = parseSecrecyInput(secrecyTypeValues);
+        m.secrecyExtension = secrecyInput;
+        
 
         m.evaluateAllProductDeclarations(); // resolve ProductExpressions to simple sets of features
         rewriteModel(m, arguments.product);
