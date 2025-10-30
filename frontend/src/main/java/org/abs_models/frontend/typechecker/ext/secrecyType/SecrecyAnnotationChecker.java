@@ -21,67 +21,68 @@ import org.abs_models.frontend.typechecker.ext.SecrecyStmtVisitor;
 
 public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
 
-    //TODO: this probably should not safe the secrecy values as string but as objects
-    private HashMap<String,String> _secrecy = new HashMap<>();
-
-    //TODO: get rid of by implementing what I might need to the SecrecyExtention
-    private Set<String> _secrecyLevels = new HashSet<>();
-    private HashMap<String, Set<String>> _latticeOrder = new HashMap<>();
-
-    SecrecyExtension secrecyLatticeStructure;
-
     //TODO: get rid of by using objects for the variables & interface/implementation of methods
     private final String classMethodName = "methodImp";
     private final String interfaceMethodName = "methodIfc";
 
-    protected SecrecyAnnotationChecker(Model m) {
-        super(m);
-
-        if (m.secrecyExtension != null) {
-
-            secrecyLatticeStructure = m.secrecyExtension;
-
-            SecrecyExtension userInput = m.secrecyExtension;
-            _secrecyLevels = new HashSet<>(userInput.getSecrecyLevels());
-            _latticeOrder = new HashMap<>(userInput.getLatticeOrder());
-        }
-    }
-
+    //TODO: this probably should not safe the secrecy values as string but as objects
+    //private HashMap<String,SecrecyEntry> _secrecy = new HashMap<>();
+    
     //Classes of annotations
     // 1 return types of methods : return_methodName_{methodImpl | methDecl}
     // 2 parameters of methods   : parameterName_methodName_{methodImpl | methDecl}
     // 3 fields                  : variablename
+
+    //Consider as a possibly way smarter way to just use the ASTNode
+    //For variables we would use the decl and we can get the decl 
+    private HashMap<String,String> _secrecy = new HashMap<>();
+    //private HashMap<ASTNode<?>,String> _secrecy = new HashMap<>();
+    
+
+
+    SecrecyLatticeStructure secrecyLatticeStructure;    //Contains the secrecy lattice given by the user or the default (Low < High)
+    SecrecyStmtVisitor visitor;                         //Is the visitor for all Stmts that typechecks the implemented rules
+    
+    protected SecrecyAnnotationChecker(Model m) {
+        super(m);
+
+        if (m.secrecyLatticeStructure != null) {
+            secrecyLatticeStructure = m.secrecyLatticeStructure;
+        }
+    }
+
     @Override
     public void checkModel(Model model) {
 
-        //TODO: FirstExtractionPassPhase
+        firstExtractionPhasePass(model); //First pass of all the code to extract the secrecy annotations and populate _secrecy
 
+        visitor = new SecrecyStmtVisitor(_secrecy, secrecyLatticeStructure);
+
+        //TODO: add more checks that should be performed
+        secondTypecheckPhasePass(model); //Second pass to enforce all the typerules
+        
+        System.out.println("Print annotated Values: " + _secrecy.toString());
+        System.out.println("Print all Levels: " + secrecyLatticeStructure.getSecrecyLevels().toString());
+        System.out.println("Print the order" + secrecyLatticeStructure.getLatticeOrder().toString());
+    }
+
+    private void firstExtractionPhasePass(Model model){
         for (CompilationUnit cu : model.getCompilationUnits()) {
-
             for (ModuleDecl moduleDecl : cu.getModuleDecls()) {
-
                 for (Decl decl : moduleDecl.getDecls()) {
-
                     if (decl instanceof ClassDecl classDecl) {
-                        
                         //Extract field annotations and store them to the secrecy hashmap
                         for(FieldDecl fieldDecl : classDecl.getFields()) {
                             String name = fieldDecl.getName();
                             processTypeAnnotations(fieldDecl.getTypeUse(), name);
                         }
-
                         //Extracts the annotation for methods of the class for their return values and their parameters
                         for (MethodImpl method : classDecl.getMethods()) {
                             getAnnotationsForMethodSig(method.getMethodSig(), classMethodName + "_" +classDecl.getName());               
-
                             Block block = method.getBlock();
-
                             for (Stmt stmt : block.getStmtList()) {
-
                                 if (stmt instanceof VarDeclStmt varDeclStmt) {
-                                    
                                     VarOrFieldDecl varDecl = varDeclStmt.getVarDecl();
-                                    
                                     //Annotations for variables in methods
                                     if(varDecl instanceof TypedVarOrFieldDecl typedVar) {
                                         for(Annotation annotation : varDeclStmt.getAnnotationList()) {
@@ -91,7 +92,6 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
                                 }
                             }
                         }
-
                     } else if (decl instanceof InterfaceDecl interfaceDecl) {
                         for (MethodSig methodSig : interfaceDecl.getBodyList()) {
                             getAnnotationsForMethodSig(methodSig, interfaceMethodName);
@@ -100,32 +100,20 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
                 }
             }
         }
+    }
 
-        SecrecyStmtVisitor visitor = new SecrecyStmtVisitor(_secrecy, secrecyLatticeStructure);
-
-        //TODO: SecondTypecheckPassPhase
-        //TODO: add more checks that should be performed
-
+    private void secondTypecheckPhasePass(Model model){
         for (CompilationUnit cu : model.getCompilationUnits()) {
-
             for (ModuleDecl moduleDecl : cu.getModuleDecls()) {
-
                 for (Decl decl : moduleDecl.getDecls()) {
-
                     if (decl instanceof ClassDecl classDecl) {
-
                         for (MethodImpl method : classDecl.getMethods()) {
-
                             Block block = method.getBlock();
-
                             for (Stmt stmt : block.getStmtList()) {
-
                                 //TODO: implement the stmt visitors for all possible stmt's
                                 stmt.accept(visitor); 
-
                             }
                         }
-
                     } else if (decl instanceof InterfaceDecl interfaceDecl) {
                         for (MethodSig methodSig : interfaceDecl.getBodyList()) {
                             //TODO: deleted extraction here not sure if we have something to check here
@@ -134,16 +122,9 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
                 }
             }
         }
-
-        System.out.println("Print annotated Values: " + _secrecy.toString());
-        System.out.println("Print all Levels: " + _secrecyLevels.toString());
-        System.out.println("Print the order" + _latticeOrder.toString());
     }
 
-    private void firstExtractionPhasePass(){}
-    private void secondTypecheckPhasePass(){}
-
-
+    //TODO: reimplement and remove
     private void handleAssignCheck(AssignStmt assignStmt) {
 
         Exp RhsExp = assignStmt.getValue();
@@ -158,8 +139,7 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
             if(_secrecy.get(varUse.getName()) == null)return;
                                                 
             String RHSsecLevel = _secrecy.get(varUse.getName());
-                                                
-            Set<String> LHScontainedIn = _latticeOrder.get(LHSsecLevel);
+            Set<String> LHScontainedIn = secrecyLatticeStructure.getSetForSecrecyLevel(LHSsecLevel);
 
             if(!LHScontainedIn.contains(RHSsecLevel)) {
                 errors.add(new TypeError(assignStmt, ErrorMessage.SECRECY_LEAKAGE_ERROR_FROM_TO, LHSsecLevel, varUse.getName(), RHSsecLevel, assignStmt.getVar().getName()));
@@ -195,7 +175,6 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
             extractSecrecySafely(typeUse, annotation, variablename);
         }
     }
-    
 
     //Extracts the PureExp from an Annotation after running the checkSecrecyAnnotationCheck it extracts the value and stores the metadata in the _secrecy Hashmap
     private void extractSecrecySafely(TypeUse typeU, Annotation annotation, String variablename) {
@@ -213,7 +192,7 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
                     errors.add(new TypeError(annotation, ErrorMessage.SECRECY_OVERWRITING_EXISTING, variablename));
                 }
 
-                if (_secrecyLevels.contains(levelName)) {
+                if (secrecyLatticeStructure.isValidLabel(levelName)) {
                     _secrecy.put(variablename, levelName);
                     //System.out.println("Metadata,Secrecy: " + levelName); //TODO: remove print
 
@@ -225,7 +204,7 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
                         
                             String IfcSecrecyVal = _secrecy.get(InterfaceName); //Ifc - Interface
                             String ImpSecrecyVal = _secrecy.get(variablename); //Imp - Implementation
-                            Set<String> setForInterface = _latticeOrder.get(IfcSecrecyVal);
+                            Set<String> setForInterface = secrecyLatticeStructure.getSetForSecrecyLevel(IfcSecrecyVal);
 
                             if(variablename.contains("return")){
                                 if(!IfcSecrecyVal.equals(ImpSecrecyVal) && !(setForInterface.contains(ImpSecrecyVal))) {
@@ -247,3 +226,25 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
     }
 
 }
+
+/* Notes
+
+1. 
+
+@ Todos
+- Implement all Stmt visit methods
+    - probably requires rules for every stmt
+- Implement a visitor for Exp
+    - what exp do we have
+    - add a accept method
+    - write the visit functions
+- Refactor the _secrecy Hashmap to not only use strings
+    - think of a good object way of storing the variables, method interface declarations and the method implementations
+
+- Rename my files when unclear what it is/does
+    DONE - Rename SecrecyExtension to SecrecyLatticeStructure
+
+@ Questions
+- Better way for the two/multi pass approach
+
+*/

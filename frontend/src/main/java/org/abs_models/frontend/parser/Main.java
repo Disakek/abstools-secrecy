@@ -57,7 +57,7 @@ import org.abs_models.frontend.delta.DeltaModellingException;
 import org.abs_models.frontend.typechecker.locationtypes.LocationType;
 import org.abs_models.frontend.typechecker.locationtypes.LocationTypeInferenceExtension;
 import org.abs_models.frontend.typechecker.nullable.NullCheckerExtension;
-import org.abs_models.frontend.typechecker.ext.SecrecyExtension;
+import org.abs_models.frontend.typechecker.ext.SecrecyLatticeStructure;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CommonTokenStream;
@@ -234,9 +234,8 @@ public class Main {
         String secrecyTypeValues = "Low < High";
         if (arguments.secrecyLattice != null)secrecyTypeValues = arguments.secrecyLattice;
         
-        SecrecyExtension secrecyInput = parseSecrecyInput(secrecyTypeValues);
-        m.secrecyExtension = secrecyInput;
-        
+        SecrecyLatticeStructure secrecyInput = parseSecrecyInput(secrecyTypeValues);
+        m.secrecyLatticeStructure = secrecyInput;
 
         m.evaluateAllProductDeclarations(); // resolve ProductExpressions to simple sets of features
         rewriteModel(m, arguments.product);
@@ -280,7 +279,7 @@ public class Main {
     * @author Maximilian Paul
     *
     */
-    private SecrecyExtension parseSecrecyInput(String inputString) {
+    private SecrecyLatticeStructure parseSecrecyInput(String inputString) {
 
         Set<String> levels = new HashSet<>();
         HashMap<String, Set<String>> order = new HashMap<>();
@@ -346,7 +345,7 @@ public class Main {
             throw new IllegalArgumentException("No secrecy levels input found!");
         }
 
-        return new SecrecyExtension(levels, order);
+        return new SecrecyLatticeStructure(levels, order);
     }
 
 

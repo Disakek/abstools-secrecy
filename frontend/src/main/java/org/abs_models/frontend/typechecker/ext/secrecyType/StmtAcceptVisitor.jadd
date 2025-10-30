@@ -5,6 +5,11 @@ aspect VisitorAdd {
   }
 
   @Override
+  public void VarDeclStmt.accept(SecrecyStmtVisitor v) { 
+    v.visit(this); 
+  }
+
+  @Override
   public void AssignStmt.accept(SecrecyStmtVisitor v) { 
     v.visit(this); 
   }
@@ -13,6 +18,31 @@ aspect VisitorAdd {
   public void ReturnStmt.accept(SecrecyStmtVisitor v) { 
     v.visit(this); 
   }
+
+  @Override
+  public void SkipStmt.accept(SecrecyStmtVisitor v) { 
+    v.visit(this); 
+  }
+  
 }
 
-//TODO: add all stmt's here
+//TODO: add all stmt's written here (should be all)
+/*
+VarDeclStmt, AssignStmt, SkipStmt, ReturnStmt
+
+AssertStmt
+BlockStmt
+IfStmt
+SwitchStmt
+WhileStmt
+ForeachStmt
+TryCatchFinallyStmt
+AwaitStmt
+SuspendStmt
+DurationStmt
+ThrowStmt
+DieStmt
+MoveCogToStmt
+ExpStmt
+CaseStmtOld
+*/

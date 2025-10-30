@@ -13,19 +13,19 @@ public class SecrecyStmtVisitor {
 
     private HashMap<String,String> _secrecy = new HashMap<>();
 
-    private SecrecyExtension secrecyLatticeStructure;
+    private SecrecyLatticeStructure secrecyLatticeStructure;
 
-    public SecrecyStmtVisitor(HashMap<String,String> _secrecy, SecrecyExtension secrecyLatticeStructure) {
+    public SecrecyStmtVisitor(HashMap<String,String> _secrecy, SecrecyLatticeStructure secrecyLatticeStructure) {
         this._secrecy = _secrecy;
         this.secrecyLatticeStructure = secrecyLatticeStructure;
     }
 
     public void visit(Stmt stmt) {
-        System.out.println("Is general");
+        //System.out.println("Is general");
     }
 
     public void visit(AssignStmt assignStmt){
-
+        /*
         System.out.println("Is assign");
 
         //Get both sides of the stmt
@@ -34,6 +34,8 @@ public class SecrecyStmtVisitor {
 
         //TODO: Missing case what if there is no secrecy for the left side 
         if(_secrecy.get(LhsVariable.getName()) == null)return;
+
+        //TODO: Implementing a VisitorClass for the different Exp kinds important first
 
         //TODO: Missing case what if there is no secrecy for the right side 
         //Similiar to this if(_secrecy.get(LhsVariable.getName()) == null)return;
@@ -61,7 +63,7 @@ public class SecrecyStmtVisitor {
                                                 
             String RHSsecLevel = _secrecy.get(varUse.getName());
                                                 
-            Set<String> LHScontainedIn = _latticeOrder.get(LHSsecLevel);
+            Set<String> LHScontainedIn = secrecyLatticeStructure.getSetForSecrecyLevel(LHSsecLevel);
 
             if(!LHScontainedIn.contains(RHSsecLevel)) {
                 errors.add(new TypeError(assignStmt, ErrorMessage.SECRECY_LEAKAGE_ERROR_FROM_TO, LHSsecLevel, varUse.getName(), RHSsecLevel, assignStmt.getVar().getName()));
@@ -73,7 +75,7 @@ public class SecrecyStmtVisitor {
     }
 
     public void visit(ReturnStmt returnStmt){
-        System.out.println("Is return");
+        //System.out.println("Is return");
     }
 
     //TODO: add all stmt's here

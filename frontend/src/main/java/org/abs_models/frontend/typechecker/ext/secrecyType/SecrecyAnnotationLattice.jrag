@@ -1,0 +1,11 @@
+import org.abs_models.frontend.typechecker.ext.SecrecyLatticeStructure;
+
+/**
+ * Our way to handover the user input for the --secrecy option to the SecrecyAnnotationChecker
+ * null if there is no user input
+ *
+ * @author Maximilian Paul
+ */
+aspect SecrecyAnnotationLattice {
+    public SecrecyLatticeStructure Model.secrecyLatticeStructure = null;
+}
