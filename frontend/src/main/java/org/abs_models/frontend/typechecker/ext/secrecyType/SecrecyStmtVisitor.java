@@ -11,11 +11,11 @@ import org.abs_models.frontend.typechecker.*;
 
 public class SecrecyStmtVisitor {
 
-    private HashMap<String,String> _secrecy = new HashMap<>();
+    private HashMap<ASTNode<?>,String> _secrecy = new HashMap<>();
 
     private SecrecyLatticeStructure secrecyLatticeStructure;
 
-    public SecrecyStmtVisitor(HashMap<String,String> _secrecy, SecrecyLatticeStructure secrecyLatticeStructure) {
+    public SecrecyStmtVisitor(HashMap<ASTNode<?>,String> _secrecy, SecrecyLatticeStructure secrecyLatticeStructure) {
         this._secrecy = _secrecy;
         this.secrecyLatticeStructure = secrecyLatticeStructure;
     }
@@ -25,6 +25,14 @@ public class SecrecyStmtVisitor {
     }
 
     public void visit(AssignStmt assignStmt){
+
+        Exp RhsExp = assignStmt.getValue();
+        String LHSsecLevel = _secrecy.get(assignStmt.getVar().getDecl());
+
+        if(LHSsecLevel != null)System.out.println("LHS: " + assignStmt.getVar() + " with " + LHSsecLevel);
+
+        //try to get the RHSsecLevel next
+
         /*
         System.out.println("Is assign");
 
