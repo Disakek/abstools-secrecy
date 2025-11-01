@@ -44,7 +44,7 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
         //First pass of all the code to extract the secrecy annotations and populate _secrecy
         firstExtractionPhasePass(model); 
 
-        visitor = new SecrecyStmtVisitor(_secrecy, secrecyLatticeStructure);
+        visitor = new SecrecyStmtVisitor(_secrecy, secrecyLatticeStructure, errors);
 
         //Second pass to enforce all the typerules
         secondTypecheckPhasePass(model); 
@@ -168,28 +168,23 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
 /* Notes
 
 @ Todos
-- Implement all Stmt visit methods
-    - probably requires rules for every stmt
-- Implement a visitor for Exp
-    - what exp do we have
-    - add a accept method
-    - write the visit functions
+- Implement visit methods
+    - for every stmt
+    - for every exp
 
 - Refactor the _secrecy Hashmap (not to be string based)
     - DONE switched to storing the ASTNode of the decl
     - todo redo rules written below
     - Koennen wir stattdessen fuer jede ASTNode direct checken ob es eine SecrecyAnnotation gibt mit einem Visitor oder so und wenn ja diese hinzufuegen oder muessen wir den AST traversen
 
-
-//TODO: add more checks that should be performed in the second phase
-//For each stmt and as well for the interface and method dependence
-//TODO: missing add rule between interface decl and class impl
-//TODO: add error for overwriting an existing value
-//if(_secrecy.get() != null) {
-//    errors.add(new TypeError(annotation, ErrorMessage.SECRECY_OVERWRITING_EXISTING, variablename));
-//}
+- Missing Rules
+    - More checks in the second phase
+    - Interface and method implementation dependence -> implementation has to satisfy the interface rules
+    - Error for overwriting an existing secrecy value in _secrecy(not allowed I think)
+        - Question 2.
+        //if(_secrecy.get() != null) {errors.add(new TypeError(annotation, ErrorMessage.SECRECY_OVERWRITING_EXISTING, variablename));}
 
 @ Questions
-- Better way for the two/multi pass approach
-- Can it be that we want a MaxSecrecyLevel for a variable AND a current secrecy level? (Basically a clone for _secrecy but we can't change the level)
+1. Is there a better way for the two/multi pass approach to be implemented
+2. Can it be that we want a MaxSecrecyLevel for a variable AND a current secrecy level? (Basically a clone for _secrecy but we can't change the level)
 */

@@ -1,5 +1,5 @@
 
-aspect VisitorAdd {
+aspect AddStmtVisitor {
   public void Stmt.accept(SecrecyStmtVisitor v) { 
     v.visit(this); 
   }

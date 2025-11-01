@@ -6,8 +6,14 @@
 package org.abs_models.frontend.typechecker.ext;
 
 import java.util.HashMap;
+import java.util.Set;
+
 import org.abs_models.frontend.ast.*;
 import org.abs_models.frontend.typechecker.*;
+import org.abs_models.frontend.analyser.ErrorMessage;
+import org.abs_models.frontend.analyser.TypeError;
+import org.abs_models.frontend.analyser.SemanticCondition;
+import org.abs_models.frontend.analyser.SemanticConditionList;
 
 public class SecrecyStmtVisitor {
 
@@ -15,9 +21,12 @@ public class SecrecyStmtVisitor {
 
     private SecrecyLatticeStructure secrecyLatticeStructure;
 
-    public SecrecyStmtVisitor(HashMap<ASTNode<?>,String> _secrecy, SecrecyLatticeStructure secrecyLatticeStructure) {
+    private final SemanticConditionList errors;
+
+    public SecrecyStmtVisitor(HashMap<ASTNode<?>,String> _secrecy, SecrecyLatticeStructure secrecyLatticeStructure, SemanticConditionList errors) {
         this._secrecy = _secrecy;
         this.secrecyLatticeStructure = secrecyLatticeStructure;
+        this.errors = errors;
     }
 
     public void visit(Stmt stmt) {
@@ -26,60 +35,30 @@ public class SecrecyStmtVisitor {
 
     public void visit(AssignStmt assignStmt){
 
+        ASTNode<?> LHS = assignStmt.getVar().getDecl();
         Exp RhsExp = assignStmt.getValue();
-        String LHSsecLevel = _secrecy.get(assignStmt.getVar().getDecl());
+        String LHSsecLevel = _secrecy.get(LHS);
+        SecrecyExpVisitor visitor = new SecrecyExpVisitor(_secrecy, secrecyLatticeStructure);
+        
+        //TODO: missing a lot of expressions that need implementation
+        String RHSsecLevel = RhsExp.accept(visitor);
+
+        //TODOs below
+        //What if there is no secrecy value for the variable on the left?
+        //if(LHSsecLevel == null)return;
+        //if(RHSsecLevel == null)return;
 
         if(LHSsecLevel != null)System.out.println("LHS: " + assignStmt.getVar() + " with " + LHSsecLevel);
-
-        //try to get the RHSsecLevel next
-
-        /*
-        System.out.println("Is assign");
-
-        //Get both sides of the stmt
-        VarOrFieldUse LhsVariable = assignStmt.getVar();
-        Exp RhsExp = assignStmt.getValue();
-
-        //TODO: Missing case what if there is no secrecy for the left side 
-        if(_secrecy.get(LhsVariable.getName()) == null)return;
-
-        //TODO: Implementing a VisitorClass for the different Exp kinds important first
-
-        //TODO: Missing case what if there is no secrecy for the right side 
-        //Similiar to this if(_secrecy.get(LhsVariable.getName()) == null)return;
-
-        //TODO: everything below needs work/refactoring
-            //TODO: All possible cases for right hand side need to be considered
-            //Different options what RHSExp can be (Arithmetic(Mul, Add, ...), )
-
+ 
+        if(RHSsecLevel != null)System.out.println("RHS: " + RhsExp + " with " + RHSsecLevel);
         
-        if (RhsExp instanceof AddAddExp addExp) {
-            System.out.println("addExp: " + addExp);
-        }
-        if (RhsExp instanceof SubAddExp subExp) {
-            System.out.println("subExp: " + subExp);
-        }
-        //TODO: Change the way I store the secrecy annotations from string to objects to make it more usable and allow different kinds
-        /*
-        String  LHSsecLevel = _secrecy.get(assignStmt.getVar().getName());
+        if(LHSsecLevel == null || RHSsecLevel == null)return; //TODO: missing this case
 
-            //TODO: if it is a variable on the right hand side
-        if (RhsExp instanceof VarOrFieldUse varUse) {
-
-                //TODO: If the right hand side is a variable but doesnt have a secrecy value what do we do?
-            if(_secrecy.get(varUse.getName()) == null)return;
-                                                
-            String RHSsecLevel = _secrecy.get(varUse.getName());
-                                                
-            Set<String> LHScontainedIn = secrecyLatticeStructure.getSetForSecrecyLevel(LHSsecLevel);
-
-            if(!LHScontainedIn.contains(RHSsecLevel)) {
-                errors.add(new TypeError(assignStmt, ErrorMessage.SECRECY_LEAKAGE_ERROR_FROM_TO, LHSsecLevel, varUse.getName(), RHSsecLevel, assignStmt.getVar().getName()));
-            } else {
-                System.out.println("found no errors in values on two sides");
-            }
+        Set<String> LHScontainedIn = secrecyLatticeStructure.getSetForSecrecyLevel(LHSsecLevel);
+        
+        if(LHScontainedIn.contains(RHSsecLevel)) {
+            errors.add(new TypeError(assignStmt, ErrorMessage.SECRECY_LEAKAGE_ERROR_FROM_TO, LHSsecLevel, "RHS", RHSsecLevel, assignStmt.getVar().getName()));
         }
-        */
     }
 
     public void visit(ReturnStmt returnStmt){
