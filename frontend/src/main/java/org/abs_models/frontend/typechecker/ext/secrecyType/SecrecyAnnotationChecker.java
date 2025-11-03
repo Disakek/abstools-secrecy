@@ -184,6 +184,10 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
         - Question 2.
         //if(_secrecy.get() != null) {errors.add(new TypeError(annotation, ErrorMessage.SECRECY_OVERWRITING_EXISTING, variablename));}
 
+
+1. We do need a top and a bottom element for the secrecy lattice
+
+
 @ Questions
 1. Is there a better way for the two/multi pass approach to be implemented
 2. Can it be that we want a MaxSecrecyLevel for a variable AND a current secrecy level? (Basically a clone for _secrecy but we can't change the level)

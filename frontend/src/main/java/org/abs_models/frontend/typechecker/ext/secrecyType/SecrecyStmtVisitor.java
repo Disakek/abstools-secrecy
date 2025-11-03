@@ -23,10 +23,14 @@ public class SecrecyStmtVisitor {
 
     private final SemanticConditionList errors;
 
+    private SecrecyExpVisitor visitor;
+
     public SecrecyStmtVisitor(HashMap<ASTNode<?>,String> _secrecy, SecrecyLatticeStructure secrecyLatticeStructure, SemanticConditionList errors) {
         this._secrecy = _secrecy;
         this.secrecyLatticeStructure = secrecyLatticeStructure;
         this.errors = errors;
+
+        visitor = new SecrecyExpVisitor(_secrecy, secrecyLatticeStructure);
     }
 
     public void visit(Stmt stmt) {
@@ -38,7 +42,7 @@ public class SecrecyStmtVisitor {
         ASTNode<?> LHS = assignStmt.getVar().getDecl();
         Exp RhsExp = assignStmt.getValue();
         String LHSsecLevel = _secrecy.get(LHS);
-        SecrecyExpVisitor visitor = new SecrecyExpVisitor(_secrecy, secrecyLatticeStructure);
+        //SecrecyExpVisitor visitor = new SecrecyExpVisitor(_secrecy, secrecyLatticeStructure);
         
         //TODO: missing a lot of expressions that need implementation
         String RHSsecLevel = RhsExp.accept(visitor);
@@ -57,12 +61,28 @@ public class SecrecyStmtVisitor {
         Set<String> LHScontainedIn = secrecyLatticeStructure.getSetForSecrecyLevel(LHSsecLevel);
         
         if(LHScontainedIn.contains(RHSsecLevel)) {
-            errors.add(new TypeError(assignStmt, ErrorMessage.SECRECY_LEAKAGE_ERROR_FROM_TO, LHSsecLevel, "RHS", RHSsecLevel, assignStmt.getVar().getName()));
+            errors.add(new TypeError(assignStmt, ErrorMessage.SECRECY_LEAKAGE_ERROR_FROM_TO, RHSsecLevel, assignStmt.getValue().toString(), LHSsecLevel, assignStmt.getVar().getName()));
         }
     }
 
     public void visit(ReturnStmt returnStmt){
-        //System.out.println("Is return");
+        System.out.println("ReturnStmt: " + returnStmt);
+
+        //Exp returnExp = returnStmt.getChild(0);
+        //System.out.println(returnExp);
+
+        for(int i = 0; i < returnStmt.getNumChild(); i++) {
+
+            if(returnStmt.getChild(i) instanceof Exp exp) {
+                System.out.println(returnStmt.getChild(i) + " is " + exp);
+
+                //TODO: missing this seems to work but is not implemented completly
+                String visitorReturn = exp.accept(visitor);
+                System.out.println(visitorReturn);
+            }
+        }
+
+        //String returnExp = RhsExp.accept(visitor);
     }
 
     //TODO: add all stmt's here

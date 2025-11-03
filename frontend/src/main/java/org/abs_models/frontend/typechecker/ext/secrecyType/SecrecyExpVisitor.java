@@ -33,6 +33,7 @@ public class SecrecyExpVisitor {
         String rightLevel = addAddExp.getRight().accept(this);
         //System.out.println(addAddExp);
 
+        //TODO: not sure if we want to treat it like that
         if(leftLevel == null && rightLevel != null) return rightLevel;
         if(rightLevel == null && leftLevel != null) return leftLevel;
         if(rightLevel == null && leftLevel == null) return null;
@@ -40,7 +41,7 @@ public class SecrecyExpVisitor {
         // Combine levels — the stricter secrecy wins
         String combined = secrecyLatticeStructure.join(leftLevel, rightLevel);
 
-        System.out.println("AddAddExp: (" + leftLevel + " + " + rightLevel + ") -> " + combined);
+        //System.out.println("AddAddExp: (" + leftLevel + " + " + rightLevel + ") -> " + combined);
 
         return combined;
     }
@@ -49,8 +50,14 @@ public class SecrecyExpVisitor {
 
         ASTNode<?> variable = varOrFieldUse.getDecl();
         String secrecy = _secrecy.get(variable);
-        if (secrecy != null)System.out.println("VarOrFieldExp: "  + " -> " + secrecy);
-        return secrecy;
+
+        if (secrecy != null) {
+            //System.out.println("VarOrFieldExp: "  + " -> " + secrecy);
+            return secrecy;
+        }
+
+        //Assume low secrecy as default
+        return secrecyLatticeStructure.getMinSecrecyLevel();
     }
 
 }

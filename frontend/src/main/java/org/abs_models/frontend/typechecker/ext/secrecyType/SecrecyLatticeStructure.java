@@ -8,14 +8,58 @@ import java.util.HashSet;
  * Class that is used to handover the user input for the --secrecy option to the SecrecyAnnotationChecker
  */
 public class SecrecyLatticeStructure {
+
     private final Set<String> secrecyLevels;
+    
     private final HashMap<String, Set<String>> latticeOrder;
+    
+    private String maxSecrecyLevel = null;
+
+    private String minSecrecyLevel = null;
     
     public SecrecyLatticeStructure(Set<String> levels, HashMap<String, Set<String>> order) {
         this.secrecyLevels = new HashSet<>(levels);
         this.latticeOrder = new HashMap<>(order);
+
+        calculateMaxAndMin();
+    }
+
+    public void calculateMaxAndMin() {
+
+        //Calculate the maxSecrecyLevel
+        for (String level : latticeOrder.keySet()) {
+            if (latticeOrder.get(level).isEmpty()) {
+                maxSecrecyLevel = level;
+                break; // found it, exit loop
+            }
+        }
+
+        //Calculate the minSecrecyLevel
+        for(String secLevel : secrecyLevels) {
+            boolean containsAllOthers = true;
+            for(String otherLevels : secrecyLevels){
+                Set<String> secLevelContains = latticeOrder.get(secLevel);
+                if(!secLevel.equals(otherLevels) && latticeOrder.getOrDefault(otherLevels, Set.of()).contains(secLevel)) {
+                    containsAllOthers = false;
+                    break;
+                }
+            }
+
+            if(containsAllOthers) {
+                minSecrecyLevel = secLevel;
+                break;
+            }
+        }
     }
     
+    public String getMaxSecrecyLevel() {
+        return maxSecrecyLevel;
+    }
+
+    public String getMinSecrecyLevel() {
+        return minSecrecyLevel;
+    }
+
     public Set<String> getSecrecyLevels() {
         return new HashSet<>(secrecyLevels);
     }
