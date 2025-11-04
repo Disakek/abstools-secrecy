@@ -1,0 +1,123 @@
+
+aspect AddExpVisitor {
+  public String Exp.accept(SecrecyExpVisitor v) { 
+    return v.visit(this); 
+  }
+
+  @Override
+  public String AddAddExp.accept(SecrecyExpVisitor v) { 
+    return v.visit(this); 
+  }
+
+  @Override
+  public String SubAddExp.accept(SecrecyExpVisitor v) { 
+    return v.visit(this); 
+  }
+
+  @Override
+  public String MultMultExp.accept(SecrecyExpVisitor v) { 
+    return v.visit(this); 
+  }
+
+  @Override
+  public String DivMultExp.accept(SecrecyExpVisitor v) { 
+    return v.visit(this); 
+  }
+
+  @Override
+  public String ModMultExp.accept(SecrecyExpVisitor v) { 
+    return v.visit(this); 
+  }
+
+  @Override
+  public String MinusExp.accept(SecrecyExpVisitor v) { 
+    return v.visit(this); 
+  }
+
+  @Override
+  public String NegExp.accept(SecrecyExpVisitor v) { 
+    return v.visit(this); 
+  }
+
+  @Override
+  public String EqExp.accept(SecrecyExpVisitor v) { 
+    return v.visit(this); 
+  }
+
+  @Override
+  public String NotEqExp.accept(SecrecyExpVisitor v) { 
+    return v.visit(this); 
+  }
+
+  @Override
+  public String AndBoolExp.accept(SecrecyExpVisitor v) { 
+    return v.visit(this); 
+  }
+
+  @Override
+  public String OrBoolExp.accept(SecrecyExpVisitor v) { 
+    return v.visit(this); 
+  }
+
+  @Override
+  public String LTEQExp.accept(SecrecyExpVisitor v) { 
+    return v.visit(this); 
+  }
+
+  @Override
+  public String GTEQExp.accept(SecrecyExpVisitor v) { 
+    return v.visit(this); 
+  }
+
+  @Override
+  public String LTExp.accept(SecrecyExpVisitor v) { 
+    return v.visit(this); 
+  }
+
+  @Override
+  public String GTExp.accept(SecrecyExpVisitor v) { 
+    return v.visit(this); 
+  }
+
+  @Override
+  public String VarOrFieldUse.accept(SecrecyExpVisitor v) { 
+    return v.visit(this); 
+  }
+
+}
+
+//TODO: add all Exp's written here (should be all)
+/*
+
+Instead try to differentiate between base case PureExp -> BinaryExp | UnaryExp
+
+Done: MultExp, AddExp
+
+
+## EffExp
+GetExp
+NewExp
+AsyncCallExp
+SyncCallExp
+OriginalCallExp
+
+## PureExp
+FunctionExp
+PartialFunctionExp
+VariadicFunctionExp
+ConstructorExp
+GreaterExp
+VarOrFieldExp
+FloatExp, IntExp, StringExp
+TemplateStringExp, TemplateStringCompoundExp
+ThisExp
+DestinyExp
+NullExp
+ImplementsExp
+AsExp
+WhenExp
+IfExpOld
+CaseExp
+LetExp
+ParenExp
+*/
