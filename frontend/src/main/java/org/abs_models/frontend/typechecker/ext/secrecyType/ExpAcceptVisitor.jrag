@@ -107,7 +107,7 @@ PartialFunctionExp
 VariadicFunctionExp
 ConstructorExp
 GreaterExp
-VarOrFieldExp
+VarOrFieldExp -> I believe this is the VarOrFieldUse type
 FloatExp, IntExp, StringExp
 TemplateStringExp, TemplateStringCompoundExp
 ThisExp

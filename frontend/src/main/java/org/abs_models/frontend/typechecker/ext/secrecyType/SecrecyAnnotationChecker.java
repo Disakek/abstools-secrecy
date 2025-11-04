@@ -28,13 +28,16 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
     SecrecyLatticeStructure secrecyLatticeStructure;
     
     //Is the visitor for all Stmts that typechecks the implemented rules    
-    SecrecyStmtVisitor visitor;                         
+    SecrecyStmtVisitor visitor;              
+
+    String confidentialityOfProgramPoint;           
     
     protected SecrecyAnnotationChecker(Model m) {
         super(m);
 
         if (m.secrecyLatticeStructure != null) {
             secrecyLatticeStructure = m.secrecyLatticeStructure;
+            confidentialityOfProgramPoint = secrecyLatticeStructure.getMinSecrecyLevel();
         }
     }
 
@@ -44,7 +47,7 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
         //First pass of all the code to extract the secrecy annotations and populate _secrecy
         firstExtractionPhasePass(model); 
 
-        visitor = new SecrecyStmtVisitor(_secrecy, secrecyLatticeStructure, errors);
+        visitor = new SecrecyStmtVisitor(_secrecy, secrecyLatticeStructure, errors, confidentialityOfProgramPoint);
 
         //Second pass to enforce all the typerules
         secondTypecheckPhasePass(model); 
@@ -52,6 +55,7 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
         System.out.println("Print new annotated Values: " + _secrecy.toString());
         System.out.println("Print all Levels: " + secrecyLatticeStructure.getSecrecyLevels().toString());
         System.out.println("Print the order" + secrecyLatticeStructure.getLatticeOrder().toString());
+        System.out.println("Confidentiality of current program point is: " + confidentialityOfProgramPoint);
     }
 
     private void firstExtractionPhasePass(Model model){
@@ -173,8 +177,7 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
     - for every stmt
     - for every exp
 
-- Refactor the _secrecy Hashmap (not to be string based)
-    - DONE switched to storing the ASTNode of the decl
+- Refactor the _secrecy Hashmap
     - todo redo rules written below
     - Koennen wir stattdessen fuer jede ASTNode direct checken ob es eine SecrecyAnnotation gibt mit einem Visitor oder so und wenn ja diese hinzufuegen oder muessen wir den AST traversen
 

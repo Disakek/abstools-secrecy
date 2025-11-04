@@ -25,12 +25,15 @@ public class SecrecyStmtVisitor {
 
     private SecrecyExpVisitor ExpVisitor;
 
-    public SecrecyStmtVisitor(HashMap<ASTNode<?>,String> _secrecy, SecrecyLatticeStructure secrecyLatticeStructure, SemanticConditionList errors) {
+    String confidentialityOfProgramPoint; 
+
+    public SecrecyStmtVisitor(HashMap<ASTNode<?>,String> _secrecy, SecrecyLatticeStructure secrecyLatticeStructure, SemanticConditionList errors, String confidentialityOfProgramPoint) {
         this._secrecy = _secrecy;
         this.secrecyLatticeStructure = secrecyLatticeStructure;
         this.errors = errors;
+        this.confidentialityOfProgramPoint = confidentialityOfProgramPoint;
 
-        ExpVisitor = new SecrecyExpVisitor(_secrecy, secrecyLatticeStructure);
+        ExpVisitor = new SecrecyExpVisitor(_secrecy, secrecyLatticeStructure, confidentialityOfProgramPoint);
     }
 
     public void visit(Stmt stmt) {
@@ -102,8 +105,71 @@ public class SecrecyStmtVisitor {
         */
     }
 
+    public void visit(IfStmt ifStmt){
+        
+        String oldProgramPoint = confidentialityOfProgramPoint;
+        Exp condition = ifStmt.getCondition();
+
+        if(condition.accept(ExpVisitor) != null)confidentialityOfProgramPoint = secrecyLatticeStructure.join(condition.accept(ExpVisitor), confidentialityOfProgramPoint);
+        
+        ExpVisitor.updateProgramPoint(confidentialityOfProgramPoint);
+        Stmt thenCase = ifStmt.getThen();
+        thenCase.accept(this);
+        
+        if(ifStmt.hasElse()) {
+            Stmt elseCase = ifStmt.getElse();
+            elseCase.accept(this);
+        }
+
+        if(confidentialityOfProgramPoint != oldProgramPoint) {
+            System.out.println("Changed pc to: " + confidentialityOfProgramPoint);
+            confidentialityOfProgramPoint = oldProgramPoint;
+            System.out.println("Changed pc back to: " + confidentialityOfProgramPoint);
+            ExpVisitor.updateProgramPoint(confidentialityOfProgramPoint);
+        }
+        /* Descripton:
+            1.Store the pc level which we had so far
+            2.Get the condition of the ifStmt
+            3.Set pc to the join of (condition level, old pc level) //mby old pc level was already higher
+            4.Evaluate the then (and if existing else) branch with the new pc
+            5.Reset the pc to the old value once finished
+        */
+    }
+
+    public void visit(WhileStmt whileStmt) {
+        
+        String oldProgramPoint = confidentialityOfProgramPoint;
+        Exp condition = whileStmt.getCondition();
+
+        if(condition.accept(ExpVisitor) != null)confidentialityOfProgramPoint = secrecyLatticeStructure.join(condition.accept(ExpVisitor), confidentialityOfProgramPoint);
+        
+        ExpVisitor.updateProgramPoint(confidentialityOfProgramPoint);
+        Stmt body = whileStmt.getBody();
+        body.accept(this);
+
+        if(confidentialityOfProgramPoint != oldProgramPoint) {
+            System.out.println("Changed pc to: " + confidentialityOfProgramPoint);
+            confidentialityOfProgramPoint = oldProgramPoint;
+            System.out.println("Changed pc back to: " + confidentialityOfProgramPoint);
+            ExpVisitor.updateProgramPoint(confidentialityOfProgramPoint);
+        }
+        /* Descripton:
+            1.Store the pc level which we had so far
+            2.Get the condition of the whileStmt
+            3.Set pc to the join of (condition level, old pc level) //mby old pc level was already higher
+            4.Evaluate the body with the new pc
+            5.Reset the pc to the old value once finished
+        */
+    }
+
+    public void visit(Block blockStmt){
+        for(Stmt stmt : blockStmt.getStmtList()) {
+            stmt.accept(this);
+        }
+    }
+
     public void visit(VarDeclStmt varDeclStmt){
-        System.out.println(varDeclStmt);
+        //System.out.println(varDeclStmt);
     }
 
     //TODO: add all stmt's here

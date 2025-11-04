@@ -80,6 +80,6 @@ Throws Errors (can't be modified by jadd): SwitchStmt, ExpStmt
 
 VarDeclStmt :> (right now we ignore local variables but I think thats what we want)
 
-AssertStmt :> we want to be able to assert if a var/param/return has the secrecy level we want it to have (requires adding something to the grammar I think)
+AssertStmt :> we might want to be able to assert if a var/param/return has the secrecy level we want it to have (requires adding something to the grammar I think)
 
 */
