@@ -22,6 +22,7 @@ public class SecrecyLatticeStructure {
         this.latticeOrder = new HashMap<>(order);
 
         calculateMaxAndMin();
+        System.out.println("Lowest: " + minSecrecyLevel + "\nHighest: " + maxSecrecyLevel);
     }
 
     public void calculateMaxAndMin() {
@@ -76,7 +77,8 @@ public class SecrecyLatticeStructure {
         return secrecyLevels.contains(input);
     }
 
-    //TODO: implemented but not tested yet
+    //TODO: more testing
+    //issue if one of those is null so never use it as default value (shouldnt do that anyways)
     public String join(String secrecyOne, String secrecyTwo) {
         
         if(!secrecyLevels.contains(secrecyOne) || !secrecyLevels.contains(secrecyTwo)){
@@ -100,16 +102,28 @@ public class SecrecyLatticeStructure {
             }
         }
 
-        for(String candidate : candidateLUB) {
-            if(candidateLUB.stream().noneMatch(other -> 
-                !candidate.equals(other) && 
-                latticeOrder.getOrDefault(candidate, Set.of()).contains(other))) {
+        for (String candidate : candidateLUB) {
+
+            Set<?> greaterOrEqual = latticeOrder.getOrDefault(candidate, Set.of());
+            boolean isLeastUpperBound = true;
+
+            for (String other : candidateLUB) {
+                // Skip comparing with itself
+                if (!candidate.equals(other) && greaterOrEqual.contains(other)) {
+                    // Found a smaller 'other' under this candidate → not least
+                    isLeastUpperBound = false;
+                    break;
+                }
+            }
+
+            if (isLeastUpperBound) {
                 return candidate;
             }
         }
 
+
         throw new IllegalStateException("No common upper bound found");
     }
 
-    //TODO: missing implementations for meet, lowest element and highest element (mby optional) 
+    //TODO: missing implementations for meet mby optional
 }

@@ -45,6 +45,25 @@ public class SecrecyExpVisitor {
 
         return combined;
     }
+
+    public String visit(MultMultExp multMultExp) {
+        // Visit subexpressions first
+        String leftLevel = multMultExp.getLeft().accept(this);
+        String rightLevel = multMultExp.getRight().accept(this);
+        //System.out.println(multMultExp);
+
+        //TODO: not sure if we want to treat it like that
+        if(leftLevel == null && rightLevel != null) return rightLevel;
+        if(rightLevel == null && leftLevel != null) return leftLevel;
+        if(rightLevel == null && leftLevel == null) return null;
+
+        // Combine levels — the stricter secrecy wins
+        String combined = secrecyLatticeStructure.join(leftLevel, rightLevel);
+
+        //System.out.println("AddAddExp: (" + leftLevel + " + " + rightLevel + ") -> " + combined);
+
+        return combined;
+    }
     
     public String visit(VarOrFieldUse varOrFieldUse) {
 

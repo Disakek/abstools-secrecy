@@ -138,7 +138,8 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
                         return null;
                     }
 
-                    System.out.println("Levelname: " + levelName);
+                    //TODO remove print
+                    //System.out.println("Levelname: " + levelName);
                     return levelName;
                 }
             }

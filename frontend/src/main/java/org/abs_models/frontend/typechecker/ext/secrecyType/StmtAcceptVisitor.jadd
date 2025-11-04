@@ -23,15 +23,23 @@ aspect AddStmtVisitor {
   public void SkipStmt.accept(SecrecyStmtVisitor v) { 
     v.visit(this); 
   }
+
+  
   
 }
 
 //TODO: add all stmt's written here (should be all)
 /*
-VarDeclStmt, AssignStmt, SkipStmt, ReturnStmt
+Done: AssignStmt, ReturnStmt
+
+Thought of not sure: VarDeclStmt
+
+MissingImpl: SkipStmt
+
+Couldnt be added: BlockStmt
 
 AssertStmt
-BlockStmt
+
 IfStmt
 SwitchStmt
 WhileStmt

@@ -23,14 +23,14 @@ public class SecrecyStmtVisitor {
 
     private final SemanticConditionList errors;
 
-    private SecrecyExpVisitor visitor;
+    private SecrecyExpVisitor ExpVisitor;
 
     public SecrecyStmtVisitor(HashMap<ASTNode<?>,String> _secrecy, SecrecyLatticeStructure secrecyLatticeStructure, SemanticConditionList errors) {
         this._secrecy = _secrecy;
         this.secrecyLatticeStructure = secrecyLatticeStructure;
         this.errors = errors;
 
-        visitor = new SecrecyExpVisitor(_secrecy, secrecyLatticeStructure);
+        ExpVisitor = new SecrecyExpVisitor(_secrecy, secrecyLatticeStructure);
     }
 
     public void visit(Stmt stmt) {
@@ -41,48 +41,69 @@ public class SecrecyStmtVisitor {
 
         ASTNode<?> LHS = assignStmt.getVar().getDecl();
         Exp RhsExp = assignStmt.getValue();
-        String LHSsecLevel = _secrecy.get(LHS);
-        //SecrecyExpVisitor visitor = new SecrecyExpVisitor(_secrecy, secrecyLatticeStructure);
-        
+
         //TODO: missing a lot of expressions that need implementation
-        String RHSsecLevel = RhsExp.accept(visitor);
+        String LHSsecLevel = secrecyLatticeStructure.getMinSecrecyLevel();
+        String RHSsecLevel = secrecyLatticeStructure.getMinSecrecyLevel();
 
-        //TODOs below
-        //What if there is no secrecy value for the variable on the left?
-        //if(LHSsecLevel == null)return;
-        //if(RHSsecLevel == null)return;
-
-        if(LHSsecLevel != null)System.out.println("LHS: " + assignStmt.getVar() + " with " + LHSsecLevel);
- 
-        if(RHSsecLevel != null)System.out.println("RHS: " + RhsExp + " with " + RHSsecLevel);
-        
-        if(LHSsecLevel == null || RHSsecLevel == null)return; //TODO: missing this case
-
+        if(_secrecy.get(LHS) != null)LHSsecLevel = _secrecy.get(LHS);
+        if(RhsExp.accept(ExpVisitor) != null)RHSsecLevel = RhsExp.accept(ExpVisitor);
         Set<String> LHScontainedIn = secrecyLatticeStructure.getSetForSecrecyLevel(LHSsecLevel);
         
         if(LHScontainedIn.contains(RHSsecLevel)) {
             errors.add(new TypeError(assignStmt, ErrorMessage.SECRECY_LEAKAGE_ERROR_FROM_TO, RHSsecLevel, assignStmt.getValue().toString(), LHSsecLevel, assignStmt.getVar().getName()));
         }
+
+        /*
+            1.Get the LHS and RHSExp
+            2.Set the default secrecy to low
+            3.Overwrite the secrecy levels if there are annotations
+            4.Check if the rhs is lower or at most as high as the lhs (add an error otherwise)
+
+            Note: If it is contained than LHS is lower than RHS which is the violation of our rule
+        */
     }
 
     public void visit(ReturnStmt returnStmt){
-        System.out.println("ReturnStmt: " + returnStmt);
+        
+        ASTNode<?> returnExp = returnStmt.getChild(1);
+        ASTNode<?> parentNode = returnStmt.getParent();
+        String returnDefinitionLevel = secrecyLatticeStructure.getMinSecrecyLevel();
+        String returnActualLevel = secrecyLatticeStructure.getMinSecrecyLevel();
 
-        //Exp returnExp = returnStmt.getChild(0);
-        //System.out.println(returnExp);
-
-        for(int i = 0; i < returnStmt.getNumChild(); i++) {
-
-            if(returnStmt.getChild(i) instanceof Exp exp) {
-                System.out.println(returnStmt.getChild(i) + " is " + exp);
-
-                //TODO: missing this seems to work but is not implemented completly
-                String visitorReturn = exp.accept(visitor);
-                System.out.println(visitorReturn);
-            }
+        while(!(parentNode instanceof MethodImpl)) {
+            parentNode = parentNode.getParent();
         }
 
-        //String returnExp = RhsExp.accept(visitor);
+        if((parentNode instanceof MethodImpl methodImpl)) {
+
+            MethodSig methodSig = methodImpl.getMethodSig();
+
+            if(_secrecy.get(methodSig) != null)returnDefinitionLevel = _secrecy.get(methodSig);
+        }
+
+        if(returnExp instanceof Exp exp) {
+
+            if(exp.accept(ExpVisitor) != null)returnActualLevel = exp.accept(ExpVisitor);
+        }
+
+        Set<String> methodReturnSet = secrecyLatticeStructure.getSetForSecrecyLevel(returnActualLevel);
+
+        if(!returnActualLevel.contains(returnDefinitionLevel)) {
+            errors.add(new TypeError(returnStmt, ErrorMessage.SECRECY_LEAKAGE_ERROR_FROM_TO, returnActualLevel, "returnStmt", returnDefinitionLevel, "returnDefinition"));
+        }
+
+        /* Descripton:
+            1.Get the actual returnStmt
+            2.Get the parentNode(method implementation node) //todo:consider special cases like interface with default implementation can have return
+            3.TRY to get secrecy returnDefinitionLevel if not null
+            4.TRY to get secrecy returnActualLevel if not null
+            5.Check if the returnActualLevel is lower or at most as high as the returnDefinitionLevel (add an error otherwise)
+        */
+    }
+
+    public void visit(VarDeclStmt varDeclStmt){
+        System.out.println(varDeclStmt);
     }
 
     //TODO: add all stmt's here
