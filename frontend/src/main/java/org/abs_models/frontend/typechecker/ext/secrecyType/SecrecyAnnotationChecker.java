@@ -73,6 +73,8 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
                         //Extracts the annotation for methods of the class for their return values and their parameters
                         for (MethodImpl method : classDecl.getMethods()) {
                             
+                            //TODO: before we add the returnvalue or the parameters we might want to check it actually satisfies the rules of an interface (if there is one)
+
                             String Returnlevel = extractSecrecyValue(method.getMethodSig());
                             if(Returnlevel != null)_secrecy.put(method.getMethodSig(), Returnlevel);
 

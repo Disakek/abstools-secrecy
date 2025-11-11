@@ -92,7 +92,7 @@ public class SecrecyStmtVisitor {
 
         Set<String> methodReturnSet = secrecyLatticeStructure.getSetForSecrecyLevel(returnActualLevel);
 
-        if(!returnActualLevel.contains(returnDefinitionLevel)) {
+        if(!(methodReturnSet.contains(returnDefinitionLevel)) && !(returnActualLevel.equals(returnDefinitionLevel))) {
             errors.add(new TypeError(returnStmt, ErrorMessage.SECRECY_LEAKAGE_ERROR_FROM_TO, returnActualLevel, "returnStmt", returnDefinitionLevel, "returnDefinition"));
         }
 
@@ -101,7 +101,7 @@ public class SecrecyStmtVisitor {
             2.Get the parentNode(method implementation node) //todo:consider special cases like interface with default implementation can have return
             3.TRY to get secrecy returnDefinitionLevel if not null
             4.TRY to get secrecy returnActualLevel if not null
-            5.Check if the returnActualLevel is lower or at most as high as the returnDefinitionLevel (add an error otherwise)
+            5.Check if the returnActualLevel is lower or at most equal to the returnDefinitionLevel (add an error otherwise)
         */
     }
 
@@ -170,6 +170,7 @@ public class SecrecyStmtVisitor {
 
     public void visit(VarDeclStmt varDeclStmt){
         //System.out.println(varDeclStmt);
+        //this stmt is already handled its only about extracting the max secrecy for this var
     }
 
     //TODO: add all stmt's here
