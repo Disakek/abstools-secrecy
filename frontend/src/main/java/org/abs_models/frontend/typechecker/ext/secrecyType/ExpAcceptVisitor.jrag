@@ -91,9 +91,13 @@ aspect AddExpVisitor {
 
 Instead try to differentiate between base case PureExp -> BinaryExp | UnaryExp
 
-Done: MultExp, AddExp
+Done:
+VarOrFieldExp -> I believe this is the VarOrFieldUse type
+MultExp (Mul | Div | Mod), AddExp (Add | Sub), MinusExp, NegExp, BoolExp (And | Or | EQ | LT | GT | ...)
 
 
+
+Missing:
 ## EffExp
 GetExp
 NewExp
@@ -107,7 +111,6 @@ PartialFunctionExp
 VariadicFunctionExp
 ConstructorExp
 GreaterExp
-VarOrFieldExp -> I believe this is the VarOrFieldUse type
 FloatExp, IntExp, StringExp
 TemplateStringExp, TemplateStringCompoundExp
 ThisExp

@@ -4,19 +4,10 @@ aspect AddStmtVisitor {
   public void Stmt.accept(SecrecyStmtVisitor v) { v.visit(this); }
 
   @Override
-  public void VarDeclStmt.accept(SecrecyStmtVisitor v) { v.visit(this); }
-
-  @Override
   public void AssignStmt.accept(SecrecyStmtVisitor v) { v.visit(this); }
 
   @Override
   public void ReturnStmt.accept(SecrecyStmtVisitor v) { v.visit(this); }
-
-  @Override
-  public void SkipStmt.accept(SecrecyStmtVisitor v) { v.visit(this); }
-  
-  @Override
-  public void AssertStmt.accept(SecrecyStmtVisitor v) { v.visit(this);  }
 
   @Override
   public void IfStmt.accept(SecrecyStmtVisitor v) { v.visit(this); }
@@ -25,61 +16,31 @@ aspect AddStmtVisitor {
   public void WhileStmt.accept(SecrecyStmtVisitor v) { v.visit(this); }
 
   @Override
-  public void ForeachStmt.accept(SecrecyStmtVisitor v) { v.visit(this); }
+  public void Block.accept(SecrecyStmtVisitor v) { v.visit(this); }  
 
-  @Override
-  public void TryCatchFinallyStmt.accept(SecrecyStmtVisitor v) { v.visit(this); }
 
+  //TODO missing implementation for the one below
   @Override
   public void AwaitStmt.accept(SecrecyStmtVisitor v) { v.visit(this); }
 
-  @Override
-  public void SuspendStmt.accept(SecrecyStmtVisitor v) { v.visit(this); }
-
-  @Override
-  public void DurationStmt.accept(SecrecyStmtVisitor v) { v.visit(this); }
-
-  @Override
-  public void ThrowStmt.accept(SecrecyStmtVisitor v) { v.visit(this); }
-
-  @Override
-  public void DieStmt.accept(SecrecyStmtVisitor v) { v.visit(this); }
-
-  @Override
-  public void MoveCogToStmt.accept(SecrecyStmtVisitor v) { v.visit(this); }
-
-  @Override
-  public void CaseStmtOld.accept(SecrecyStmtVisitor v) { v.visit(this); } 
-
-  @Override
-  public void Block.accept(SecrecyStmtVisitor v) { v.visit(this); }  
-
-  //Example of a non working modification
-  //@Override
-  //public void ExpStmt.accept(SecrecyStmtVisitor v) { 
-  //  v.visit(this); 
-  //}
-  
 }
 
 //TODO: add all stmt's written here (should be all)
 /*
-Done: AssignStmt, ReturnStmt, BlockStmt, IfStmt, WhileStmt
 
-MissingImpl: 
+These get handled: AssignStmt, ReturnStmt, BlockStmt, IfStmt, WhileStmt
 
-AssertStmt, ForeachStmt, TryCatchFinallyStmt, AwaitStmt,
-DurationStmt, ThrowStmt, DieStmt, MoveCogToStmt, CaseStmtOld
+These are not implemented: 
+  - AwaitStmt, (ExpStmt) //these are not necessarily the names of the ast nodes so figure the right name out first
+  (later AssertStmt)
 
-
-For us uninteresting Stmt's: SkipStmt (nothing), SuspendStmt
-
-//TODO try again just make sure to use the name of the ast node (e.g. not BlockStmt but Block)
-Throws Errors (can't be modified by jadd): SwitchStmt, ExpStmt
+Not planned for now: 
+  - SkipStmt, ThrowStmt, ForeachStmt, TryCatchFinallyStmt, SuspendStmt
+  - DurationStmt, DieStmt, MoveCogToStmt,
 
 
-VarDeclStmt :> (right now we ignore local variables but I think thats what we want)
+Await affects pc if we await somethiing high we assign high and we are in a high context (which we migt not loose)
 
-AssertStmt :> we might want to be able to assert if a var/param/return has the secrecy level we want it to have (requires adding something to the grammar I think)
+from await to await or from await to return (get) -> 
 
 */

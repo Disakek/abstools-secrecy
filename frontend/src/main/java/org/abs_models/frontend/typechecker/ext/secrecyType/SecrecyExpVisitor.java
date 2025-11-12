@@ -23,9 +23,6 @@ public class SecrecyExpVisitor {
         this.confidentialityOfProgramPoint = confidentialityOfProgramPoint;
     }
 
-    //No matter what Expression is to be visited returning the least upper bound of secrecy values or null if there is none
-    //TODO check if the implements are needed/used or remove them
-
     public String visit(Exp expression){
         return secrecyLatticeStructure.getMinSecrecyLevel();
     }
@@ -35,7 +32,6 @@ public class SecrecyExpVisitor {
         String leftLevel = addAddExp.getLeft().accept(this);
         String rightLevel = addAddExp.getRight().accept(this);
         String combined = secrecyLatticeStructure.join(leftLevel, rightLevel);
-        //System.out.println("AddAddExp: (" + leftLevel + " + " + rightLevel + ") -> " + combined);
 
         return secrecyLatticeStructure.join(combined, confidentialityOfProgramPoint);
     }
@@ -45,7 +41,6 @@ public class SecrecyExpVisitor {
         String leftLevel = subAddExp.getLeft().accept(this);
         String rightLevel = subAddExp.getRight().accept(this);
         String combined = secrecyLatticeStructure.join(leftLevel, rightLevel);
-        //System.out.println("SubAddExp: (" + leftLevel + " + " + rightLevel + ") -> " + combined);
 
         return secrecyLatticeStructure.join(combined, confidentialityOfProgramPoint);
     }
@@ -55,7 +50,6 @@ public class SecrecyExpVisitor {
         String leftLevel = multMultExp.getLeft().accept(this);
         String rightLevel = multMultExp.getRight().accept(this);
         String combined = secrecyLatticeStructure.join(leftLevel, rightLevel);
-        //System.out.println("MultMultExp: (" + leftLevel + " + " + rightLevel + ") -> " + combined);
 
         return secrecyLatticeStructure.join(combined, confidentialityOfProgramPoint);
     }
@@ -65,7 +59,6 @@ public class SecrecyExpVisitor {
         String leftLevel = divMultExp.getLeft().accept(this);
         String rightLevel = divMultExp.getRight().accept(this);
         String combined = secrecyLatticeStructure.join(leftLevel, rightLevel);
-        //System.out.println("DivMultExp: (" + leftLevel + " + " + rightLevel + ") -> " + combined);
 
         return secrecyLatticeStructure.join(combined, confidentialityOfProgramPoint);
     }
@@ -75,7 +68,6 @@ public class SecrecyExpVisitor {
         String leftLevel = modMultExp.getLeft().accept(this);
         String rightLevel = modMultExp.getRight().accept(this);
         String combined = secrecyLatticeStructure.join(leftLevel, rightLevel);
-        //System.out.println("ModMultExp: (" + leftLevel + " + " + rightLevel + ") -> " + combined);
 
         return secrecyLatticeStructure.join(combined, confidentialityOfProgramPoint);
     }
@@ -107,7 +99,6 @@ public class SecrecyExpVisitor {
         String leftLevel = andExp.getLeft().accept(this);
         String rightLevel = andExp.getRight().accept(this);
         String combined = secrecyLatticeStructure.join(leftLevel, rightLevel);
-        //System.out.println("AndExp: (" + leftLevel + " + " + rightLevel + ") -> " + combined);
 
         return secrecyLatticeStructure.join(combined, confidentialityOfProgramPoint);
     }
@@ -118,7 +109,6 @@ public class SecrecyExpVisitor {
         String leftLevel = orExp.getLeft().accept(this);
         String rightLevel = orExp.getRight().accept(this);
         String combined = secrecyLatticeStructure.join(leftLevel, rightLevel);
-        //System.out.println("OrExp: (" + leftLevel + " + " + rightLevel + ") -> " + combined);
 
         return secrecyLatticeStructure.join(combined, confidentialityOfProgramPoint);
     }
@@ -129,7 +119,6 @@ public class SecrecyExpVisitor {
         String leftLevel = eqExp.getLeft().accept(this);
         String rightLevel = eqExp.getRight().accept(this);
         String combined = secrecyLatticeStructure.join(leftLevel, rightLevel);
-        //System.out.println("OrExp: (" + leftLevel + " + " + rightLevel + ") -> " + combined);
 
         return secrecyLatticeStructure.join(combined, confidentialityOfProgramPoint);
     }
@@ -139,7 +128,6 @@ public class SecrecyExpVisitor {
         String leftLevel = notEqExp.getLeft().accept(this);
         String rightLevel = notEqExp.getRight().accept(this);
         String combined = secrecyLatticeStructure.join(leftLevel, rightLevel);
-        //System.out.println("OrExp: (" + leftLevel + " + " + rightLevel + ") -> " + combined);
 
         return secrecyLatticeStructure.join(combined, confidentialityOfProgramPoint);
     }
@@ -149,7 +137,6 @@ public class SecrecyExpVisitor {
         String leftLevel = lessThanEqualsExp.getLeft().accept(this);
         String rightLevel = lessThanEqualsExp.getRight().accept(this);
         String combined = secrecyLatticeStructure.join(leftLevel, rightLevel);
-        //System.out.println("OrExp: (" + leftLevel + " + " + rightLevel + ") -> " + combined);
 
         return secrecyLatticeStructure.join(combined, confidentialityOfProgramPoint);
     }
@@ -159,7 +146,6 @@ public class SecrecyExpVisitor {
         String leftLevel = greaterThanEqualsExp.getLeft().accept(this);
         String rightLevel = greaterThanEqualsExp.getRight().accept(this);
         String combined = secrecyLatticeStructure.join(leftLevel, rightLevel);
-        //System.out.println("OrExp: (" + leftLevel + " + " + rightLevel + ") -> " + combined);
 
         return secrecyLatticeStructure.join(combined, confidentialityOfProgramPoint);
     }
@@ -169,7 +155,6 @@ public class SecrecyExpVisitor {
         String leftLevel = lessThanExp.getLeft().accept(this);
         String rightLevel = lessThanExp.getRight().accept(this);
         String combined = secrecyLatticeStructure.join(leftLevel, rightLevel);
-        //System.out.println("OrExp: (" + leftLevel + " + " + rightLevel + ") -> " + combined);
 
         return secrecyLatticeStructure.join(combined, confidentialityOfProgramPoint);
     }
@@ -178,7 +163,6 @@ public class SecrecyExpVisitor {
         String leftLevel = greaterThanExp.getLeft().accept(this);
         String rightLevel = greaterThanExp.getRight().accept(this);
         String combined = secrecyLatticeStructure.join(leftLevel, rightLevel);
-        //System.out.println("OrExp: (" + leftLevel + " + " + rightLevel + ") -> " + combined);
 
         return secrecyLatticeStructure.join(combined, confidentialityOfProgramPoint);
     }
@@ -189,7 +173,6 @@ public class SecrecyExpVisitor {
         String secrecy = _secrecy.get(variable);
 
         if (secrecy != null) {
-            //System.out.println("VarOrFieldExp: "  + " -> " + secrecy);
             return secrecy;
         }
 

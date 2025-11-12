@@ -175,9 +175,9 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
 /* Notes
 
 @ Todos
-- Implement visit methods
+- Implement visit methods (in progress)
     - for every stmt
-    - for every exp
+    - for every exp 
 
 - Refactor the _secrecy Hashmap
     - todo redo rules written below
@@ -186,12 +186,9 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
 - Missing Rules
     - More checks in the second phase
     - Interface and method implementation dependence -> implementation has to satisfy the interface rules
-    - Error for overwriting an existing secrecy value in _secrecy(not allowed I think)
+    - Error for overwriting an existing secrecy value in _secrecy(not allowed I think depends on how I implement it)
         - Question 2.
         //if(_secrecy.get() != null) {errors.add(new TypeError(annotation, ErrorMessage.SECRECY_OVERWRITING_EXISTING, variablename));}
-
-
-1. We do need a top and a bottom element for the secrecy lattice
 
 
 @ Questions

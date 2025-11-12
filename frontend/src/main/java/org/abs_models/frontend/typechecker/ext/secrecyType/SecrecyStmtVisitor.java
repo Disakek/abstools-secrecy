@@ -37,7 +37,13 @@ public class SecrecyStmtVisitor {
     }
 
     public void visit(Stmt stmt) {
-        //System.out.println("Is general");
+        return;
+    }
+
+    public void visit(Block blockStmt){
+        for(Stmt stmt : blockStmt.getStmtList()) {
+            stmt.accept(this);
+        }
     }
 
     public void visit(AssignStmt assignStmt){
@@ -162,16 +168,8 @@ public class SecrecyStmtVisitor {
         */
     }
 
-    public void visit(Block blockStmt){
-        for(Stmt stmt : blockStmt.getStmtList()) {
-            stmt.accept(this);
-        }
+    public void visit(AwaitStmt awaitStmt) {
+        System.out.println(awaitStmt);
     }
 
-    public void visit(VarDeclStmt varDeclStmt){
-        //System.out.println(varDeclStmt);
-        //this stmt is already handled its only about extracting the max secrecy for this var
-    }
-
-    //TODO: add all stmt's here
 }
