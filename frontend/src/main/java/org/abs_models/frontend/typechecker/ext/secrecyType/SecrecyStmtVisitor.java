@@ -170,6 +170,7 @@ public class SecrecyStmtVisitor {
 
     public void visit(AwaitStmt awaitStmt) {
         System.out.println(awaitStmt);
+        System.out.println(awaitStmt.getGuard());
     }
 
 }
