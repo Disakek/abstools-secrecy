@@ -7,6 +7,7 @@ package org.abs_models.frontend.typechecker.ext;
 
 import java.util.HashMap;
 import java.util.Set;
+import java.util.LinkedList;
 
 import org.abs_models.frontend.ast.*;
 import org.abs_models.frontend.typechecker.*;
@@ -169,8 +170,32 @@ public class SecrecyStmtVisitor {
     }
 
     public void visit(AwaitStmt awaitStmt) {
-        System.out.println(awaitStmt);
-        System.out.println(awaitStmt.getGuard());
+
+        //I believe we need a list of secrecy contexts we have
+        LinkedList<String> awaitSecrecyLevels = new LinkedList<String>();
+
+        //Add the current secrecy to the list to be able to leave all awaits again
+        awaitSecrecyLevels.add(confidentialityOfProgramPoint);
+
+        //Get the guard of the awaitstmt -> await guard;
+        Guard awaitGuard = awaitStmt.getGuard();
+
+        //depending on the kind of guard handle it accordingly (4 different kinds exist)
+            //expressionguard, claimguard, durationguard, andguard
+
+        if (awaitGuard instanceof ExpGuard expGuard) {
+            //Get the exp
+            Exp awaitExpr = (Exp) expGuard.getChild(0);
+            //Get its secrecy level
+            String getAwaitSecrecy = awaitExpr.accept(ExpVisitor);
+
+            //Add the join of (the old with the new) to the list
+            awaitSecrecyLevels.add(secrecyLatticeStructure.join(awaitSecrecyLevels.getLast(),getAwaitSecrecy));
+            
+            System.out.println("expguard: " + awaitExpr + " has Secrecy: " + getAwaitSecrecy);
+            System.out.println(awaitSecrecyLevels);
+        }
+
     }
 
 }

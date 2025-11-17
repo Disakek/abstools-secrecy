@@ -8,6 +8,7 @@ package org.abs_models.frontend.typechecker.ext;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.HashMap;
+import java.util.LinkedList;
 
 import org.abs_models.frontend.analyser.AnnotationHelper;
 import org.abs_models.frontend.analyser.ErrorMessage;
@@ -23,6 +24,9 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
 
     //Is the mapping from an ASTNode (the declaration) to the assigned SecrecyValue
     private HashMap<ASTNode<?>,String> _secrecy = new HashMap<>();
+
+    //todo is an idea for a current secrecy level storage
+    //private HashMap<ASTNode<?>,String> _currentSecrecy = new HashMap<>();
     
     //Contains the secrecy lattice given by the user or the default (Low < High)
     SecrecyLatticeStructure secrecyLatticeStructure;
@@ -30,14 +34,21 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
     //Is the visitor for all Stmts that typechecks the implemented rules    
     SecrecyStmtVisitor visitor;              
 
-    String confidentialityOfProgramPoint;           
+    String confidentialityOfProgramPoint;     
+
+    //      
+    LinkedList<String> programConfidentiality;
     
     protected SecrecyAnnotationChecker(Model m) {
         super(m);
 
+        programConfidentiality = new LinkedList<String>();
+
         if (m.secrecyLatticeStructure != null) {
             secrecyLatticeStructure = m.secrecyLatticeStructure;
             confidentialityOfProgramPoint = secrecyLatticeStructure.getMinSecrecyLevel();
+            //Set the basic starting secrecy
+            programConfidentiality.add(secrecyLatticeStructure.getMinSecrecyLevel());
         }
     }
 
@@ -47,6 +58,7 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
         //First pass of all the code to extract the secrecy annotations and populate _secrecy
         firstExtractionPhasePass(model); 
 
+        //TODO exchange confidentialityOf... with programConfidentiality
         visitor = new SecrecyStmtVisitor(_secrecy, secrecyLatticeStructure, errors, confidentialityOfProgramPoint);
 
         //Second pass to enforce all the typerules
@@ -55,7 +67,7 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
         System.out.println("Print new annotated Values: " + _secrecy.toString());
         System.out.println("Print all Levels: " + secrecyLatticeStructure.getSecrecyLevels().toString());
         System.out.println("Print the order" + secrecyLatticeStructure.getLatticeOrder().toString());
-        System.out.println("Confidentiality of current program point is: " + confidentialityOfProgramPoint);
+        System.out.println("Confidentiality of current program point is: " + programConfidentiality.getLast());
     }
 
     private void firstExtractionPhasePass(Model model){
@@ -64,6 +76,30 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
                 for (Decl decl : moduleDecl.getDecls()) {
                     if (decl instanceof ClassDecl classDecl) {
 
+                        //set for all methods declared in an implemented interface
+                        Set<MethodSig> declaredInterfaceMethods = new HashSet<MethodSig>();
+                        //TODO this gets me all the implemented interfaces for a class
+                        if(classDecl.hasImplementedInterfaceUse()) {
+                            
+                            ASTNode<?> interfaceSet = classDecl.getImplementedInterfaceUseList();
+
+                            //System.out.println("Has interface implementation: " + interfaceSet);
+
+                            for(InterfaceTypeUse implementedInterface : classDecl.getImplementedInterfaceUseList()) {
+
+                                InterfaceDecl usedInterfaceDecl = (InterfaceDecl) implementedInterface.getDecl();
+                                //System.out.println(usedInterfaceDecl.getBodyList());
+                                for(MethodSig declaredMethod : usedInterfaceDecl.getBodyList()) {
+
+                                    //wenn sie ein secrecy value hat
+                                    if(_secrecy.get(declaredMethod) != null){
+                                        System.out.println("Method: " + declaredMethod + " has Secrecy Value: " + _secrecy.get(declaredMethod));
+                                        declaredInterfaceMethods.add(declaredMethod);
+                                    }                                    
+                                }
+                            }
+                        }
+        
                         //Extract field annotations and store them to the secrecy hashmap
                         for(FieldDecl fieldDecl : classDecl.getFields()) {
                             String level = extractSecrecyValue(fieldDecl);
@@ -73,7 +109,8 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
                         //Extracts the annotation for methods of the class for their return values and their parameters
                         for (MethodImpl method : classDecl.getMethods()) {
                             
-                            //TODO: before we add the returnvalue or the parameters we might want to check it actually satisfies the rules of an interface (if there is one)
+                            //TODO: Enter the part that checks for existing methodsignatures from an interface
+                            MethodSig methodSigNat = method.getMethodSig();
 
                             String Returnlevel = extractSecrecyValue(method.getMethodSig());
                             if(Returnlevel != null)_secrecy.put(method.getMethodSig(), Returnlevel);
@@ -81,6 +118,14 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
                             for(ParamDecl parameter : method.getMethodSig().getParamList()) {
                                 String Parameterlevel = extractSecrecyValue(parameter);
                                 if(Parameterlevel != null)_secrecy.put(parameter, Parameterlevel);
+                            }
+
+                            for(MethodSig declaredCandidate : declaredInterfaceMethods) {
+                                if (compareMethodSignatures(method.getMethodSig(), declaredCandidate)) {
+                                    System.out.println(method.getMethodSig() + " is implementation of " + declaredCandidate);
+                                    //todo check the method respects the secrecy level of the decl
+                                    checkRespectingSecrecyLevels(method.getMethodSig(), declaredCandidate);
+                                }
                             }
 
                             Block block = method.getBlock();
@@ -168,6 +213,48 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
                     }
                 }
             }
+        }
+    }
+
+    private boolean compareMethodSignatures(MethodSig methodA, MethodSig methodB) {
+
+        //name
+        if(!(methodA.getName().equals(methodB.getName())))return false;
+        
+        //parameters (count and types)
+        for(ParamDecl paramA : methodA.getParamList()) {
+            for(ParamDecl paramB : methodB.getParamList()) {
+                if (!(paramA.getName().equals(paramB.getName())) && !(paramA.getTypeUse().equals(paramB.getTypeUse())))return false;
+            }
+        }
+        //check if the returnvalue has the same type 
+        if(!(methodA.getReturnType().toString().equals(methodB.getReturnType().toString())))return false;
+        
+        return true;
+    }
+
+    private void checkRespectingSecrecyLevels(MethodSig implementation, MethodSig definition) {
+        ASTNode<?> definitionReturnNode = definition.getReturnType().getDecl();
+        String definitionLevel = _secrecy.get(definition);
+        
+        if(definitionLevel == null) {
+            //System.out.println("decl was == null");
+            definitionLevel = secrecyLatticeStructure.getMinSecrecyLevel();
+        }
+        
+        ASTNode<?> implementationReturnNode = definition.getReturnType().getDecl();
+        String implementationLevel = _secrecy.get(implementation);
+        
+        if(implementationLevel == null) {
+            //System.out.println("impl was == null");
+            implementationLevel = secrecyLatticeStructure.getMinSecrecyLevel();
+        }
+
+        Set<String> implementationSet = secrecyLatticeStructure.getSetForSecrecyLevel(implementationLevel);
+        
+        //If the implementation's returnvalue is not at least as secret as the definition we have an error
+        if(implementationSet.contains(definitionLevel)) {
+            errors.add(new TypeError(implementation.getReturnType(), ErrorMessage.SECRECY_LEAKAGE_ERROR_AT_LEAST, definitionLevel, implementationLevel));
         }
     }
 }
