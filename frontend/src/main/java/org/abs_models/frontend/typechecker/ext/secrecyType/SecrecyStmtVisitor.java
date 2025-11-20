@@ -37,6 +37,7 @@ public class SecrecyStmtVisitor {
         ExpVisitor = new SecrecyExpVisitor(_secrecy, secrecyLatticeStructure, confidentialityOfProgramPoint);
     }
 
+    //todo do I need this base case and if yes what shall it do
     public void visit(Stmt stmt) {
         return;
     }
@@ -52,7 +53,6 @@ public class SecrecyStmtVisitor {
         ASTNode<?> LHS = assignStmt.getVar().getDecl();
         Exp RhsExp = assignStmt.getValue();
 
-        //TODO: missing a lot of expressions that need implementation
         String LHSsecLevel = secrecyLatticeStructure.getMinSecrecyLevel();
         String RHSsecLevel = secrecyLatticeStructure.getMinSecrecyLevel();
 
@@ -171,31 +171,67 @@ public class SecrecyStmtVisitor {
 
     public void visit(AwaitStmt awaitStmt) {
 
+        //I believe we need a list of secrecy contexts we have (but global so replace confidentialityOfCurrentProgramPoint)
+        //Add the current secrecy to the list to be able to leave all awaits again
+        LinkedList<String> awaitSecrecyLevels = new LinkedList<String>();
+        awaitSecrecyLevels.add(confidentialityOfProgramPoint);
+
+        //Get the guard of the awaitstmt -> await guard;
+        Guard getGuard = awaitStmt.getGuard();
+
+        //4 different guards | duration -> nothing | and -> handle left & right | ...-> add it's secrecy level to the list
+        if (getGuard instanceof AndGuard andGuard) {
+
+            handleSingleGuards(andGuard.getLeft());
+            handleSingleGuards(andGuard.getRight());
+
+        } else {
+            handleSingleGuards(getGuard);
+        }
+        /* Descripton:
+            1.Get the guard of the await stmt
+            2.If it is an AndGuard handle left and right
+            3.Extract the secrecy level for the guard (or low)
+            4.Insert a node for the await into the pc list -> join(guardLevel, currentLevel)
+            TODO MISSING -> (X.Remove the node from the list once we have a Get for it) 
+        */
+    }
+
+    private void handleSingleGuards(Guard inGuard) {
+
         //I believe we need a list of secrecy contexts we have
         LinkedList<String> awaitSecrecyLevels = new LinkedList<String>();
 
         //Add the current secrecy to the list to be able to leave all awaits again
         awaitSecrecyLevels.add(confidentialityOfProgramPoint);
 
-        //Get the guard of the awaitstmt -> await guard;
-        Guard awaitGuard = awaitStmt.getGuard();
-
-        //depending on the kind of guard handle it accordingly (4 different kinds exist)
-            //expressionguard, claimguard, durationguard, andguard
-
-        if (awaitGuard instanceof ExpGuard expGuard) {
-            //Get the exp
+        if (inGuard instanceof ExpGuard expGuard) {
+  
             Exp awaitExpr = (Exp) expGuard.getChild(0);
-            //Get its secrecy level
             String getAwaitSecrecy = awaitExpr.accept(ExpVisitor);
 
-            //Add the join of (the old with the new) to the list
+            //TODO missing add to list -> Add the join of (the old with the new) to the list
             awaitSecrecyLevels.add(secrecyLatticeStructure.join(awaitSecrecyLevels.getLast(),getAwaitSecrecy));
             
-            System.out.println("expguard: " + awaitExpr + " has Secrecy: " + getAwaitSecrecy);
-            System.out.println(awaitSecrecyLevels);
+            System.out.println("added expguard: " + awaitExpr + " has Secrecy: " + getAwaitSecrecy);
+
+        
+        } else if (inGuard instanceof ClaimGuard claimGuard) {
+
+            VarOrFieldUse awaitClaim = (VarOrFieldUse) claimGuard.getChild(0);
+            String secrecyLevel = awaitClaim.accept(ExpVisitor);
+
+            //TODO missing add to list
+            awaitSecrecyLevels.add(secrecyLatticeStructure.join(awaitSecrecyLevels.getLast(),getAwaitSecrecy));
+
+            System.out.println("added claimguard: " + claimGuard + " getDecl is: " + secrecyLevel);
+       
+        } else if (inGuard instanceof AndGuard andGuard) {
+
+            handleSingleGuards(andGuard.getLeft());
+            handleSingleGuards(andGuard.getRight());
         }
-
+        
+        System.out.println(awaitSecrecyLevels);
     }
-
 }

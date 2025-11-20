@@ -37,18 +37,18 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
     String confidentialityOfProgramPoint;     
 
     //      
-    LinkedList<String> programConfidentiality;
+    LinkedList<ProgramCountNode> programConfidentiality;
     
     protected SecrecyAnnotationChecker(Model m) {
         super(m);
 
-        programConfidentiality = new LinkedList<String>();
+        programConfidentiality = new LinkedList<ProgramCountNode>();
 
         if (m.secrecyLatticeStructure != null) {
             secrecyLatticeStructure = m.secrecyLatticeStructure;
             confidentialityOfProgramPoint = secrecyLatticeStructure.getMinSecrecyLevel();
             //Set the basic starting secrecy
-            programConfidentiality.add(secrecyLatticeStructure.getMinSecrecyLevel());
+            programConfidentiality.add(new ProgramCountNode(null, secrecyLatticeStructure.getMinSecrecyLevel()));
         }
     }
 
@@ -67,7 +67,7 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
         System.out.println("Print new annotated Values: " + _secrecy.toString());
         System.out.println("Print all Levels: " + secrecyLatticeStructure.getSecrecyLevels().toString());
         System.out.println("Print the order" + secrecyLatticeStructure.getLatticeOrder().toString());
-        System.out.println("Confidentiality of current program point is: " + programConfidentiality.getLast());
+        System.out.println("Confidentiality of current program point is: " + programConfidentiality.getLast().getSecrecyLevel());
     }
 
     private void firstExtractionPhasePass(Model model){
@@ -238,7 +238,6 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
         String definitionLevel = _secrecy.get(definition);
         
         if(definitionLevel == null) {
-            //System.out.println("decl was == null");
             definitionLevel = secrecyLatticeStructure.getMinSecrecyLevel();
         }
         
@@ -246,16 +245,22 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
         String implementationLevel = _secrecy.get(implementation);
         
         if(implementationLevel == null) {
-            //System.out.println("impl was == null");
             implementationLevel = secrecyLatticeStructure.getMinSecrecyLevel();
         }
 
         Set<String> implementationSet = secrecyLatticeStructure.getSetForSecrecyLevel(implementationLevel);
         
         //If the implementation's returnvalue is not at least as secret as the definition we have an error
-        if(implementationSet.contains(definitionLevel)) {
-            errors.add(new TypeError(implementation.getReturnType(), ErrorMessage.SECRECY_LEAKAGE_ERROR_AT_LEAST, definitionLevel, implementationLevel));
-        }
+        //if(implementationSet.contains(definitionLevel)) {
+        //    errors.add(new TypeError(implementation.getReturnType(), ErrorMessage.SECRECY_LEAKAGE_ERROR_AT_LEAST, definitionLevel, implementationLevel));
+        //}
+        //TODO missing check the parameter respect the rule
+        /*
+        For each param of function implementation 
+            (if name == param) of function definition (so it is the same parameter)
+                the secrecy level of the parameter in the implementation may at most be as high as in the interface defined
+        */
+
     }
 }
 
@@ -273,6 +278,8 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
 - Missing Rules
     - More checks in the second phase
     - Interface and method implementation dependence -> implementation has to satisfy the interface rules
+        - return values
+        - parameters
     - Error for overwriting an existing secrecy value in _secrecy(not allowed I think depends on how I implement it)
         - Question 2.
         //if(_secrecy.get() != null) {errors.add(new TypeError(annotation, ErrorMessage.SECRECY_OVERWRITING_EXISTING, variablename));}
