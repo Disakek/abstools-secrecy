@@ -26,15 +26,15 @@ public class SecrecyStmtVisitor {
 
     private SecrecyExpVisitor ExpVisitor;
 
-    String confidentialityOfProgramPoint; 
+    LinkedList<ProgramCountNode> programConfidentiality;
 
-    public SecrecyStmtVisitor(HashMap<ASTNode<?>,String> _secrecy, SecrecyLatticeStructure secrecyLatticeStructure, SemanticConditionList errors, String confidentialityOfProgramPoint) {
+    public SecrecyStmtVisitor(HashMap<ASTNode<?>,String> _secrecy, SecrecyLatticeStructure secrecyLatticeStructure, SemanticConditionList errors,LinkedList<ProgramCountNode> programConfidentiality) {
         this._secrecy = _secrecy;
         this.secrecyLatticeStructure = secrecyLatticeStructure;
         this.errors = errors;
-        this.confidentialityOfProgramPoint = confidentialityOfProgramPoint;
+        this.programConfidentiality = programConfidentiality;
 
-        ExpVisitor = new SecrecyExpVisitor(_secrecy, secrecyLatticeStructure, confidentialityOfProgramPoint);
+        ExpVisitor = new SecrecyExpVisitor(_secrecy, secrecyLatticeStructure, programConfidentiality);
     }
 
     //todo do I need this base case and if yes what shall it do
@@ -113,13 +113,14 @@ public class SecrecyStmtVisitor {
     }
 
     public void visit(IfStmt ifStmt){
-        
-        String oldProgramPoint = confidentialityOfProgramPoint;
+
         Exp condition = ifStmt.getCondition();
 
-        if(condition.accept(ExpVisitor) != null)confidentialityOfProgramPoint = secrecyLatticeStructure.join(condition.accept(ExpVisitor), confidentialityOfProgramPoint);
+        if(condition.accept(ExpVisitor) != null) {
+            programConfidentiality.add(new ProgramCountNode(ifStmt, secrecyLatticeStructure.join(condition.accept(ExpVisitor), secrecyLatticeStructure.evaluateListLevel(programConfidentiality))));
+        }
         
-        ExpVisitor.updateProgramPoint(confidentialityOfProgramPoint);
+        ExpVisitor.updateProgramPoint(programConfidentiality);
         Stmt thenCase = ifStmt.getThen();
         thenCase.accept(this);
         
@@ -128,53 +129,37 @@ public class SecrecyStmtVisitor {
             elseCase.accept(this);
         }
 
-        if(confidentialityOfProgramPoint != oldProgramPoint) {
-            System.out.println("Changed pc to: " + confidentialityOfProgramPoint);
-            confidentialityOfProgramPoint = oldProgramPoint;
-            System.out.println("Changed pc back to: " + confidentialityOfProgramPoint);
-            ExpVisitor.updateProgramPoint(confidentialityOfProgramPoint);
-        }
+        programConfidentiality.removeLast();
+        ExpVisitor.updateProgramPoint(programConfidentiality);
         /* Descripton:
-            1.Store the pc level which we had so far
-            2.Get the condition of the ifStmt
-            3.Set pc to the join of (condition level, old pc level) //mby old pc level was already higher
-            4.Evaluate the then (and if existing else) branch with the new pc
-            5.Reset the pc to the old value once finished
+            1.Get the condition of the ifStmt
+            2.Set pc to the join of (condition level, currentLevelByList) //mby old pc level was already higher
+            3.Evaluate the then (and if existing else) branch with the new pc
+            4.Reset the pc to the old value once finished by removing the last list element
         */
     }
 
     public void visit(WhileStmt whileStmt) {
         
-        String oldProgramPoint = confidentialityOfProgramPoint;
         Exp condition = whileStmt.getCondition();
 
-        if(condition.accept(ExpVisitor) != null)confidentialityOfProgramPoint = secrecyLatticeStructure.join(condition.accept(ExpVisitor), confidentialityOfProgramPoint);
-        
-        ExpVisitor.updateProgramPoint(confidentialityOfProgramPoint);
+        if(condition.accept(ExpVisitor) != null)programConfidentiality.add(new ProgramCountNode(whileStmt, secrecyLatticeStructure.join(condition.accept(ExpVisitor), secrecyLatticeStructure.evaluateListLevel(programConfidentiality))));
+
+        ExpVisitor.updateProgramPoint(programConfidentiality);
         Stmt body = whileStmt.getBody();
         body.accept(this);
 
-        if(confidentialityOfProgramPoint != oldProgramPoint) {
-            System.out.println("Changed pc to: " + confidentialityOfProgramPoint);
-            confidentialityOfProgramPoint = oldProgramPoint;
-            System.out.println("Changed pc back to: " + confidentialityOfProgramPoint);
-            ExpVisitor.updateProgramPoint(confidentialityOfProgramPoint);
-        }
+        programConfidentiality.removeLast();
+        ExpVisitor.updateProgramPoint(programConfidentiality);
         /* Descripton:
-            1.Store the pc level which we had so far
-            2.Get the condition of the whileStmt
-            3.Set pc to the join of (condition level, old pc level) //mby old pc level was already higher
-            4.Evaluate the body with the new pc
-            5.Reset the pc to the old value once finished
+            1.Get the condition of the whileStmt
+            2.Set pc to the join of (condition level, currentLevelByList) //mby old pc level was already higher
+            3.Evaluate the body with the new pc
+            4.Reset the pc to the old value once finished by removing the last list element
         */
     }
 
     public void visit(AwaitStmt awaitStmt) {
-
-        //I believe we need a list of secrecy contexts we have (but global so replace confidentialityOfCurrentProgramPoint)
-        //Add the current secrecy to the list to be able to leave all awaits again
-        LinkedList<String> awaitSecrecyLevels = new LinkedList<String>();
-        awaitSecrecyLevels.add(confidentialityOfProgramPoint);
 
         //Get the guard of the awaitstmt -> await guard;
         Guard getGuard = awaitStmt.getGuard();
@@ -199,39 +184,32 @@ public class SecrecyStmtVisitor {
 
     private void handleSingleGuards(Guard inGuard) {
 
-        //I believe we need a list of secrecy contexts we have
-        LinkedList<String> awaitSecrecyLevels = new LinkedList<String>();
-
-        //Add the current secrecy to the list to be able to leave all awaits again
-        awaitSecrecyLevels.add(confidentialityOfProgramPoint);
-
         if (inGuard instanceof ExpGuard expGuard) {
   
             Exp awaitExpr = (Exp) expGuard.getChild(0);
             String getAwaitSecrecy = awaitExpr.accept(ExpVisitor);
 
-            //TODO missing add to list -> Add the join of (the old with the new) to the list
-            awaitSecrecyLevels.add(secrecyLatticeStructure.join(awaitSecrecyLevels.getLast(),getAwaitSecrecy));
+            programConfidentiality.add(new ProgramCountNode(awaitExpr, secrecyLatticeStructure.join(programConfidentiality.getLast().getSecrecyLevel(),getAwaitSecrecy)));
             
             System.out.println("added expguard: " + awaitExpr + " has Secrecy: " + getAwaitSecrecy);
-
+            System.out.println(programConfidentiality.toString());
         
         } else if (inGuard instanceof ClaimGuard claimGuard) {
 
             VarOrFieldUse awaitClaim = (VarOrFieldUse) claimGuard.getChild(0);
-            String secrecyLevel = awaitClaim.accept(ExpVisitor);
+            String getAwaitSecrecy = awaitClaim.accept(ExpVisitor);
 
-            //TODO missing add to list
-            awaitSecrecyLevels.add(secrecyLatticeStructure.join(awaitSecrecyLevels.getLast(),getAwaitSecrecy));
+            programConfidentiality.add(new ProgramCountNode(awaitClaim, secrecyLatticeStructure.join(programConfidentiality.getLast().getSecrecyLevel(),getAwaitSecrecy)));
 
-            System.out.println("added claimguard: " + claimGuard + " getDecl is: " + secrecyLevel);
-       
+            System.out.println("added claimguard: " + claimGuard + " getDecl is: " + getAwaitSecrecy);
+            System.out.println(programConfidentiality);
+
         } else if (inGuard instanceof AndGuard andGuard) {
 
             handleSingleGuards(andGuard.getLeft());
             handleSingleGuards(andGuard.getRight());
         }
         
-        System.out.println(awaitSecrecyLevels);
+        System.out.println(programConfidentiality.toString());
     }
 }

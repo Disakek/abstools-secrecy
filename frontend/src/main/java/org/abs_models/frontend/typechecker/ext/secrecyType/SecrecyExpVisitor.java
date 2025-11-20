@@ -6,6 +6,7 @@
 package org.abs_models.frontend.typechecker.ext;
 
 import java.util.HashMap;
+import java.util.LinkedList;
 import org.abs_models.frontend.ast.*;
 import org.abs_models.frontend.typechecker.*;
 
@@ -15,12 +16,12 @@ public class SecrecyExpVisitor {
 
     private SecrecyLatticeStructure secrecyLatticeStructure;
 
-    String confidentialityOfProgramPoint; 
+    LinkedList<ProgramCountNode> programConfidentiality;
 
-    public SecrecyExpVisitor(HashMap<ASTNode<?>,String> _secrecy, SecrecyLatticeStructure secrecyLatticeStructure, String confidentialityOfProgramPoint) {
+    public SecrecyExpVisitor(HashMap<ASTNode<?>,String> _secrecy, SecrecyLatticeStructure secrecyLatticeStructure, LinkedList<ProgramCountNode> programConfidentiality) {
         this._secrecy = _secrecy;
         this.secrecyLatticeStructure = secrecyLatticeStructure;
-        this.confidentialityOfProgramPoint = confidentialityOfProgramPoint;
+        this.programConfidentiality = programConfidentiality;
     }
 
     public String visit(Exp expression){
@@ -33,7 +34,7 @@ public class SecrecyExpVisitor {
         String rightLevel = addAddExp.getRight().accept(this);
         String combined = secrecyLatticeStructure.join(leftLevel, rightLevel);
 
-        return secrecyLatticeStructure.join(combined, confidentialityOfProgramPoint);
+        return secrecyLatticeStructure.join(combined, secrecyLatticeStructure.evaluateListLevel(programConfidentiality));
     }
 
     public String visit(SubAddExp subAddExp) {
@@ -42,7 +43,7 @@ public class SecrecyExpVisitor {
         String rightLevel = subAddExp.getRight().accept(this);
         String combined = secrecyLatticeStructure.join(leftLevel, rightLevel);
 
-        return secrecyLatticeStructure.join(combined, confidentialityOfProgramPoint);
+        return secrecyLatticeStructure.join(combined, secrecyLatticeStructure.evaluateListLevel(programConfidentiality));
     }
 
     public String visit(MultMultExp multMultExp) {
@@ -51,7 +52,7 @@ public class SecrecyExpVisitor {
         String rightLevel = multMultExp.getRight().accept(this);
         String combined = secrecyLatticeStructure.join(leftLevel, rightLevel);
 
-        return secrecyLatticeStructure.join(combined, confidentialityOfProgramPoint);
+        return secrecyLatticeStructure.join(combined, secrecyLatticeStructure.evaluateListLevel(programConfidentiality));
     }
 
     public String visit(DivMultExp divMultExp) {
@@ -60,7 +61,7 @@ public class SecrecyExpVisitor {
         String rightLevel = divMultExp.getRight().accept(this);
         String combined = secrecyLatticeStructure.join(leftLevel, rightLevel);
 
-        return secrecyLatticeStructure.join(combined, confidentialityOfProgramPoint);
+        return secrecyLatticeStructure.join(combined, secrecyLatticeStructure.evaluateListLevel(programConfidentiality));
     }
 
     public String visit(ModMultExp modMultExp) {
@@ -69,7 +70,7 @@ public class SecrecyExpVisitor {
         String rightLevel = modMultExp.getRight().accept(this);
         String combined = secrecyLatticeStructure.join(leftLevel, rightLevel);
 
-        return secrecyLatticeStructure.join(combined, confidentialityOfProgramPoint);
+        return secrecyLatticeStructure.join(combined, secrecyLatticeStructure.evaluateListLevel(programConfidentiality));
     }
 
     public String visit(MinusExp minusExp) {
@@ -77,7 +78,7 @@ public class SecrecyExpVisitor {
         ASTNode<?> child = minusExp.getChild(0);
 
         if(child instanceof Exp expr) {
-            return secrecyLatticeStructure.join(expr.accept(this), confidentialityOfProgramPoint);
+            return secrecyLatticeStructure.join(expr.accept(this), secrecyLatticeStructure.evaluateListLevel(programConfidentiality));
         }
 
         return null;
@@ -88,7 +89,7 @@ public class SecrecyExpVisitor {
         ASTNode<?> child = negExp.getChild(0);
 
         if(child instanceof Exp expr) {
-            return secrecyLatticeStructure.join(expr.accept(this), confidentialityOfProgramPoint);
+            return secrecyLatticeStructure.join(expr.accept(this), secrecyLatticeStructure.evaluateListLevel(programConfidentiality));
         }
 
         return null;
@@ -100,7 +101,7 @@ public class SecrecyExpVisitor {
         String rightLevel = andExp.getRight().accept(this);
         String combined = secrecyLatticeStructure.join(leftLevel, rightLevel);
 
-        return secrecyLatticeStructure.join(combined, confidentialityOfProgramPoint);
+        return secrecyLatticeStructure.join(combined, secrecyLatticeStructure.evaluateListLevel(programConfidentiality));
     }
 
     
@@ -110,7 +111,7 @@ public class SecrecyExpVisitor {
         String rightLevel = orExp.getRight().accept(this);
         String combined = secrecyLatticeStructure.join(leftLevel, rightLevel);
 
-        return secrecyLatticeStructure.join(combined, confidentialityOfProgramPoint);
+        return secrecyLatticeStructure.join(combined, secrecyLatticeStructure.evaluateListLevel(programConfidentiality));
     }
 
     
@@ -120,7 +121,7 @@ public class SecrecyExpVisitor {
         String rightLevel = eqExp.getRight().accept(this);
         String combined = secrecyLatticeStructure.join(leftLevel, rightLevel);
 
-        return secrecyLatticeStructure.join(combined, confidentialityOfProgramPoint);
+        return secrecyLatticeStructure.join(combined, secrecyLatticeStructure.evaluateListLevel(programConfidentiality));
     }
 
     public String visit(NotEqExp notEqExp) {
@@ -129,7 +130,7 @@ public class SecrecyExpVisitor {
         String rightLevel = notEqExp.getRight().accept(this);
         String combined = secrecyLatticeStructure.join(leftLevel, rightLevel);
 
-        return secrecyLatticeStructure.join(combined, confidentialityOfProgramPoint);
+        return secrecyLatticeStructure.join(combined, secrecyLatticeStructure.evaluateListLevel(programConfidentiality));
     }
 
     public String visit(LTEQExp lessThanEqualsExp) {
@@ -138,7 +139,7 @@ public class SecrecyExpVisitor {
         String rightLevel = lessThanEqualsExp.getRight().accept(this);
         String combined = secrecyLatticeStructure.join(leftLevel, rightLevel);
 
-        return secrecyLatticeStructure.join(combined, confidentialityOfProgramPoint);
+        return secrecyLatticeStructure.join(combined, secrecyLatticeStructure.evaluateListLevel(programConfidentiality));
     }
 
     public String visit(GTEQExp greaterThanEqualsExp) {
@@ -147,7 +148,7 @@ public class SecrecyExpVisitor {
         String rightLevel = greaterThanEqualsExp.getRight().accept(this);
         String combined = secrecyLatticeStructure.join(leftLevel, rightLevel);
 
-        return secrecyLatticeStructure.join(combined, confidentialityOfProgramPoint);
+        return secrecyLatticeStructure.join(combined, secrecyLatticeStructure.evaluateListLevel(programConfidentiality));
     }
    
     public String visit(LTExp lessThanExp) {
@@ -156,7 +157,7 @@ public class SecrecyExpVisitor {
         String rightLevel = lessThanExp.getRight().accept(this);
         String combined = secrecyLatticeStructure.join(leftLevel, rightLevel);
 
-        return secrecyLatticeStructure.join(combined, confidentialityOfProgramPoint);
+        return secrecyLatticeStructure.join(combined, secrecyLatticeStructure.evaluateListLevel(programConfidentiality));
     }
     public String visit(GTExp greaterThanExp) {
 
@@ -164,7 +165,7 @@ public class SecrecyExpVisitor {
         String rightLevel = greaterThanExp.getRight().accept(this);
         String combined = secrecyLatticeStructure.join(leftLevel, rightLevel);
 
-        return secrecyLatticeStructure.join(combined, confidentialityOfProgramPoint);
+        return secrecyLatticeStructure.join(combined, secrecyLatticeStructure.evaluateListLevel(programConfidentiality));
     }
 
     public String visit(VarOrFieldUse varOrFieldUse) {
@@ -177,10 +178,10 @@ public class SecrecyExpVisitor {
         }
 
         //Assume low secrecy as default
-        return secrecyLatticeStructure.join(secrecyLatticeStructure.getMinSecrecyLevel(), confidentialityOfProgramPoint);
+        return secrecyLatticeStructure.join(secrecyLatticeStructure.getMinSecrecyLevel(), secrecyLatticeStructure.evaluateListLevel(programConfidentiality));
     }
 
-    public void updateProgramPoint(String newConfidentiality) {
-        confidentialityOfProgramPoint = newConfidentiality;
+    public void updateProgramPoint(LinkedList<ProgramCountNode> newConfidentiality) {
+        programConfidentiality = newConfidentiality;
     }
 }

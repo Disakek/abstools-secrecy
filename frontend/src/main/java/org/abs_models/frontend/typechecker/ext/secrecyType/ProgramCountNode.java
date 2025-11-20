@@ -17,4 +17,13 @@ public class ProgramCountNode {
         return secrecyLevel;
     }
 
+    public String toString() {
+
+        if (levelChangingNode == null) {
+            return "( default , " + secrecyLevel + ")";
+        }
+
+        return "(" + levelChangingNode.getClass().getSimpleName() + ", " + secrecyLevel + ")";
+    }
+
 }

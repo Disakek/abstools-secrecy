@@ -3,6 +3,7 @@ package org.abs_models.frontend.typechecker.ext;
 import java.util.HashMap;
 import java.util.Set;
 import java.util.HashSet;
+import java.util.LinkedList;
 
 /**
  * Class that is used to handover the user input for the --secrecy option to the SecrecyAnnotationChecker
@@ -123,6 +124,31 @@ public class SecrecyLatticeStructure {
 
 
         throw new IllegalStateException("No common upper bound found");
+    }
+
+    public String evaluateListLevel (LinkedList<ProgramCountNode> programConfidentiality) {
+
+        if (programConfidentiality == null || programConfidentiality.isEmpty()) {
+            throw new IllegalArgumentException("Cannot evaluate an empty confidentiality list.");
+        }
+
+        ProgramCountNode first = programConfidentiality.getFirst();
+        String current = first.getSecrecyLevel();
+
+        for (int i = 1; i < programConfidentiality.size(); i++) {
+        
+            ProgramCountNode nextNode = programConfidentiality.get(i);
+            String nextLevel = nextNode.getSecrecyLevel();
+            current = join(current, nextLevel);
+        }
+
+        return current;
+        /*
+        1. Make sure it is not empty otherwise throw error
+        2. current = get the first element
+        3. current = join(current, next) | as long as there is a next
+        4. return current once all are joined
+        */
     }
 
     //TODO: missing implementations for meet mby optional

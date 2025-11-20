@@ -32,11 +32,8 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
     SecrecyLatticeStructure secrecyLatticeStructure;
     
     //Is the visitor for all Stmts that typechecks the implemented rules    
-    SecrecyStmtVisitor visitor;              
+    SecrecyStmtVisitor visitor;               
 
-    String confidentialityOfProgramPoint;     
-
-    //      
     LinkedList<ProgramCountNode> programConfidentiality;
     
     protected SecrecyAnnotationChecker(Model m) {
@@ -46,7 +43,6 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
 
         if (m.secrecyLatticeStructure != null) {
             secrecyLatticeStructure = m.secrecyLatticeStructure;
-            confidentialityOfProgramPoint = secrecyLatticeStructure.getMinSecrecyLevel();
             //Set the basic starting secrecy
             programConfidentiality.add(new ProgramCountNode(null, secrecyLatticeStructure.getMinSecrecyLevel()));
         }
@@ -59,7 +55,7 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
         firstExtractionPhasePass(model); 
 
         //TODO exchange confidentialityOf... with programConfidentiality
-        visitor = new SecrecyStmtVisitor(_secrecy, secrecyLatticeStructure, errors, confidentialityOfProgramPoint);
+        visitor = new SecrecyStmtVisitor(_secrecy, secrecyLatticeStructure, errors, programConfidentiality);
 
         //Second pass to enforce all the typerules
         secondTypecheckPhasePass(model); 
