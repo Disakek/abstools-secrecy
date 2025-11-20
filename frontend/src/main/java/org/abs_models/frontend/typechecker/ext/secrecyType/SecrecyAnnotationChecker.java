@@ -54,7 +54,6 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
         //First pass of all the code to extract the secrecy annotations and populate _secrecy
         firstExtractionPhasePass(model); 
 
-        //TODO exchange confidentialityOf... with programConfidentiality
         visitor = new SecrecyStmtVisitor(_secrecy, secrecyLatticeStructure, errors, programConfidentiality);
 
         //Second pass to enforce all the typerules
@@ -74,7 +73,7 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
 
                         //set for all methods declared in an implemented interface
                         Set<MethodSig> declaredInterfaceMethods = new HashSet<MethodSig>();
-                        //TODO this gets me all the implemented interfaces for a class
+                        
                         if(classDecl.hasImplementedInterfaceUse()) {
                             
                             ASTNode<?> interfaceSet = classDecl.getImplementedInterfaceUseList();
@@ -105,7 +104,6 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
                         //Extracts the annotation for methods of the class for their return values and their parameters
                         for (MethodImpl method : classDecl.getMethods()) {
                             
-                            //TODO: Enter the part that checks for existing methodsignatures from an interface
                             MethodSig methodSigNat = method.getMethodSig();
 
                             String Returnlevel = extractSecrecyValue(method.getMethodSig());
@@ -119,7 +117,7 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
                             for(MethodSig declaredCandidate : declaredInterfaceMethods) {
                                 if (compareMethodSignatures(method.getMethodSig(), declaredCandidate)) {
                                     System.out.println(method.getMethodSig() + " is implementation of " + declaredCandidate);
-                                    //todo check the method respects the secrecy level of the decl
+                                    //todo check the method respects the secrecy level of the decl - unfinished!
                                     checkRespectingSecrecyLevels(method.getMethodSig(), declaredCandidate);
                                 }
                             }
@@ -185,7 +183,6 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
                         return null;
                     }
 
-                    //TODO remove print
                     //System.out.println("Levelname: " + levelName);
                     return levelName;
                 }
@@ -202,7 +199,6 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
                         for (MethodImpl method : classDecl.getMethods()) {
                             Block block = method.getBlock();
                             for (Stmt stmt : block.getStmtList()) {
-                                //TODO: implement the stmt visitors for all possible stmt's
                                 stmt.accept(visitor);
                             }
                         }
@@ -250,7 +246,7 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
         //if(implementationSet.contains(definitionLevel)) {
         //    errors.add(new TypeError(implementation.getReturnType(), ErrorMessage.SECRECY_LEAKAGE_ERROR_AT_LEAST, definitionLevel, implementationLevel));
         //}
-        //TODO missing check the parameter respect the rule
+        //todo missing check the parameter respect the rule
         /*
         For each param of function implementation 
             (if name == param) of function definition (so it is the same parameter)

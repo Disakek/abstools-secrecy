@@ -1,8 +1,12 @@
-import org.abs_models.frontend.typechecker.ext.SecrecyLatticeStructure;
+/**
+ * Copyright (c) 2009-2011, The HATS Consortium. All rights reserved. 
+ * This file is licensed under the terms of the Modified BSD License.
+ * Written by @Maximilian_Paul for questions please refer to uukln@student.kit.edu
+ */
 
 /**
- * Our way to handover the user input for the --secrecy option to the SecrecyAnnotationChecker
- * null if there is no user input
+ * Used to handover the user input for the --secrecy option to the SecrecyAnnotationChecker
+ * default case is a secrecy lattice defined by Low < High
  *
  * @author Maximilian Paul
  */

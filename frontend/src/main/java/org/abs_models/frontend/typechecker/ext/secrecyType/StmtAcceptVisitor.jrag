@@ -1,3 +1,12 @@
+/**
+ * Copyright (c) 2009-2011, The HATS Consortium. All rights reserved. 
+ * This file is licensed under the terms of the Modified BSD License.
+ * Written by @Maximilian_Paul for questions please refer to uukln@student.kit.edu
+ */
+
+/**
+ * This aspect adds a method for stmts to accept the visitor to check them for secrecy type errors
+ */
 
 aspect AddStmtVisitor {
   
@@ -18,20 +27,19 @@ aspect AddStmtVisitor {
   @Override
   public void Block.accept(SecrecyStmtVisitor v) { v.visit(this); }  
 
-
-  //TODO missing implementation for the one below
   @Override
   public void AwaitStmt.accept(SecrecyStmtVisitor v) { v.visit(this); }
 
 }
 
-//TODO: add all stmt's written here (should be all)
 /*
 
 These get handled: AssignStmt, ReturnStmt, BlockStmt, IfStmt, WhileStmt
 
+Work in progress: AwaitStmt
+
 These are not implemented: 
-  - AwaitStmt, (ExpStmt) //these are not necessarily the names of the ast nodes so figure the right name out first
+  - (ExpStmt) //not a real stmt
   (later AssertStmt)
 
 Not planned for now: 

@@ -1,3 +1,8 @@
+/**
+ * Copyright (c) 2009-2011, The HATS Consortium. All rights reserved. 
+ * This file is licensed under the terms of the Modified BSD License.
+ * Written by @Maximilian_Paul for questions please refer to uukln@student.kit.edu
+ */
 package org.abs_models.frontend.typechecker.ext;
 
 import java.util.HashMap;
@@ -78,7 +83,7 @@ public class SecrecyLatticeStructure {
         return secrecyLevels.contains(input);
     }
 
-    //TODO: more testing
+    //todo: requires more testing to ensure it works
     //issue if one of those is null so never use it as default value (shouldnt do that anyways)
     public String join(String secrecyOne, String secrecyTwo) {
         
@@ -150,6 +155,4 @@ public class SecrecyLatticeStructure {
         4. return current once all are joined
         */
     }
-
-    //TODO: missing implementations for meet mby optional
 }

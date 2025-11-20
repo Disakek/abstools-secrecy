@@ -1,4 +1,8 @@
-
+/**
+ * Copyright (c) 2009-2011, The HATS Consortium. All rights reserved. 
+ * This file is licensed under the terms of the Modified BSD License.
+ * Written by @Maximilian_Paul for questions please refer to uukln@student.kit.edu
+ */
 aspect AddExpVisitor {
   public String Exp.accept(SecrecyExpVisitor v) { 
     return v.visit(this); 
@@ -86,7 +90,6 @@ aspect AddExpVisitor {
 
 }
 
-//TODO: add all Exp's written here (should be all)
 /*
 
 Instead try to differentiate between base case PureExp -> BinaryExp | UnaryExp

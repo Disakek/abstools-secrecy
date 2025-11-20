@@ -10,6 +10,9 @@ import java.util.LinkedList;
 import org.abs_models.frontend.ast.*;
 import org.abs_models.frontend.typechecker.*;
 
+/**
+ * This class is used to extract the secrecy levels for the different expressions.
+ */
 public class SecrecyExpVisitor {
 
     private HashMap<ASTNode<?>,String> _secrecy = new HashMap<>();
@@ -24,6 +27,10 @@ public class SecrecyExpVisitor {
         this.programConfidentiality = programConfidentiality;
     }
 
+    /**
+     * Visit function for expressions tries to return an attached secrecy level.
+     * Calls the different implementations to handle it for all kinds of expressions.
+     */
     public String visit(Exp expression){
         return secrecyLatticeStructure.getMinSecrecyLevel();
     }
@@ -168,6 +175,11 @@ public class SecrecyExpVisitor {
         return secrecyLatticeStructure.join(combined, secrecyLatticeStructure.evaluateListLevel(programConfidentiality));
     }
 
+    /**
+     * Visit function for variables or fields that tries to return an attached secrecy level.
+     * It joins the variable level, the current program secrecy and the default value.
+     * As a default value we use the lowest value from our lattice.
+     */
     public String visit(VarOrFieldUse varOrFieldUse) {
 
         ASTNode<?> variable = varOrFieldUse.getDecl();
@@ -177,10 +189,12 @@ public class SecrecyExpVisitor {
             return secrecy;
         }
 
-        //Assume low secrecy as default
         return secrecyLatticeStructure.join(secrecyLatticeStructure.getMinSecrecyLevel(), secrecyLatticeStructure.evaluateListLevel(programConfidentiality));
     }
 
+    /**
+     * Allows to update the current program secrecy list on a change.
+     */
     public void updateProgramPoint(LinkedList<ProgramCountNode> newConfidentiality) {
         programConfidentiality = newConfidentiality;
     }

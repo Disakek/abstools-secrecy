@@ -37,7 +37,7 @@ public class SecrecyStmtVisitor {
         ExpVisitor = new SecrecyExpVisitor(_secrecy, secrecyLatticeStructure, programConfidentiality);
     }
 
-    //todo do I need this base case and if yes what shall it do
+    //todo I need this base case but why and what should it do or is it good like this
     public void visit(Stmt stmt) {
         return;
     }
@@ -105,7 +105,7 @@ public class SecrecyStmtVisitor {
 
         /* Descripton:
             1.Get the actual returnStmt
-            2.Get the parentNode(method implementation node) //todo:consider special cases like interface with default implementation can have return
+            2.Get the parentNode(method implementation node)
             3.TRY to get secrecy returnDefinitionLevel if not null
             4.TRY to get secrecy returnActualLevel if not null
             5.Check if the returnActualLevel is lower or at most equal to the returnDefinitionLevel (add an error otherwise)
@@ -178,7 +178,7 @@ public class SecrecyStmtVisitor {
             2.If it is an AndGuard handle left and right
             3.Extract the secrecy level for the guard (or low)
             4.Insert a node for the await into the pc list -> join(guardLevel, currentLevel)
-            TODO MISSING -> (X.Remove the node from the list once we have a Get for it) 
+            todo MISSING -> (X.Remove the node from the list once we have a Get for it) 
         */
     }
 
