@@ -4,89 +4,55 @@
  * Written by @Maximilian_Paul for questions please refer to uukln@student.kit.edu
  */
 aspect AddExpVisitor {
-  public String Exp.accept(SecrecyExpVisitor v) { 
-    return v.visit(this); 
-  }
+  public String Exp.accept(SecrecyExpVisitor v) { return v.visit(this); }
 
   @Override
-  public String AddAddExp.accept(SecrecyExpVisitor v) { 
-    return v.visit(this); 
-  }
+  public String AddAddExp.accept(SecrecyExpVisitor v) { return v.visit(this); }
 
   @Override
-  public String SubAddExp.accept(SecrecyExpVisitor v) { 
-    return v.visit(this); 
-  }
+  public String SubAddExp.accept(SecrecyExpVisitor v) { return v.visit(this); }
 
   @Override
-  public String MultMultExp.accept(SecrecyExpVisitor v) { 
-    return v.visit(this); 
-  }
+  public String MultMultExp.accept(SecrecyExpVisitor v) { return v.visit(this); }
 
   @Override
-  public String DivMultExp.accept(SecrecyExpVisitor v) { 
-    return v.visit(this); 
-  }
+  public String DivMultExp.accept(SecrecyExpVisitor v) { return v.visit(this); }
 
   @Override
-  public String ModMultExp.accept(SecrecyExpVisitor v) { 
-    return v.visit(this); 
-  }
+  public String ModMultExp.accept(SecrecyExpVisitor v) { return v.visit(this); }
 
   @Override
-  public String MinusExp.accept(SecrecyExpVisitor v) { 
-    return v.visit(this); 
-  }
+  public String MinusExp.accept(SecrecyExpVisitor v) { return v.visit(this); }
 
   @Override
-  public String NegExp.accept(SecrecyExpVisitor v) { 
-    return v.visit(this); 
-  }
+  public String NegExp.accept(SecrecyExpVisitor v) { return v.visit(this); }
 
   @Override
-  public String EqExp.accept(SecrecyExpVisitor v) { 
-    return v.visit(this); 
-  }
+  public String EqExp.accept(SecrecyExpVisitor v) { return v.visit(this); }
 
   @Override
-  public String NotEqExp.accept(SecrecyExpVisitor v) { 
-    return v.visit(this); 
-  }
+  public String NotEqExp.accept(SecrecyExpVisitor v) { return v.visit(this); }
 
   @Override
-  public String AndBoolExp.accept(SecrecyExpVisitor v) { 
-    return v.visit(this); 
-  }
+  public String AndBoolExp.accept(SecrecyExpVisitor v) { return v.visit(this); }
 
   @Override
-  public String OrBoolExp.accept(SecrecyExpVisitor v) { 
-    return v.visit(this); 
-  }
+  public String OrBoolExp.accept(SecrecyExpVisitor v) { return v.visit(this); }
 
   @Override
-  public String LTEQExp.accept(SecrecyExpVisitor v) { 
-    return v.visit(this); 
-  }
+  public String LTEQExp.accept(SecrecyExpVisitor v) { return v.visit(this); }
 
   @Override
-  public String GTEQExp.accept(SecrecyExpVisitor v) { 
-    return v.visit(this); 
-  }
-
+  public String GTEQExp.accept(SecrecyExpVisitor v) { return v.visit(this); }
+   
   @Override
-  public String LTExp.accept(SecrecyExpVisitor v) { 
-    return v.visit(this); 
-  }
-
+  public String LTExp.accept(SecrecyExpVisitor v) { return v.visit(this); }
+   
   @Override
-  public String GTExp.accept(SecrecyExpVisitor v) { 
-    return v.visit(this); 
-  }
-
+  public String GTExp.accept(SecrecyExpVisitor v) { return v.visit(this); }
+    
   @Override
-  public String VarOrFieldUse.accept(SecrecyExpVisitor v) { 
-    return v.visit(this); 
-  }
+  public String VarOrFieldUse.accept(SecrecyExpVisitor v) { return v.visit(this); }
 
 }
 
