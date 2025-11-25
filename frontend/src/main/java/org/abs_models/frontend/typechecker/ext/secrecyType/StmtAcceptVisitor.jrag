@@ -30,6 +30,11 @@ aspect AddStmtVisitor {
   @Override
   public void AwaitStmt.accept(SecrecyStmtVisitor v) { v.visit(this); }
 
+  @Override
+  public void ExpressionStmt.accept(SecrecyStmtVisitor v) { v.visit(this); }
+  
+  @Override
+  public void VarDeclStmt.accept(SecrecyStmtVisitor v) { v.visit(this); }
 }
 
 /*

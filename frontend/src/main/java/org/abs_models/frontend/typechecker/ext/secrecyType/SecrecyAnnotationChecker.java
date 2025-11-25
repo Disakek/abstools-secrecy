@@ -44,7 +44,7 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
         if (m.secrecyLatticeStructure != null) {
             secrecyLatticeStructure = m.secrecyLatticeStructure;
             //Set the basic starting secrecy
-            programConfidentiality.add(new ProgramCountNode(null, secrecyLatticeStructure.getMinSecrecyLevel()));
+            programConfidentiality.add(new ProgramCountNode("default", secrecyLatticeStructure.getMinSecrecyLevel()));
         }
     }
 
@@ -88,10 +88,11 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
 
                                     //wenn sie ein secrecy value hat
                                     if(_secrecy.get(declaredMethod) != null){
-                                        System.out.println("Method: " + declaredMethod + " has Secrecy Value: " + _secrecy.get(declaredMethod));
+                                        //System.out.println("Method: " + declaredMethod + " has Secrecy Value: " + _secrecy.get(declaredMethod));
                                         declaredInterfaceMethods.add(declaredMethod);
                                     }                                    
                                 }
+
                             }
                         }
         
@@ -114,10 +115,11 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
                                 if(Parameterlevel != null)_secrecy.put(parameter, Parameterlevel);
                             }
 
+                            //System.out.println("DeclaredInterfaceMethods " + declaredInterfaceMethods);
+
                             for(MethodSig declaredCandidate : declaredInterfaceMethods) {
                                 if (compareMethodSignatures(method.getMethodSig(), declaredCandidate)) {
                                     System.out.println(method.getMethodSig() + " is implementation of " + declaredCandidate);
-                                    //todo check the method respects the secrecy level of the decl - unfinished!
                                     checkRespectingSecrecyLevels(method.getMethodSig(), declaredCandidate);
                                 }
                             }
@@ -210,30 +212,65 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
 
     private boolean compareMethodSignatures(MethodSig methodA, MethodSig methodB) {
 
-        //name
-        if(!(methodA.getName().equals(methodB.getName())))return false;
-        
-        //parameters (count and types)
-        for(ParamDecl paramA : methodA.getParamList()) {
-            for(ParamDecl paramB : methodB.getParamList()) {
-                if (!(paramA.getName().equals(paramB.getName())) && !(paramA.getTypeUse().equals(paramB.getTypeUse())))return false;
+        //name the same
+        if(methodA.getName().equals(methodB.getName())){
+
+            //returnvalue same type
+            if(methodA.getReturnType().toString().equals(methodB.getReturnType().toString())){
+
+                
+                List<ParamDecl> paramListA = methodA.getParamList();
+                List<ParamDecl> paramListB = methodB.getParamList();
+
+                //same number of parameters
+                if (paramListA.getNumChild() != paramListB.getNumChild()) {
+                    return false;
+                }
+
+                LinkedList<ParamDecl> paramAList = new LinkedList<ParamDecl>();
+                for(ParamDecl paramA:methodA.getParamList()){
+                    paramAList.add(paramA);
+                }
+                LinkedList<ParamDecl> paramBList = new LinkedList<ParamDecl>();
+                for(ParamDecl paramB:methodB.getParamList()){
+                    paramBList.add(paramB);
+                }
+
+                //parameters 
+                // if same name check same types => if true for all => same methodsig
+                for(ParamDecl paramA : paramListA) {
+                    for(ParamDecl paramB : paramListB) {
+                        if (paramB.getName().equals(paramA.getName())){ 
+                            if(paramB.getTypeUse().toString().equals(paramA.getTypeUse().toString())){
+                                paramAList.remove(paramA);
+                                paramBList.remove(paramB);
+                            } else {
+                                return false;
+                            }
+                        }
+                    }
+                }
+
+                //each parameter was found in the other methodsig
+                if(!paramAList.isEmpty() || !paramBList.isEmpty())return false;
+
+            } else {
+                return false;
             }
+        } else {
+            return false;
         }
-        //check if the returnvalue has the same type 
-        if(!(methodA.getReturnType().toString().equals(methodB.getReturnType().toString())))return false;
-        
         return true;
     }
 
     private void checkRespectingSecrecyLevels(MethodSig implementation, MethodSig definition) {
-        ASTNode<?> definitionReturnNode = definition.getReturnType().getDecl();
+
         String definitionLevel = _secrecy.get(definition);
         
         if(definitionLevel == null) {
             definitionLevel = secrecyLatticeStructure.getMinSecrecyLevel();
         }
         
-        ASTNode<?> implementationReturnNode = definition.getReturnType().getDecl();
         String implementationLevel = _secrecy.get(implementation);
         
         if(implementationLevel == null) {
@@ -242,17 +279,36 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
 
         Set<String> implementationSet = secrecyLatticeStructure.getSetForSecrecyLevel(implementationLevel);
         
-        //If the implementation's returnvalue is not at least as secret as the definition we have an error
-        //if(implementationSet.contains(definitionLevel)) {
-        //    errors.add(new TypeError(implementation.getReturnType(), ErrorMessage.SECRECY_LEAKAGE_ERROR_AT_LEAST, definitionLevel, implementationLevel));
-        //}
-        //todo missing check the parameter respect the rule
-        /*
-        For each param of function implementation 
-            (if name == param) of function definition (so it is the same parameter)
-                the secrecy level of the parameter in the implementation may at most be as high as in the interface defined
-        */
+        if(!implementationSet.contains(definitionLevel) && !implementationLevel.equals(definitionLevel)) {
+            errors.add(new TypeError(implementation.getReturnType(), ErrorMessage.SECRECY_LEAKAGE_ERROR_AT_MOST, definitionLevel, implementationLevel));
+        }
+        
+        for(ParamDecl implementationParam : implementation.getParamList()) {
+            for(ParamDecl definitionParam : definition.getParamList()) {
 
+                if(definitionParam.getName().equals(implementationParam.getName())){
+                    
+                    implementationLevel = _secrecy.get(implementationParam);
+                    definitionLevel = _secrecy.get(definitionParam);
+
+                    if(definitionLevel == null) {
+                        definitionLevel = secrecyLatticeStructure.getMinSecrecyLevel();
+                    }
+
+                    if(implementationLevel == null) {
+                        implementationLevel = secrecyLatticeStructure.getMinSecrecyLevel();
+                    }
+
+                    if(!implementationLevel.equals(definitionLevel)){
+                        implementationSet = secrecyLatticeStructure.getSetForSecrecyLevel(implementationLevel);
+
+                        if(!implementationSet.contains(definitionLevel)) {
+                            errors.add(new TypeError(implementation.getReturnType(), ErrorMessage.SECRECY_LEAKAGE_ERROR_AT_MOST, definitionLevel, implementationLevel));
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -268,10 +324,7 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
     - Koennen wir stattdessen fuer jede ASTNode direct checken ob es eine SecrecyAnnotation gibt mit einem Visitor oder so und wenn ja diese hinzufuegen oder muessen wir den AST traversen
 
 - Missing Rules
-    - More checks in the second phase
-    - Interface and method implementation dependence -> implementation has to satisfy the interface rules
-        - return values
-        - parameters
+    - More checks in the second phase (if needed)
     - Error for overwriting an existing secrecy value in _secrecy(not allowed I think depends on how I implement it)
         - Question 2.
         //if(_secrecy.get() != null) {errors.add(new TypeError(annotation, ErrorMessage.SECRECY_OVERWRITING_EXISTING, variablename));}

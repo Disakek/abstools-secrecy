@@ -88,6 +88,11 @@ aspect AddExpVisitor {
     return v.visit(this); 
   }
 
+  @Override
+  public String GetExp.accept(SecrecyExpVisitor v) { 
+    return v.visit(this); 
+  }
+
 }
 
 /*

@@ -7,6 +7,8 @@ package org.abs_models.frontend.typechecker.ext;
 
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.Iterator;
+
 import org.abs_models.frontend.ast.*;
 import org.abs_models.frontend.typechecker.*;
 
@@ -19,12 +21,15 @@ public class SecrecyExpVisitor {
 
     private SecrecyLatticeStructure secrecyLatticeStructure;
 
+    private SecrecyStmtVisitor stmtVisitor;
+
     LinkedList<ProgramCountNode> programConfidentiality;
 
-    public SecrecyExpVisitor(HashMap<ASTNode<?>,String> _secrecy, SecrecyLatticeStructure secrecyLatticeStructure, LinkedList<ProgramCountNode> programConfidentiality) {
+    public SecrecyExpVisitor(HashMap<ASTNode<?>,String> _secrecy, SecrecyLatticeStructure secrecyLatticeStructure, LinkedList<ProgramCountNode> programConfidentiality, SecrecyStmtVisitor stmtVisitor) {
         this._secrecy = _secrecy;
         this.secrecyLatticeStructure = secrecyLatticeStructure;
         this.programConfidentiality = programConfidentiality;
+        this.stmtVisitor = stmtVisitor;
     }
 
     /**
@@ -191,6 +196,37 @@ public class SecrecyExpVisitor {
 
         return secrecyLatticeStructure.join(secrecyLatticeStructure.getMinSecrecyLevel(), secrecyLatticeStructure.evaluateListLevel(programConfidentiality));
     }
+
+    public String visit(GetExp getExp) {
+
+        ASTNode<?> target = (Exp) getExp.getChild(0);
+        String targetString = target.toString();
+        System.out.println("Target is: " + targetString);
+
+        if(target instanceof VarOrFieldUse varUse)targetString = varUse.getName();
+
+        System.out.println("BEFORE REMOVING" + programConfidentiality);
+        
+        for (ProgramCountNode node : programConfidentiality) {
+            if (node.levelChangingNode.equals(targetString)) {
+                System.out.println("FOUND IT!");
+                programConfidentiality.remove(node);
+            }
+        }
+
+        System.out.println("AFTER REMOVING" + programConfidentiality);
+        stmtVisitor.updateProgramPoint(programConfidentiality);
+
+
+
+        //GetExp => pure_exp '.' 'get'
+        //resolve the pure_exp and remove it from the pc-structure
+        //todo for the interface to implementation rule
+            // return type of impl must be bigger or equal than the one of the interface!!
+
+        return secrecyLatticeStructure.getMinSecrecyLevel();
+    }
+
 
     /**
      * Allows to update the current program secrecy list on a change.

@@ -9,11 +9,11 @@ import org.abs_models.frontend.ast.*;
 
 public class ProgramCountNode {
 
-    ASTNode<?> levelChangingNode;
+    String  levelChangingNode;
 
     String secrecyLevel;
 
-    public ProgramCountNode(ASTNode<?> levelChangingNode, String secrecyLevel) {
+    public ProgramCountNode(String levelChangingNode, String secrecyLevel) {
         this.levelChangingNode = levelChangingNode;
         this.secrecyLevel = secrecyLevel;
     }
@@ -28,7 +28,8 @@ public class ProgramCountNode {
             return "(default, " + secrecyLevel + ")";
         }
 
-        return "(" + levelChangingNode.getClass().getSimpleName() + ", " + secrecyLevel + ")";
+        //return "(" + levelChangingNode.getClass().getSimpleName() + ", " + secrecyLevel + ")";
+        return "(" + levelChangingNode + ", " + secrecyLevel + ")";
     }
 
 }

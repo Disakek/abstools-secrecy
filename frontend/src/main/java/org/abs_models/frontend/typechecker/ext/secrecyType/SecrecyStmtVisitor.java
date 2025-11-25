@@ -34,7 +34,7 @@ public class SecrecyStmtVisitor {
         this.errors = errors;
         this.programConfidentiality = programConfidentiality;
 
-        ExpVisitor = new SecrecyExpVisitor(_secrecy, secrecyLatticeStructure, programConfidentiality);
+        ExpVisitor = new SecrecyExpVisitor(_secrecy, secrecyLatticeStructure, programConfidentiality, this);
     }
 
     //todo I need this base case but why and what should it do or is it good like this
@@ -52,6 +52,11 @@ public class SecrecyStmtVisitor {
 
         ASTNode<?> LHS = assignStmt.getVar().getDecl();
         Exp RhsExp = assignStmt.getValue();
+
+        if (assignStmt.getValue() instanceof GetExp getRHS) {
+            System.out.println("AssignStmt " + assignStmt.getValue());
+            //getRHS.accept(ExpVisitor);
+        }
 
         String LHSsecLevel = secrecyLatticeStructure.getMinSecrecyLevel();
         String RHSsecLevel = secrecyLatticeStructure.getMinSecrecyLevel();
@@ -117,20 +122,22 @@ public class SecrecyStmtVisitor {
         Exp condition = ifStmt.getCondition();
 
         if(condition.accept(ExpVisitor) != null) {
-            programConfidentiality.add(new ProgramCountNode(ifStmt, secrecyLatticeStructure.join(condition.accept(ExpVisitor), secrecyLatticeStructure.evaluateListLevel(programConfidentiality))));
-        }
-        
-        ExpVisitor.updateProgramPoint(programConfidentiality);
-        Stmt thenCase = ifStmt.getThen();
-        thenCase.accept(this);
-        
-        if(ifStmt.hasElse()) {
-            Stmt elseCase = ifStmt.getElse();
-            elseCase.accept(this);
-        }
+            ProgramCountNode ifNode = new ProgramCountNode("ifStmt", condition.accept(ExpVisitor));
+            programConfidentiality.add(ifNode);
 
-        programConfidentiality.removeLast();
-        ExpVisitor.updateProgramPoint(programConfidentiality);
+            ExpVisitor.updateProgramPoint(programConfidentiality);
+            Stmt thenCase = ifStmt.getThen();
+            thenCase.accept(this);
+
+            if(ifStmt.hasElse()) {
+                Stmt elseCase = ifStmt.getElse();
+                elseCase.accept(this);
+            }
+
+            programConfidentiality.remove(ifNode);
+            ExpVisitor.updateProgramPoint(programConfidentiality);
+            System.out.println(programConfidentiality);
+        }
         /* Descripton:
             1.Get the condition of the ifStmt
             2.Set pc to the join of (condition level, currentLevelByList) //mby old pc level was already higher
@@ -143,20 +150,43 @@ public class SecrecyStmtVisitor {
         
         Exp condition = whileStmt.getCondition();
 
-        if(condition.accept(ExpVisitor) != null)programConfidentiality.add(new ProgramCountNode(whileStmt, secrecyLatticeStructure.join(condition.accept(ExpVisitor), secrecyLatticeStructure.evaluateListLevel(programConfidentiality))));
+        if(condition.accept(ExpVisitor) != null){
+            ProgramCountNode whileNode = new ProgramCountNode("whileStmt", condition.accept(ExpVisitor));
+            programConfidentiality.add(whileNode);
 
-        ExpVisitor.updateProgramPoint(programConfidentiality);
-        Stmt body = whileStmt.getBody();
-        body.accept(this);
+            ExpVisitor.updateProgramPoint(programConfidentiality);
+            Stmt body = whileStmt.getBody();
+            body.accept(this);
 
-        programConfidentiality.removeLast();
-        ExpVisitor.updateProgramPoint(programConfidentiality);
+            programConfidentiality.remove(whileNode);
+            ExpVisitor.updateProgramPoint(programConfidentiality);
+        }
         /* Descripton:
             1.Get the condition of the whileStmt
             2.Set pc to the join of (condition level, currentLevelByList) //mby old pc level was already higher
             3.Evaluate the body with the new pc
             4.Reset the pc to the old value once finished by removing the last list element
         */
+    }
+
+    public void visit(ExpressionStmt expressionStmt) {
+        System.out.println("IS EXPRESSIONSTMT: " + expressionStmt);
+        Exp expStmtChild = expressionStmt.getExp();
+        System.out.println("IS EXPRESSIONSTMT-CHILD: " + expStmtChild);
+        expStmtChild.accept(ExpVisitor);
+        
+    } 
+
+    public void visit(VarDeclStmt varDeclStmt) {
+
+        VarDecl varDecl = varDeclStmt.getVarDecl();
+        //System.out.println(varDeclStmt + "with value ");
+
+        if(varDecl.hasInitExp()){
+            Exp initExp = varDecl.getInitExp();
+            //System.out.println(initExp);
+            initExp.accept(ExpVisitor);
+        }
     }
 
     public void visit(AwaitStmt awaitStmt) {
@@ -184,25 +214,32 @@ public class SecrecyStmtVisitor {
 
     private void handleSingleGuards(Guard inGuard) {
 
+        System.out.println("INGUARD is: " + inGuard);
+        System.out.println("INGUARD_CHILD is: " + inGuard.getChild(0));
+        String INGUARD_CHILD = inGuard.getChild(0).toString();
+        System.out.println("INGUARD_CHILD_STRING is: " + INGUARD_CHILD);
+        
         if (inGuard instanceof ExpGuard expGuard) {
   
             Exp awaitExpr = (Exp) expGuard.getChild(0);
             String getAwaitSecrecy = awaitExpr.accept(ExpVisitor);
 
-            programConfidentiality.add(new ProgramCountNode(awaitExpr, secrecyLatticeStructure.join(programConfidentiality.getLast().getSecrecyLevel(),getAwaitSecrecy)));
+            //System.out.println("AwaitExpr is this: " + awaitExpr);
+
+            programConfidentiality.add(new ProgramCountNode(INGUARD_CHILD, getAwaitSecrecy));
             
-            System.out.println("added expguard: " + awaitExpr + " has Secrecy: " + getAwaitSecrecy);
-            System.out.println(programConfidentiality.toString());
+            //System.out.println("added expguard: " + awaitExpr + " has Secrecy: " + getAwaitSecrecy);
+            //System.out.println(programConfidentiality.toString());
         
         } else if (inGuard instanceof ClaimGuard claimGuard) {
 
             VarOrFieldUse awaitClaim = (VarOrFieldUse) claimGuard.getChild(0);
             String getAwaitSecrecy = awaitClaim.accept(ExpVisitor);
 
-            programConfidentiality.add(new ProgramCountNode(awaitClaim, secrecyLatticeStructure.join(programConfidentiality.getLast().getSecrecyLevel(),getAwaitSecrecy)));
-
-            System.out.println("added claimguard: " + claimGuard + " getDecl is: " + getAwaitSecrecy);
-            System.out.println(programConfidentiality);
+            programConfidentiality.add(new ProgramCountNode(INGUARD_CHILD, getAwaitSecrecy));
+            
+            //System.out.println("added claimguard: " + claimGuard + " getDecl is: " + getAwaitSecrecy);
+            //System.out.println(programConfidentiality);
 
         } else if (inGuard instanceof AndGuard andGuard) {
 
@@ -211,5 +248,13 @@ public class SecrecyStmtVisitor {
         }
         
         System.out.println(programConfidentiality.toString());
+        ExpVisitor.updateProgramPoint(programConfidentiality);
+    }
+
+    /**
+     * Allows to update the current program secrecy list on a change.
+     */
+    public void updateProgramPoint(LinkedList<ProgramCountNode> newConfidentiality) {
+        programConfidentiality = newConfidentiality;
     }
 }
