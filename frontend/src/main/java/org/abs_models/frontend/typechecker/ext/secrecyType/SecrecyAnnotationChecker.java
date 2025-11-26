@@ -32,17 +32,17 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
     /**
      * Contains the secrecy lattice either given by the user or a default. (default is: Low < High)
      */
-    SecrecyLatticeStructure secrecyLatticeStructure;
+    private SecrecyLatticeStructure secrecyLatticeStructure;
     
     /**
      * Visitor for statements that performs typechecking for the secrecy rules.
      */
-    SecrecyStmtVisitor visitor;               
+    private SecrecyStmtVisitor visitor;               
 
     /**
      * List holds entries for confidentiality levels if evaluated at a point in time it is the current secrecylevel. 
      */
-    LinkedList<ProgramCountNode> programConfidentiality;
+    private LinkedList<ProgramCountNode> programConfidentiality;
     
     /**
      * The constructor for the SecrecyAnnotationChecker a class that checks a given model.
