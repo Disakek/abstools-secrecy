@@ -341,7 +341,7 @@ public class SecrecyExpVisitor {
         }
 
         stmtVisitor.updateProgramPoint(programConfidentiality);
-        return secrecyLatticeStructure.getMinSecrecyLevel();
+        return return secrecyLatticeStructure.join(secrecyLatticeStructure.getMinSecrecyLevel(), secrecyLatticeStructure.evaluateListLevel(programConfidentiality));
     }
 
     /**
@@ -354,7 +354,7 @@ public class SecrecyExpVisitor {
         MethodSig calledMethod = asyncCall.getMethodSig();
         String secrecyLevel = _secrecy.get(calledMethod);
         if(secrecyLevel == null) secrecyLevel = secrecyLatticeStructure.getMinSecrecyLevel();
-        return secrecyLevel;
+        return secrecyLatticeStructure.join(secrecyLevel, secrecyLatticeStructure.evaluateListLevel(programConfidentiality));
     }
 
     /**
@@ -367,7 +367,7 @@ public class SecrecyExpVisitor {
         MethodSig calledMethod = syncCall.getMethodSig();
         String secrecyLevel = _secrecy.get(calledMethod);
         if(secrecyLevel == null) secrecyLevel = secrecyLatticeStructure.getMinSecrecyLevel();
-        return secrecyLevel;
+        return secrecyLatticeStructure.join(secrecyLevel, secrecyLatticeStructure.evaluateListLevel(programConfidentiality));
     }
 
     /**

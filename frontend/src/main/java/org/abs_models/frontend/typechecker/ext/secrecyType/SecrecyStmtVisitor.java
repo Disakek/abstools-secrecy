@@ -203,7 +203,6 @@ public class SecrecyStmtVisitor {
         
     } 
 
-    //todo unfinished
     /**
      * Visit function for varDeclStmt statements.
      * We want to ensure that if a declaration has an initialization (exp) that we visit the init with the expression visitor.
