@@ -78,17 +78,13 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
                             
                             ASTNode<?> interfaceSet = classDecl.getImplementedInterfaceUseList();
 
-                            //System.out.println("Has interface implementation: " + interfaceSet);
-
                             for(InterfaceTypeUse implementedInterface : classDecl.getImplementedInterfaceUseList()) {
 
                                 InterfaceDecl usedInterfaceDecl = (InterfaceDecl) implementedInterface.getDecl();
-                                //System.out.println(usedInterfaceDecl.getBodyList());
+                                
                                 for(MethodSig declaredMethod : usedInterfaceDecl.getBodyList()) {
 
-                                    //wenn sie ein secrecy value hat
                                     if(_secrecy.get(declaredMethod) != null){
-                                        //System.out.println("Method: " + declaredMethod + " has Secrecy Value: " + _secrecy.get(declaredMethod));
                                         declaredInterfaceMethods.add(declaredMethod);
                                     }                                    
                                 }
@@ -114,8 +110,6 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
                                 String Parameterlevel = extractSecrecyValue(parameter);
                                 if(Parameterlevel != null)_secrecy.put(parameter, Parameterlevel);
                             }
-
-                            //System.out.println("DeclaredInterfaceMethods " + declaredInterfaceMethods);
 
                             for(MethodSig declaredCandidate : declaredInterfaceMethods) {
                                 if (compareMethodSignatures(method.getMethodSig(), declaredCandidate)) {
@@ -320,7 +314,6 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
     - for every exp 
 
 - Refactor the _secrecy Hashmap
-    - todo redo rules written below
     - Koennen wir stattdessen fuer jede ASTNode direct checken ob es eine SecrecyAnnotation gibt mit einem Visitor oder so und wenn ja diese hinzufuegen oder muessen wir den AST traversen
 
 - Missing Rules

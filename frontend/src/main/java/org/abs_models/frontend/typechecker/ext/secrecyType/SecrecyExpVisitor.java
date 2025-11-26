@@ -201,32 +201,32 @@ public class SecrecyExpVisitor {
 
         ASTNode<?> target = (Exp) getExp.getChild(0);
         String targetString = target.toString();
-        System.out.println("Target is: " + targetString);
 
         if(target instanceof VarOrFieldUse varUse)targetString = varUse.getName();
-
-        System.out.println("BEFORE REMOVING" + programConfidentiality);
         
         for (ProgramCountNode node : programConfidentiality) {
             if (node.levelChangingNode.equals(targetString)) {
-                System.out.println("FOUND IT!");
                 programConfidentiality.remove(node);
             }
         }
 
-        System.out.println("AFTER REMOVING" + programConfidentiality);
         stmtVisitor.updateProgramPoint(programConfidentiality);
-
-
-
-        //GetExp => pure_exp '.' 'get'
-        //resolve the pure_exp and remove it from the pc-structure
-        //todo for the interface to implementation rule
-            // return type of impl must be bigger or equal than the one of the interface!!
-
         return secrecyLatticeStructure.getMinSecrecyLevel();
     }
 
+    public String visit(AsyncCall asyncCall) {
+        MethodSig calledMethod = asyncCall.getMethodSig();
+        String secrecyLevel = _secrecy.get(calledMethod);
+        if(secrecyLevel == null) secrecyLevel = secrecyLatticeStructure.getMinSecrecyLevel();
+        return secrecyLevel;
+    }
+
+    public String visit(SyncCall syncCall) {
+        MethodSig calledMethod = syncCall.getMethodSig();
+        String secrecyLevel = _secrecy.get(calledMethod);
+        if(secrecyLevel == null) secrecyLevel = secrecyLatticeStructure.getMinSecrecyLevel();
+        return secrecyLevel;
+    }
 
     /**
      * Allows to update the current program secrecy list on a change.

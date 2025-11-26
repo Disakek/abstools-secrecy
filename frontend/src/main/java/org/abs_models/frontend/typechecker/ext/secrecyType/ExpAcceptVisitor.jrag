@@ -55,9 +55,13 @@ aspect AddExpVisitor {
   public String VarOrFieldUse.accept(SecrecyExpVisitor v) { return v.visit(this); }
 
   @Override
-  public String GetExp.accept(SecrecyExpVisitor v) { 
-    return v.visit(this); 
-  }
+  public String GetExp.accept(SecrecyExpVisitor v) { return v.visit(this); }
+
+  @Override
+  public String AsyncCall.accept(SecrecyExpVisitor v) {return v.visit(this);}
+
+  @Override
+  public String SyncCall.accept(SecrecyExpVisitor v) {return v.visit(this);}
 
 }
 
@@ -68,15 +72,13 @@ Instead try to differentiate between base case PureExp -> BinaryExp | UnaryExp
 Done:
 VarOrFieldExp -> I believe this is the VarOrFieldUse type
 MultExp (Mul | Div | Mod), AddExp (Add | Sub), MinusExp, NegExp, BoolExp (And | Or | EQ | LT | GT | ...)
+GetExp, AsyncCallExp, SyncCallExp
 
 
 
 Missing:
 ## EffExp
-GetExp
 NewExp
-AsyncCallExp
-SyncCallExp
 OriginalCallExp
 
 ## PureExp

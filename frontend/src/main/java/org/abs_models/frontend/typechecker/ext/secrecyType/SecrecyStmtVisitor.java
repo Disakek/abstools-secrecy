@@ -53,11 +53,6 @@ public class SecrecyStmtVisitor {
         ASTNode<?> LHS = assignStmt.getVar().getDecl();
         Exp RhsExp = assignStmt.getValue();
 
-        if (assignStmt.getValue() instanceof GetExp getRHS) {
-            System.out.println("AssignStmt " + assignStmt.getValue());
-            //getRHS.accept(ExpVisitor);
-        }
-
         String LHSsecLevel = secrecyLatticeStructure.getMinSecrecyLevel();
         String RHSsecLevel = secrecyLatticeStructure.getMinSecrecyLevel();
 
@@ -136,7 +131,6 @@ public class SecrecyStmtVisitor {
 
             programConfidentiality.remove(ifNode);
             ExpVisitor.updateProgramPoint(programConfidentiality);
-            System.out.println(programConfidentiality);
         }
         /* Descripton:
             1.Get the condition of the ifStmt
@@ -170,9 +164,7 @@ public class SecrecyStmtVisitor {
     }
 
     public void visit(ExpressionStmt expressionStmt) {
-        System.out.println("IS EXPRESSIONSTMT: " + expressionStmt);
         Exp expStmtChild = expressionStmt.getExp();
-        System.out.println("IS EXPRESSIONSTMT-CHILD: " + expStmtChild);
         expStmtChild.accept(ExpVisitor);
         
     } 
@@ -180,11 +172,9 @@ public class SecrecyStmtVisitor {
     public void visit(VarDeclStmt varDeclStmt) {
 
         VarDecl varDecl = varDeclStmt.getVarDecl();
-        //System.out.println(varDeclStmt + "with value ");
 
         if(varDecl.hasInitExp()){
             Exp initExp = varDecl.getInitExp();
-            //System.out.println(initExp);
             initExp.accept(ExpVisitor);
         }
     }
@@ -214,32 +204,20 @@ public class SecrecyStmtVisitor {
 
     private void handleSingleGuards(Guard inGuard) {
 
-        System.out.println("INGUARD is: " + inGuard);
-        System.out.println("INGUARD_CHILD is: " + inGuard.getChild(0));
         String INGUARD_CHILD = inGuard.getChild(0).toString();
-        System.out.println("INGUARD_CHILD_STRING is: " + INGUARD_CHILD);
         
         if (inGuard instanceof ExpGuard expGuard) {
   
             Exp awaitExpr = (Exp) expGuard.getChild(0);
             String getAwaitSecrecy = awaitExpr.accept(ExpVisitor);
-
-            //System.out.println("AwaitExpr is this: " + awaitExpr);
-
             programConfidentiality.add(new ProgramCountNode(INGUARD_CHILD, getAwaitSecrecy));
-            
-            //System.out.println("added expguard: " + awaitExpr + " has Secrecy: " + getAwaitSecrecy);
-            //System.out.println(programConfidentiality.toString());
-        
+
         } else if (inGuard instanceof ClaimGuard claimGuard) {
 
             VarOrFieldUse awaitClaim = (VarOrFieldUse) claimGuard.getChild(0);
             String getAwaitSecrecy = awaitClaim.accept(ExpVisitor);
 
             programConfidentiality.add(new ProgramCountNode(INGUARD_CHILD, getAwaitSecrecy));
-            
-            //System.out.println("added claimguard: " + claimGuard + " getDecl is: " + getAwaitSecrecy);
-            //System.out.println(programConfidentiality);
 
         } else if (inGuard instanceof AndGuard andGuard) {
 
@@ -247,7 +225,6 @@ public class SecrecyStmtVisitor {
             handleSingleGuards(andGuard.getRight());
         }
         
-        System.out.println(programConfidentiality.toString());
         ExpVisitor.updateProgramPoint(programConfidentiality);
     }
 
