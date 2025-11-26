@@ -27,19 +27,27 @@ import org.abs_models.frontend.typechecker.ext.SecrecyStmtVisitor;
  */
 public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
 
-    //Is the mapping from an ASTNode (the declaration) to the assigned SecrecyValue
+    /**
+     * Stores mappings between ASTNode's (declarations) and the assigned secrecy values.
+     */
     private HashMap<ASTNode<?>,String> _secrecy = new HashMap<>();
 
     //todo is an idea for a current secrecy level storage
     //private HashMap<ASTNode<?>,String> _currentSecrecy = new HashMap<>();
     
-    //Contains the secrecy lattice given by the user or the default (Low < High)
+    /**
+     * Contains the secrecy lattice either given by the user or a default. (default is: Low < High)
+     */
     SecrecyLatticeStructure secrecyLatticeStructure;
     
-    //Is the visitor for all Stmts that typechecks the implemented rules    
+    /**
+     * Visitor for statements that performs typechecking for the secrecy rules.
+     */
     SecrecyStmtVisitor visitor;               
 
-    //Holds the confidentiality levels of the current program point
+    /**
+     * List holds entries for confidentiality levels if evaluated at a point in time it is the current secrecy level. 
+     */
     LinkedList<ProgramCountNode> programConfidentiality;
     
     /**
