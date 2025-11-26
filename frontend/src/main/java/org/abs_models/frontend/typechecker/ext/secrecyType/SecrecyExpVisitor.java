@@ -7,10 +7,8 @@ package org.abs_models.frontend.typechecker.ext;
 
 import java.util.HashMap;
 import java.util.LinkedList;
-import java.util.Iterator;
 
 import org.abs_models.frontend.ast.*;
-import org.abs_models.frontend.typechecker.*;
 
 /**
  * This class is used to extract the secrecylevels for the different expressions.
