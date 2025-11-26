@@ -10,15 +10,9 @@ import java.util.Set;
 import java.util.HashMap;
 import java.util.LinkedList;
 
-import org.abs_models.frontend.analyser.AnnotationHelper;
 import org.abs_models.frontend.analyser.ErrorMessage;
 import org.abs_models.frontend.analyser.TypeError;
 import org.abs_models.frontend.ast.*;
-import org.abs_models.frontend.typechecker.Type;
-import org.abs_models.frontend.typechecker.TypeAnnotation;
-import org.abs_models.frontend.typechecker.ext.DefaultTypeSystemExtension;
-import org.abs_models.frontend.typechecker.ext.AdaptDirection;
-import org.abs_models.frontend.typechecker.ext.SecrecyStmtVisitor;
 
 /**
  * This class is using two phases whcih both run over the model. 
@@ -150,12 +144,11 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
                             //3.3
                             for(MethodSig declaredCandidate : declaredInterfaceMethods) {
                                 if (compareMethodSignatures(method.getMethodSig(), declaredCandidate)) {
-                                    System.out.println(method.getMethodSig() + " is implementation of " + declaredCandidate);
+                                    //System.out.println(method.getMethodSig() + " is implementation of " + declaredCandidate);
                                     checkRespectingSecrecyLevels(method.getMethodSig(), declaredCandidate);
                                 }
                             }
 
-                            //todo think about if we can remove this or not
                             Block block = method.getBlock();
                             for (Stmt stmt : block.getStmtList()) {
                                 if (stmt instanceof VarDeclStmt varDeclStmt) {
