@@ -20,6 +20,11 @@ import org.abs_models.frontend.typechecker.ext.DefaultTypeSystemExtension;
 import org.abs_models.frontend.typechecker.ext.AdaptDirection;
 import org.abs_models.frontend.typechecker.ext.SecrecyStmtVisitor;
 
+/**
+ * This class is using two phases whcih both run over the model. 
+ * The first phase extracts the secrecy annotations and their level, as well as running a few basic checks.
+ * The second phase performs a check for each statement/expression
+ */
 public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
 
     //Is the mapping from an ASTNode (the declaration) to the assigned SecrecyValue
@@ -34,8 +39,13 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
     //Is the visitor for all Stmts that typechecks the implemented rules    
     SecrecyStmtVisitor visitor;               
 
+    //Holds the confidentiality levels of the current program point
     LinkedList<ProgramCountNode> programConfidentiality;
     
+    /**
+     * The constructor for the SecrecyAnnotationChecker a class that checks a given model.
+     * @param Model - the ABS model that we want to check, is already parsed before.
+     */
     protected SecrecyAnnotationChecker(Model m) {
         super(m);
 
@@ -43,35 +53,51 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
 
         if (m.secrecyLatticeStructure != null) {
             secrecyLatticeStructure = m.secrecyLatticeStructure;
-            //Set the basic starting secrecy
             programConfidentiality.add(new ProgramCountNode("default", secrecyLatticeStructure.getMinSecrecyLevel()));
         }
     }
 
+    /**
+     * This is the main method for the SecrecyAnnotationChecker it calls the two phases and contains some prints for sanity checking.
+     * @param Model - the ABS model that we want to check
+     */
     @Override
     public void checkModel(Model model) {
 
-        //First pass of all the code to extract the secrecy annotations and populate _secrecy
         firstExtractionPhasePass(model); 
 
         visitor = new SecrecyStmtVisitor(_secrecy, secrecyLatticeStructure, errors, programConfidentiality);
 
-        //Second pass to enforce all the typerules
         secondTypecheckPhasePass(model); 
         
+        //todo to be removed later
         System.out.println("Print new annotated Values: " + _secrecy.toString());
         System.out.println("Print all Levels: " + secrecyLatticeStructure.getSecrecyLevels().toString());
         System.out.println("Print the order" + secrecyLatticeStructure.getLatticeOrder().toString());
         System.out.println("Confidentiality of current program point is: " + programConfidentiality.getLast().getSecrecyLevel());
     }
 
+    /**
+     * First phase (extraction) retrieves and stores the following information from the model/ast.
+     * 
+     * 1. Stores all the methods declared from the interfaces that are implemented by the class
+     * 2. Extracts field annotations and stores them to the secrecy hashmap
+     * 3. Extracts the annotation for methods of the CLASS for their return values and their parameters && running the check from 1.
+     *  3.1 - the returnvalue | 3.2 - each parameter | 3.3 - the check between method declaration and it's implementation
+     * 
+     * 4. Extracts the annotation for methods of INTERFACES for their return values and their parameters
+     *  4.1 - the returnvalue | 4.2 - each parameter
+     * 
+     * @param Model - the model from which we retrieve the secrecy values and on which we perform the first check
+     * 
+     */
     private void firstExtractionPhasePass(Model model){
         for (CompilationUnit cu : model.getCompilationUnits()) {
             for (ModuleDecl moduleDecl : cu.getModuleDecls()) {
                 for (Decl decl : moduleDecl.getDecls()) {
                     if (decl instanceof ClassDecl classDecl) {
 
-                        //set for all methods declared in an implemented interface
+                        //1.
                         Set<MethodSig> declaredInterfaceMethods = new HashSet<MethodSig>();
                         
                         if(classDecl.hasImplementedInterfaceUse()) {
@@ -92,25 +118,28 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
                             }
                         }
         
-                        //Extract field annotations and store them to the secrecy hashmap
+                        //2.
                         for(FieldDecl fieldDecl : classDecl.getFields()) {
                             String level = extractSecrecyValue(fieldDecl);
                             if(level != null)_secrecy.put(fieldDecl, level);
                         }
                         
-                        //Extracts the annotation for methods of the class for their return values and their parameters
+                        //3.
                         for (MethodImpl method : classDecl.getMethods()) {
                             
                             MethodSig methodSigNat = method.getMethodSig();
 
+                            //3.1
                             String Returnlevel = extractSecrecyValue(method.getMethodSig());
                             if(Returnlevel != null)_secrecy.put(method.getMethodSig(), Returnlevel);
 
+                            //3.2
                             for(ParamDecl parameter : method.getMethodSig().getParamList()) {
                                 String Parameterlevel = extractSecrecyValue(parameter);
                                 if(Parameterlevel != null)_secrecy.put(parameter, Parameterlevel);
                             }
 
+                            //3.3
                             for(MethodSig declaredCandidate : declaredInterfaceMethods) {
                                 if (compareMethodSignatures(method.getMethodSig(), declaredCandidate)) {
                                     System.out.println(method.getMethodSig() + " is implementation of " + declaredCandidate);
@@ -118,6 +147,7 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
                                 }
                             }
 
+                            //todo think about if we can remove this or not
                             Block block = method.getBlock();
                             for (Stmt stmt : block.getStmtList()) {
                                 if (stmt instanceof VarDeclStmt varDeclStmt) {
@@ -129,13 +159,15 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
                             }
                         }
 
-                         //Extracts the annotation for methods of interfaces for their return values and their parameters
+                    //4.0
                     } else if (decl instanceof InterfaceDecl interfaceDecl) {
                         for (MethodSig methodSig : interfaceDecl.getBodyList()) {
                             
+                            //4.1
                             String Returnlevel = extractSecrecyValue(methodSig);
                             if(Returnlevel != null)_secrecy.put(methodSig, Returnlevel);
 
+                            //4.2
                             for(ParamDecl parameter : methodSig.getParamList()) {
                                 String Parameterlevel = extractSecrecyValue(parameter);
                                 if(Parameterlevel != null)_secrecy.put(parameter, Parameterlevel);
@@ -147,9 +179,16 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
         }
     }
 
+    /**
+     * This methods "extracts" the secrecy level for a given node.
+     * For this it reads the secrecy level out of the annotationlist and ensures it is part of our lattice structure (validity).
+     * If the user uses his own secrecy lattice structure than that is considerd! 
+     * 
+     * @param ASTNode<?> - the ast node that "might" have the secrecy annotation
+     * @return - returns the secrecy level or if there is none returns null
+     */
     private String extractSecrecyValue(ASTNode<?> declNode) {
 
-        // All nodes that can have annotations implement TypeUse or have annotation lists
         List<Annotation> annotations = null;
 
         if (declNode instanceof ParamDecl param) {
@@ -167,13 +206,12 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
         for (Annotation ann : annotations) {
             if (ann instanceof TypedAnnotation typedAnn) {
 
-                ASTNode<?> valueNode = typedAnn.getChild(0); // value
-                ASTNode<?> nameNode  = typedAnn.getChild(1); // name
+                ASTNode<?> valueNode = typedAnn.getChild(0);
+                ASTNode<?> nameNode  = typedAnn.getChild(1);
 
                 if ("Secrecy".equals(nameNode.toString()) && valueNode instanceof DataConstructorExp dataCon) {
                     String levelName = dataCon.getConstructor();
 
-                    // Check that the level exists in the lattice
                     if (!secrecyLatticeStructure.isValidLabel(levelName)) {
                         errors.add(new TypeError(typedAnn, ErrorMessage.WRONG_SECRECY_ANNOTATION_VALUE, levelName));
                         return null;
@@ -187,6 +225,14 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
         return null;
     }
 
+    /**
+     * Second phase which checks for the secrecy typerules.
+     * A class satisfies the secrecy typerules if each method of a class satisfies them.
+     * A method satisfies the secrecy typerules if each statement, expression, etc. satisfies them.
+     * We have a SecrecyStmtVisitor which performs the statement checks and it is called on each statement here.
+     * 
+     * @param Model - the ABS model on which we want to check the respecting of the secrecy typerules
+     */
     private void secondTypecheckPhasePass(Model model){
         for (CompilationUnit cu : model.getCompilationUnits()) {
             for (ModuleDecl moduleDecl : cu.getModuleDecls()) {
@@ -204,19 +250,25 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
         }
     }
 
+    /**
+     * Helper method that checks if a two methods a and b have the same signature.
+     * To have the same signature they have to have matching: Name, Returntype, Parameter (count, names and types)
+     * 
+     * @param methodA - the first method that might have the same signature
+     * @param methodB - the second method that might have the same signature
+     * 
+     * @return true if the method signatures match in the listed aspects, false otherswise
+     */
     private boolean compareMethodSignatures(MethodSig methodA, MethodSig methodB) {
 
-        //name the same
         if(methodA.getName().equals(methodB.getName())){
 
-            //returnvalue same type
             if(methodA.getReturnType().toString().equals(methodB.getReturnType().toString())){
 
                 
                 List<ParamDecl> paramListA = methodA.getParamList();
                 List<ParamDecl> paramListB = methodB.getParamList();
 
-                //same number of parameters
                 if (paramListA.getNumChild() != paramListB.getNumChild()) {
                     return false;
                 }
@@ -230,8 +282,6 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
                     paramBList.add(paramB);
                 }
 
-                //parameters 
-                // if same name check same types => if true for all => same methodsig
                 for(ParamDecl paramA : paramListA) {
                     for(ParamDecl paramB : paramListB) {
                         if (paramB.getName().equals(paramA.getName())){ 
@@ -245,7 +295,6 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
                     }
                 }
 
-                //each parameter was found in the other methodsig
                 if(!paramAList.isEmpty() || !paramBList.isEmpty())return false;
 
             } else {
@@ -257,6 +306,15 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
         return true;
     }
 
+    /**
+     * This method checks a method implementation of a class that implements an interface that has a declaration of the same method.
+     * The rules have to be as follows:
+     * 1. the secrecy level of the implementation can at most be as high as the methods declaration in the interface.
+     * 2. the secrecy level of each parameter of the implementation can at most be as high as the parameter from the methods declaration.
+     * 
+     * @param implementation - the method signature of a method that was implemented in a class that implements the interface
+     * @param definition - the method signature of a method that was declared in an interface
+     */
     private void checkRespectingSecrecyLevels(MethodSig implementation, MethodSig definition) {
 
         String definitionLevel = _secrecy.get(definition);
@@ -306,24 +364,3 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
     }
 }
 
-/* Notes
-
-@ Todos
-- Implement visit methods (in progress)
-    - for every stmt
-    - for every exp 
-
-- Refactor the _secrecy Hashmap
-    - Koennen wir stattdessen fuer jede ASTNode direct checken ob es eine SecrecyAnnotation gibt mit einem Visitor oder so und wenn ja diese hinzufuegen oder muessen wir den AST traversen
-
-- Missing Rules
-    - More checks in the second phase (if needed)
-    - Error for overwriting an existing secrecy value in _secrecy(not allowed I think depends on how I implement it)
-        - Question 2.
-        //if(_secrecy.get() != null) {errors.add(new TypeError(annotation, ErrorMessage.SECRECY_OVERWRITING_EXISTING, variablename));}
-
-
-@ Questions
-1. Is there a better way for the two/multi pass approach to be implemented
-2. Can it be that we want a MaxSecrecyLevel for a variable AND a current secrecy level? (Basically a clone for _secrecy but we can't change the level)
-*/

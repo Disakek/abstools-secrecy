@@ -5,9 +5,8 @@
  */
 
 /**
- * This aspect adds a method for stmts to accept the visitor to check them for secrecy type errors
+ * This aspect adds a method for statements to accept the visitor to check them for secrecy type errors
  */
-
 aspect AddStmtVisitor {
   
   public void Stmt.accept(SecrecyStmtVisitor v) { v.visit(this); }
@@ -36,24 +35,3 @@ aspect AddStmtVisitor {
   @Override
   public void VarDeclStmt.accept(SecrecyStmtVisitor v) { v.visit(this); }
 }
-
-/*
-
-These get handled: AssignStmt, ReturnStmt, BlockStmt, IfStmt, WhileStmt
-
-Work in progress: AwaitStmt
-
-These are not implemented: 
-  - (ExpStmt) //not a real stmt
-  (later AssertStmt)
-
-Not planned for now: 
-  - SkipStmt, ThrowStmt, ForeachStmt, TryCatchFinallyStmt, SuspendStmt
-  - DurationStmt, DieStmt, MoveCogToStmt,
-
-
-Await affects pc if we await somethiing high we assign high and we are in a high context (which we migt not loose)
-
-from await to await or from await to return (get) -> 
-
-*/

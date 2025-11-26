@@ -3,6 +3,10 @@
  * This file is licensed under the terms of the Modified BSD License.
  * Written by @Maximilian_Paul for questions please refer to uukln@student.kit.edu
  */
+
+/**
+ * This aspect adds a method for expressions to accept the visitor to check them for secrecy type errors
+ */
 aspect AddExpVisitor {
   public String Exp.accept(SecrecyExpVisitor v) { return v.visit(this); }
 
@@ -64,39 +68,3 @@ aspect AddExpVisitor {
   public String SyncCall.accept(SecrecyExpVisitor v) {return v.visit(this);}
 
 }
-
-/*
-
-Instead try to differentiate between base case PureExp -> BinaryExp | UnaryExp
-
-Done:
-VarOrFieldExp -> I believe this is the VarOrFieldUse type
-MultExp (Mul | Div | Mod), AddExp (Add | Sub), MinusExp, NegExp, BoolExp (And | Or | EQ | LT | GT | ...)
-GetExp, AsyncCallExp, SyncCallExp
-
-
-
-Missing:
-## EffExp
-NewExp
-OriginalCallExp
-
-## PureExp
-FunctionExp
-PartialFunctionExp
-VariadicFunctionExp
-ConstructorExp
-GreaterExp
-FloatExp, IntExp, StringExp
-TemplateStringExp, TemplateStringCompoundExp
-ThisExp
-DestinyExp
-NullExp
-ImplementsExp
-AsExp
-WhenExp
-IfExpOld
-CaseExp
-LetExp
-ParenExp
-*/
