@@ -67,7 +67,7 @@ public class SecrecyStmtVisitor {
         /*
             1.Get the LHS and RHSExp
             2.Set the default secrecy to low
-            3.Overwrite the secrecy levels if there are annotations
+            3.Overwrite the secrecylevels if there are annotations
             4.Check if the rhs is lower or at most as high as the lhs (add an error otherwise)
 
             Note: If it is contained than LHS is lower than RHS which is the violation of our rule
@@ -184,7 +184,7 @@ public class SecrecyStmtVisitor {
         //Get the guard of the awaitstmt -> await guard;
         Guard getGuard = awaitStmt.getGuard();
 
-        //4 different guards | duration -> nothing | and -> handle left & right | ...-> add it's secrecy level to the list
+        //4 different guards | duration -> nothing | and -> handle left & right | ...-> add it's secrecylevel to the list
         if (getGuard instanceof AndGuard andGuard) {
 
             handleSingleGuards(andGuard.getLeft());
@@ -196,7 +196,7 @@ public class SecrecyStmtVisitor {
         /* Descripton:
             1.Get the guard of the await stmt
             2.If it is an AndGuard handle left and right
-            3.Extract the secrecy level for the guard (or low)
+            3.Extract the secrecylevel for the guard (or low)
             4.Insert a node for the await into the pc list -> join(guardLevel, currentLevel)
             todo MISSING -> (X.Remove the node from the list once we have a Get for it) 
         */

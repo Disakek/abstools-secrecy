@@ -32,7 +32,7 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
      */
     private HashMap<ASTNode<?>,String> _secrecy = new HashMap<>();
 
-    //todo is an idea for a current secrecy level storage
+    //todo is an idea for a current secrecylevel storage
     //private HashMap<ASTNode<?>,String> _currentSecrecy = new HashMap<>();
     
     /**
@@ -46,7 +46,7 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
     SecrecyStmtVisitor visitor;               
 
     /**
-     * List holds entries for confidentiality levels if evaluated at a point in time it is the current secrecy level. 
+     * List holds entries for confidentiality levels if evaluated at a point in time it is the current secrecylevel. 
      */
     LinkedList<ProgramCountNode> programConfidentiality;
     
@@ -188,12 +188,12 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
     }
 
     /**
-     * This methods "extracts" the secrecy level for a given node.
-     * For this it reads the secrecy level out of the annotationlist and ensures it is part of our lattice structure (validity).
+     * This methods "extracts" the secrecylevel for a given node.
+     * For this it reads the secrecylevel out of the annotationlist and ensures it is part of our lattice structure (validity).
      * If the user uses his own secrecy lattice structure than that is considerd! 
      * 
      * @param ASTNode<?> - the ast node that "might" have the secrecy annotation
-     * @return - returns the secrecy level or if there is none returns null
+     * @return - returns the secrecylevel or if there is none returns null
      */
     private String extractSecrecyValue(ASTNode<?> declNode) {
 
@@ -317,8 +317,8 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
     /**
      * This method checks a method implementation of a class that implements an interface that has a declaration of the same method.
      * The rules have to be as follows:
-     * 1. the secrecy level of the implementation can at most be as high as the methods declaration in the interface.
-     * 2. the secrecy level of each parameter of the implementation can at most be as high as the parameter from the methods declaration.
+     * 1. the secrecylevel of the implementation can at most be as high as the methods declaration in the interface.
+     * 2. the secrecylevel of each parameter of the implementation can at most be as high as the parameter from the methods declaration.
      * 
      * @param implementation - the method signature of a method that was implemented in a class that implements the interface
      * @param definition - the method signature of a method that was declared in an interface

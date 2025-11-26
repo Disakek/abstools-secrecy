@@ -13,7 +13,7 @@ import org.abs_models.frontend.ast.*;
 import org.abs_models.frontend.typechecker.*;
 
 /**
- * This class is used to extract the secrecy levels for the different expressions.
+ * This class is used to extract the secrecylevels for the different expressions.
  */
 public class SecrecyExpVisitor {
 
@@ -33,7 +33,7 @@ public class SecrecyExpVisitor {
     }
 
     /**
-     * Visit function for expressions tries to return an attached secrecy level.
+     * Visit function for expressions tries to return an attached secrecylevel.
      * Calls the different implementations to handle it for all kinds of expressions.
      */
     public String visit(Exp expression){
@@ -181,7 +181,7 @@ public class SecrecyExpVisitor {
     }
 
     /**
-     * Visit function for variables or fields that tries to return an attached secrecy level.
+     * Visit function for variables or fields that tries to return an attached secrecylevel.
      * It joins the variable level, the current program secrecy and the default value.
      * As a default value we use the lowest value from our lattice.
      */

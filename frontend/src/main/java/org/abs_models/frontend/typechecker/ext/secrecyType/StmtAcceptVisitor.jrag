@@ -5,7 +5,7 @@
  */
 
 /**
- * This aspect adds a method for statements to accept the visitor to check them for secrecy type errors
+ * This aspect adds a method for statements to accept the visitor to check them for secrecy typeerrors
  */
 aspect AddStmtVisitor {
   

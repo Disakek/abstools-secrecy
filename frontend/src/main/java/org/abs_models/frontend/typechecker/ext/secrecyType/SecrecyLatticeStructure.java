@@ -15,33 +15,59 @@ import java.util.LinkedList;
  */
 public class SecrecyLatticeStructure {
 
+    /**
+     * Set that contains all existing secrecylevels once. (default: Low, High)
+     */
     private final Set<String> secrecyLevels;
     
+    /**
+     * Hashmap used to define the order between levels.
+     * Each element of secrecyLevels has an entry.
+     * A set of a lower element contains all higher elements but not itself (highest is an empty set).
+     * (default: (Low, [High]), (High, []))
+     */
     private final HashMap<String, Set<String>> latticeOrder;
     
+    /**
+     * Is the highest secrecyvalue for a lattice.
+     */
     private String maxSecrecyLevel = null;
 
+    /**
+     * Is the lowest secrecyvalue for a lattice.
+     */
     private String minSecrecyLevel = null;
     
+
+    /**
+     * Constructor for the SecrecyLatticeStructure.
+     * @param levels - the set of all different existing levels in a lattice
+     * @param order - the order defining structure
+     */
     public SecrecyLatticeStructure(Set<String> levels, HashMap<String, Set<String>> order) {
         this.secrecyLevels = new HashSet<>(levels);
         this.latticeOrder = new HashMap<>(order);
 
         calculateMaxAndMin();
-        System.out.println("Lowest: " + minSecrecyLevel + "\nHighest: " + maxSecrecyLevel);
+        //System.out.println("Lowest: " + minSecrecyLevel + "\nHighest: " + maxSecrecyLevel);
     }
 
+    /**
+     * This method takes the assigned secrecyLevels and the latticeOrder.
+     * It calculates the values of the lattice for max and min and assigns them accordingly.
+     * 
+     * If there are multiple we take any of the highest/lowest. (There never should be multiple options!)
+     * 
+     */
     public void calculateMaxAndMin() {
 
-        //Calculate the maxSecrecyLevel
         for (String level : latticeOrder.keySet()) {
             if (latticeOrder.get(level).isEmpty()) {
                 maxSecrecyLevel = level;
-                break; // found it, exit loop
+                break;
             }
         }
 
-        //Calculate the minSecrecyLevel
         for(String secLevel : secrecyLevels) {
             boolean containsAllOthers = true;
             for(String otherLevels : secrecyLevels){
@@ -59,32 +85,65 @@ public class SecrecyLatticeStructure {
         }
     }
     
+    /**
+     * Getter for the maximum secrecylevel of our lattice.
+     * @return - the maximum secrecylevel.
+     */
     public String getMaxSecrecyLevel() {
         return maxSecrecyLevel;
     }
 
+    /**
+     * Getter for the minimum secrecylevel of our lattice.
+     * @return - the minimum secrecylevel.
+     */
     public String getMinSecrecyLevel() {
         return minSecrecyLevel;
     }
 
+    /**
+     * Getter for all possible secrecylevel values.
+     * @return - the secrecylevel field.
+     */
     public Set<String> getSecrecyLevels() {
         return new HashSet<>(secrecyLevels);
     }
     
+    /**
+     * Getter for the latticeOrder.
+     * @return - the latticeOrder field.
+     */
     public HashMap<String, Set<String>> getLatticeOrder() {
         return new HashMap<>(latticeOrder);
     }
 
+    /**
+     * Getter for the set that contains levels above a certain secrecylevel.
+     * @param input - the secrecylevel for which we want the set of higher levels.
+     * @return - the set of higher levels.
+     */
     public Set<String> getSetForSecrecyLevel(String input) {
         return latticeOrder.get(input);
     }
 
+    /**
+     * Checker for the existance of a lable.
+     * @param input - the possibly existing secrecyvalue
+     * @return - true if the input is an existing value (in secrecyLevels), false otherwise
+     */
     public boolean isValidLabel(String input) {
         return secrecyLevels.contains(input);
     }
 
     //todo: requires more testing to ensure it works
-    //issue if one of those is null so never use it as default value (shouldnt do that anyways)
+    /**
+     * This method is a join for two elements and returns the secrecyvalue which is equal or above both of them.
+     * 
+     * @param secrecyOne - the first element we want to join
+     * @param secrecyTwo - the second element we want to join
+     * 
+     * @return - the join of the two elements so their least upper bound, "secrecyOne" if they are the same
+     */
     public String join(String secrecyOne, String secrecyTwo) {
         
         if(!secrecyLevels.contains(secrecyOne) || !secrecyLevels.contains(secrecyTwo)){
@@ -95,9 +154,7 @@ public class SecrecyLatticeStructure {
         Set<String> setOfsecrecyTwo = latticeOrder.get(secrecyTwo);
 
         if(setOfsecrecyOne.contains(secrecyTwo))return secrecyTwo;
-
         if(setOfsecrecyTwo.contains(secrecyOne))return secrecyOne;
-
         if(secrecyOne.equals(secrecyTwo))return secrecyOne;
 
         Set<String> candidateLUB = new HashSet<>();
@@ -114,9 +171,7 @@ public class SecrecyLatticeStructure {
             boolean isLeastUpperBound = true;
 
             for (String other : candidateLUB) {
-                // Skip comparing with itself
                 if (!candidate.equals(other) && greaterOrEqual.contains(other)) {
-                    // Found a smaller 'other' under this candidate → not least
                     isLeastUpperBound = false;
                     break;
                 }
@@ -126,11 +181,14 @@ public class SecrecyLatticeStructure {
                 return candidate;
             }
         }
-
-
         throw new IllegalStateException("No common upper bound found");
     }
 
+    /**
+     * Evaluates the secrecylevel given by a Linkedlist.
+     * @param programConfidentiality - the linked list which gives the secrecylevel
+     * @return - the join of all elements in the list so the least upper bound, error if it is empty or null
+     */
     public String evaluateListLevel (LinkedList<ProgramCountNode> programConfidentiality) {
 
         if (programConfidentiality == null || programConfidentiality.isEmpty()) {
@@ -148,11 +206,5 @@ public class SecrecyLatticeStructure {
         }
 
         return current;
-        /*
-        1. Make sure it is not empty otherwise throw error
-        2. current = get the first element
-        3. current = join(current, next) | as long as there is a next
-        4. return current once all are joined
-        */
     }
 }
