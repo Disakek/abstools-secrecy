@@ -14,18 +14,43 @@ import org.abs_models.frontend.analyser.ErrorMessage;
 import org.abs_models.frontend.analyser.TypeError;
 import org.abs_models.frontend.analyser.SemanticConditionList;
 
+/**
+ * This class is used to extract the secrecylevels for the different statements and enforce rules with it.
+ */
 public class SecrecyStmtVisitor {
 
+    /**
+     * Stores mappings between ASTNode's (declarations) and the assigned secrecy values.
+     */
     private HashMap<ASTNode<?>,String> _secrecy = new HashMap<>();
-
+    
+    /**
+     * Contains the secrecy lattice either given by the user or a default. (default is: Low < High)
+     */
     private SecrecyLatticeStructure secrecyLatticeStructure;
+    
+    /**
+     * Visitor for expressions that performs typechecking for the secrecy rules.
+     */
+    private SecrecyExpVisitor ExpVisitor;               
 
+    /**
+     * List holds entries for confidentiality levels if evaluated at a point in time it is the current secrecylevel. 
+     */
+    private LinkedList<ProgramCountNode> programConfidentiality;
+
+    /**
+     * The list for errors that we can add to if a rule isn't respected.
+     */
     private final SemanticConditionList errors;
 
-    private SecrecyExpVisitor ExpVisitor;
-
-    LinkedList<ProgramCountNode> programConfidentiality;
-
+    /**
+     * Constructor for the SecrecyStmtVisitor.
+     * @param _secrecy - the hashmap that links ASTNode's to their assigned secrecylevel.
+     * @param secrecyLatticeStructure - the datastructure that holds the information for the lattice. 
+     * @param errors - the error list that we can add typeerrors to.
+     * @param programConfidentiality - the list for the confidentiality at a certain point in time.
+     */
     public SecrecyStmtVisitor(HashMap<ASTNode<?>,String> _secrecy, SecrecyLatticeStructure secrecyLatticeStructure, SemanticConditionList errors,LinkedList<ProgramCountNode> programConfidentiality) {
         this._secrecy = _secrecy;
         this.secrecyLatticeStructure = secrecyLatticeStructure;
@@ -35,17 +60,31 @@ public class SecrecyStmtVisitor {
         ExpVisitor = new SecrecyExpVisitor(_secrecy, secrecyLatticeStructure, programConfidentiality, this);
     }
 
-    //todo I need this base case but why and what should it do or is it good like this
+    /**
+     * Visit function for statements.
+     * Depending on the kind of statement we call the matching implementation of visit. 
+     * @param stmt - the stmt we want to visit and check.
+     */
     public void visit(Stmt stmt) {
         return;
     }
 
+    /**
+     * Visit function for block statements. We check every statement in the block with this visitor.
+     * @param blockStmt - the blockstmt from which we want to visit each stmt.
+     */
     public void visit(Block blockStmt){
         for(Stmt stmt : blockStmt.getStmtList()) {
             stmt.accept(this);
         }
     }
 
+    /**
+     * Visit function for assign statements. 
+     * We check that for a:High and b:Low we never assign b = a however a = b, b = b or a = a is fine.
+     * Secrecylevel of LHS has to be higher or equal to RHS. (default: Low)
+     * @param assignStmt - the assign stmt that has to respect the assignment rule.
+     */
     public void visit(AssignStmt assignStmt){
 
         ASTNode<?> LHS = assignStmt.getVar().getDecl();
@@ -61,17 +100,14 @@ public class SecrecyStmtVisitor {
         if(LHScontainedIn.contains(RHSsecLevel)) {
             errors.add(new TypeError(assignStmt, ErrorMessage.SECRECY_LEAKAGE_ERROR_FROM_TO, RHSsecLevel, assignStmt.getValue().toString(), LHSsecLevel, assignStmt.getVar().getName()));
         }
-
-        /*
-            1.Get the LHS and RHSExp
-            2.Set the default secrecy to low
-            3.Overwrite the secrecylevels if there are annotations
-            4.Check if the rhs is lower or at most as high as the lhs (add an error otherwise)
-
-            Note: If it is contained than LHS is lower than RHS which is the violation of our rule
-        */
     }
 
+    /**
+     * Visit function for return statements. 
+     * We check that for methoda:High and b:Low we never return b.
+     * Secrecylevel of return has to be lower or equal the return secrecylevel of the method. (default: Low)
+     * @param returnStmt - the return stmt that has to respect the returnstmt rule.
+     */
     public void visit(ReturnStmt returnStmt){
         
         ASTNode<?> returnExp = returnStmt.getChild(1);
@@ -100,16 +136,15 @@ public class SecrecyStmtVisitor {
         if(!(methodReturnSet.contains(returnDefinitionLevel)) && !(returnActualLevel.equals(returnDefinitionLevel))) {
             errors.add(new TypeError(returnStmt, ErrorMessage.SECRECY_LEAKAGE_ERROR_FROM_TO, returnActualLevel, "returnStmt", returnDefinitionLevel, "returnDefinition"));
         }
-
-        /* Descripton:
-            1.Get the actual returnStmt
-            2.Get the parentNode(method implementation node)
-            3.TRY to get secrecy returnDefinitionLevel if not null
-            4.TRY to get secrecy returnActualLevel if not null
-            5.Check if the returnActualLevel is lower or at most equal to the returnDefinitionLevel (add an error otherwise)
-        */
     }
 
+    /**
+     * Visit function for if-statements. 
+     * When we check the then (or else) block we might have a higher program point context.
+     * The program point is defined by the one we had joined with the secrecylevel of the condition. (default: Low)
+     * For this we add the secrecylevel of the condition to the programConfidentiality list and remove it once checked. 
+     * @param ifStmt - the if-stmt that has to respect the if-rule.
+     */
     public void visit(IfStmt ifStmt){
 
         Exp condition = ifStmt.getCondition();
@@ -130,14 +165,16 @@ public class SecrecyStmtVisitor {
             programConfidentiality.remove(ifNode);
             ExpVisitor.updateProgramPoint(programConfidentiality);
         }
-        /* Descripton:
-            1.Get the condition of the ifStmt
-            2.Set pc to the join of (condition level, currentLevelByList) //mby old pc level was already higher
-            3.Evaluate the then (and if existing else) branch with the new pc
-            4.Reset the pc to the old value once finished by removing the last list element
-        */
     }
 
+    /**
+     * Visit function for while-statements. 
+     * When we check the while block we might have a higher program point context.
+     * The program point is defined by the one we had joined with the secrecylevel of the condition. (default: Low)
+     * For this we add the secrecylevel of the condition to the programConfidentiality list and remove it once checked. 
+     * @param whileStmt - the while stmt that has to respect the while rule.
+     * It is very similar to the if-stmt (without an else).
+     */
     public void visit(WhileStmt whileStmt) {
         
         Exp condition = whileStmt.getCondition();
@@ -153,20 +190,25 @@ public class SecrecyStmtVisitor {
             programConfidentiality.remove(whileNode);
             ExpVisitor.updateProgramPoint(programConfidentiality);
         }
-        /* Descripton:
-            1.Get the condition of the whileStmt
-            2.Set pc to the join of (condition level, currentLevelByList) //mby old pc level was already higher
-            3.Evaluate the body with the new pc
-            4.Reset the pc to the old value once finished by removing the last list element
-        */
     }
 
+    /**
+     * Visit function for expression statements. 
+     * For an expression statement we want the expression below to be handled by the expression visitor.
+     * @param expressionStmt - the expression stmt that should be visited by the expression visitor.
+     */
     public void visit(ExpressionStmt expressionStmt) {
         Exp expStmtChild = expressionStmt.getExp();
         expStmtChild.accept(ExpVisitor);
         
     } 
 
+    //todo unfinished
+    /**
+     * Visit function for varDeclStmt statements.
+     * We want to ensure that if a declaration has an initialization (exp) that we visit the init with the expression visitor.
+     * @param varDeclStmt - the variable declaration statement that has to respect the rule.
+     */
     public void visit(VarDeclStmt varDeclStmt) {
 
         VarDecl varDecl = varDeclStmt.getVarDecl();
@@ -177,50 +219,48 @@ public class SecrecyStmtVisitor {
         }
     }
 
+    /**
+     * Visit function for await statements. 
+     * When we check an await we need to add it to the programConfidentiality.
+     * Once the await finishes we have a get so between await and get everything gets the higher program context.
+     * The level of the "higher context" is defined by the level of the await's value.
+     * @param awaitStmt - the await stmt that has to be handled similar to the if-stmt.
+     * Handling performed by with the helper function handleGuards().
+     */
     public void visit(AwaitStmt awaitStmt) {
 
-        //Get the guard of the awaitstmt -> await guard;
         Guard getGuard = awaitStmt.getGuard();
-
-        //4 different guards | duration -> nothing | and -> handle left & right | ...-> add it's secrecylevel to the list
-        if (getGuard instanceof AndGuard andGuard) {
-
-            handleSingleGuards(andGuard.getLeft());
-            handleSingleGuards(andGuard.getRight());
-
-        } else {
-            handleSingleGuards(getGuard);
-        }
-        /* Descripton:
-            1.Get the guard of the await stmt
-            2.If it is an AndGuard handle left and right
-            3.Extract the secrecylevel for the guard (or low)
-            4.Insert a node for the await into the pc list -> join(guardLevel, currentLevel)
-            todo MISSING -> (X.Remove the node from the list once we have a Get for it) 
-        */
+        handleGuards(getGuard);
+    
     }
 
-    private void handleSingleGuards(Guard inGuard) {
+    /**
+     * Helper for the handling of the different guard kinds.
+     * If the guard is an And call it recursive for the two sub guards. 
+     * If it is an ExpGuard or ClaimGuard we want to add it to the programConfidentiality. (Remove only on the get)
+     * @param inGuard - the gurad we want to handle.
+     */
+    private void handleGuards(Guard inGuard) {
 
-        String INGUARD_CHILD = inGuard.getChild(0).toString();
+        String inGuardChild = inGuard.getChild(0).toString();
         
         if (inGuard instanceof ExpGuard expGuard) {
   
             Exp awaitExpr = (Exp) expGuard.getChild(0);
             String getAwaitSecrecy = awaitExpr.accept(ExpVisitor);
-            programConfidentiality.add(new ProgramCountNode(INGUARD_CHILD, getAwaitSecrecy));
+            programConfidentiality.add(new ProgramCountNode(inGuardChild, getAwaitSecrecy));
 
         } else if (inGuard instanceof ClaimGuard claimGuard) {
 
             VarOrFieldUse awaitClaim = (VarOrFieldUse) claimGuard.getChild(0);
             String getAwaitSecrecy = awaitClaim.accept(ExpVisitor);
 
-            programConfidentiality.add(new ProgramCountNode(INGUARD_CHILD, getAwaitSecrecy));
+            programConfidentiality.add(new ProgramCountNode(inGuardChild, getAwaitSecrecy));
 
         } else if (inGuard instanceof AndGuard andGuard) {
 
-            handleSingleGuards(andGuard.getLeft());
-            handleSingleGuards(andGuard.getRight());
+            handleGuards(andGuard.getLeft());
+            handleGuards(andGuard.getRight());
         }
         
         ExpVisitor.updateProgramPoint(programConfidentiality);
@@ -228,6 +268,7 @@ public class SecrecyStmtVisitor {
 
     /**
      * Allows to update the current program secrecy list on a change.
+     * @param newConfidentiality - the list but with the new changes.
      */
     public void updateProgramPoint(LinkedList<ProgramCountNode> newConfidentiality) {
         programConfidentiality = newConfidentiality;

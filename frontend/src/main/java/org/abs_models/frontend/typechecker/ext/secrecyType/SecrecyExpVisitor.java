@@ -11,7 +11,7 @@ import java.util.LinkedList;
 import org.abs_models.frontend.ast.*;
 
 /**
- * This class is used to extract the secrecylevels for the different expressions.
+ * This class is used to extract the secrecylevels for the different expressions and enforce rules with it.
  */
 public class SecrecyExpVisitor {
 
@@ -372,6 +372,7 @@ public class SecrecyExpVisitor {
 
     /**
      * Allows to update the current program secrecy list on a change.
+     * @param newConfidentiality - the list but with the new changes.
      */
     public void updateProgramPoint(LinkedList<ProgramCountNode> newConfidentiality) {
         programConfidentiality = newConfidentiality;
