@@ -341,7 +341,7 @@ public class SecrecyExpVisitor {
         }
 
         stmtVisitor.updateProgramPoint(programConfidentiality);
-        return return secrecyLatticeStructure.join(secrecyLatticeStructure.getMinSecrecyLevel(), secrecyLatticeStructure.evaluateListLevel(programConfidentiality));
+        return secrecyLatticeStructure.join(secrecyLatticeStructure.getMinSecrecyLevel(), secrecyLatticeStructure.evaluateListLevel(programConfidentiality));
     }
 
     /**
