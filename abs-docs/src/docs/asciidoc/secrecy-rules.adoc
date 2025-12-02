@@ -1,0 +1,153 @@
+== Statement Rules
+
+To return to the main documentation, follow this link: <<index.adoc#,Main Documentation>>.
+
+=== Block Statement
+A block statement contains multiple statements.  
+A block holds if all statements inside the block hold.
+
+=== Assign Statement
+An assignment holds when no information-flow leak occurs.  
+A leak would look like the following:
+
+.Example
+[source]
+----
+[Secrecy: High] Int a = 3;
+[Secrecy: Low] Int b = 8;
+
+b = a;
+----
+
+Thus, for an assignment to be valid, the secrecy level of the LHS must be
+greater than or equal to the secrecy level of the RHS.
+
+=== Return Statement
+A return statement must also avoid information-flow leaks.  
+
+.Example
+[source]
+----
+[Secrecy: High] Int a = 3;
+
+[Secrecy: Low] methodExample() {
+    return a;
+}
+----
+
+Therefore, the secrecy level of the returned value must be lower than or equal
+to the secrecy level declared for the method's return type.
+
+=== If Statement
+An `if` statement may raise the secrecy level of the current program point.
+
+The secrecy level of the condition is added to a list tracking program
+confidentiality changes. For the body of the `then` and (if present) `else`
+block, all statements must hold under this increased secrecy level.
+
+To obtain the current program level at a given point, all elements in the list
+are joined. After completing the `then` (and possibly `else`) block, the change
+introduced by the `if` is removed again.
+
+This ensures that control-flow decisions do not leak secrecy information.
+
+=== While Statement
+The rule for `while` is the same as for `if`, except that no `else` block exists.
+
+The secrecy level rises when entering the loop and is removed after checking all
+statements inside the loop body.
+
+=== VarDecl / Exp Statement
+For a `VarDeclStmt`, if an initializer is present, the initializer expression is
+visited by the expression visitor.
+
+For an `ExpStmt`, there is always an expression, so it is visited accordingly.
+
+=== Await Statement
+An `await` statement may raise the secrecy level of the program point.  
+A corresponding node is added to the program confidentiality structure, and all
+program points between `await` and the matching `get` may have an increased
+secrecy level.
+
+The program level is computed by joining all elements of this structure.  
+Once the corresponding `get` is reached, the node is removed again.
+
+
+== Expressions
+
+=== BinaryExp
+The secrecy level of a `BinaryExp` is the join of:
+
+* the secrecy levels of its two subexpressions, and
+* the confidentiality of the current program point.
+
+=== UnaryExp
+The secrecy level of a `UnaryExp` is the join of:
+
+* the secrecy level of its subexpression, and
+* the confidentiality of the current program point.
+
+=== VarOrFieldUse
+The secrecy level of a variable or field use is the join of:
+
+* the secrecy level of the variable/field, and
+* the confidentiality of the current program point.
+
+=== GetExp
+When a `GetExp` is evaluated, the corresponding confidentiality node for the
+preceding `await` is removed, since waiting has ended and the program's secrecy
+returns to its previous level.
+
+=== SyncCall
+The secrecy level of a synchronous call is defined by joining:
+
+* the secrecy level of the return type declared in the method definition, and
+* the current program point’s confidentiality.
+
+.Example
+[source]
+----
+[Secrecy: High] Int add(Int a, Int b);
+
+Int result = s.add(3, 2);
+----
+
+The value assigned to `result` must be at least `High`, because the method may
+return a value of `High`.  
+The *declared* return secrecy is used—not the actual return expression—because
+the actual must always be less than or equal to the declared, but not vice
+versa.
+
+=== AsyncCall
+The rule for asynchronous calls is identical to that of synchronous calls.
+
+== Method Rule
+
+In ABS (as in Java), methods may be declared in interfaces and implemented in
+classes. An implementation must respect two secrecy constraints.
+
+=== Secrecy Level of Parameters
+Each parameter in the implementation must have a secrecy level **equal to or
+lower than** its corresponding parameter in the method definition.
+
+.Example
+[source]
+----
+interface intA {
+    Int add([Secrecy: High] Int x, Int y);
+}
+
+Int add([Secrecy: High] Int x, Int y) { ... }
+
+// Valid calls
+[Secrecy: High] Int a;
+add(a, a);
+
+// Low can be upgraded before the call
+[Secrecy: Low] Int lowA;
+[Secrecy: High] Int highA = lowA;   // allowed by assignment rule
+add(highA, highA);
+----
+
+An implementation may therefore accept parameters whose secrecy is equal to or
+lower than the levels declared in the interface, but **never higher**.

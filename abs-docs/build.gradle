@@ -6,6 +6,7 @@ asciidoctor {
     sources {
         include 'index.adoc'
         include 'internals-manual/internals.adoc'
+        include 'secrecy-rules.adoc'
     }
     resources {
         from(sourceDir) {
