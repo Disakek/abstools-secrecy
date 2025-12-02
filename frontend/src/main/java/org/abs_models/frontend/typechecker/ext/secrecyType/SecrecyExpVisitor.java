@@ -7,6 +7,7 @@ package org.abs_models.frontend.typechecker.ext;
 
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.Iterator;
 
 import org.abs_models.frontend.ast.*;
 
@@ -334,9 +335,11 @@ public class SecrecyExpVisitor {
 
         if(target instanceof VarOrFieldUse varUse)targetString = varUse.getName();
         
-        for (ProgramCountNode node : programConfidentiality) {
+        Iterator<ProgramCountNode> iter = programConfidentiality.iterator();
+        while (iter.hasNext()) {
+            ProgramCountNode node = iter.next();
             if (node.levelChangingNode.equals(targetString)) {
-                programConfidentiality.remove(node);
+                iter.remove();
             }
         }
 

@@ -66,6 +66,11 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
     @Override
     public void checkModel(Model model) {
 
+        if (secrecyLatticeStructure == null){
+            System.out.println("Secrecy lattice was null!"); //means we dont want to perform any of these checks
+            return;
+        }
+
         firstExtractionPhasePass(model); 
 
         visitor = new SecrecyStmtVisitor(_secrecy, secrecyLatticeStructure, errors, programConfidentiality);
