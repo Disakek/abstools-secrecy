@@ -333,6 +333,23 @@ Low < High
 ----
 
 A different lattice can be supplied by the user via the --secrecy="<lattice>" compiler option.
+The supplied lattice can take various forms (e.g. linear, partially ordered).
+
+.Example: linear
+[source]
+----
+Low < Medium < High
+----
+
+.Example: partially ordered
+[source]
+----
+Low < Medium, Medium < High
+----
+
+Any combination of such pairwise orderings is allowed.
+
+
 Developers annotate their models using the secrecy annotations provided by the extension (e.g., on fields, methods, and data types).
 The compiler then verifies that model operations respect the declared confidentiality levels.
 

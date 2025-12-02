@@ -7,7 +7,7 @@ A block statement contains multiple statements.
 A block holds if all statements inside the block hold.
 
 === Assign Statement
-An assignment holds when no information-flow leak occurs.  
+An assignment holds when no information flow leak occurs.  
 A leak would look like the following:
 
 .Example
@@ -23,7 +23,7 @@ Thus, for an assignment to be valid, the secrecy level of the LHS must be
 greater than or equal to the secrecy level of the RHS.
 
 === Return Statement
-A return statement must also avoid information-flow leaks.  
+A return statement must also avoid information flow leaks.  
 
 .Example
 [source]
@@ -43,7 +43,7 @@ An `if` statement may raise the secrecy level of the current program point.
 
 The secrecy level of the condition is added to a list tracking program
 confidentiality changes. For the body of the `then` and (if present) `else`
-block, all statements must hold under this increased secrecy level.
+block, all statements must hold under this possibly increased secrecy level.
 
 To obtain the current program level at a given point, all elements in the list
 are joined. After completing the `then` (and possibly `else`) block, the change
@@ -62,9 +62,11 @@ For a `VarDeclStmt`, if an initializer is present, the initializer expression is
 visited by the expression visitor.
 
 For an `ExpStmt`, there is always an expression, so it is visited accordingly.
+Visiting these statements means that we attempt to determine the secrecy level of
+their expressions, if any, by delegating to the expression visitor.
 
 === Await Statement
-An `await` statement may raise the secrecy level of the program point.  
+An `await` statement may raise the secrecy level (like if and while) of the program point.  
 A corresponding node is added to the program confidentiality structure, and all
 program points between `await` and the matching `get` may have an increased
 secrecy level.
@@ -124,7 +126,25 @@ The rule for asynchronous calls is identical to that of synchronous calls.
 == Method Rule
 
 In ABS (as in Java), methods may be declared in interfaces and implemented in
-classes. An implementation must respect two secrecy constraints.
+classes. An implementation of an earlier declared method must respect the declaration
+in two ways.
+
+=== Secrecy Level of the Return Value
+The secrecy level of the return type in the implementation must be **equal to
+or lower than** the secrecy level declared in the interface.
+
+.Example
+[source]
+----
+interface intA {
+    [Secrecy: High] Int add();
+}
+
+[Secrecy: High] Int add() { ... }
+----
+
+Returning a low value in place of a high value is allowed (see also the *Return Statement* rule).  
+Similarly, assigning `High c = Low b` is allowed, but `Low c = High b` is not.
 
 === Secrecy Level of Parameters
 Each parameter in the implementation must have a secrecy level **equal to or
