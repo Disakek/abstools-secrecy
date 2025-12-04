@@ -46,10 +46,13 @@ confidentiality changes. For the body of the `then` and (if present) `else`
 block, all statements must hold under this possibly increased secrecy level.
 
 To obtain the current program level at a given point, all elements in the list
-are joined. After completing the `then` (and possibly `else`) block, the change
+are joined*. After completing the `then` (and possibly `else`) block, the change
 introduced by the `if` is removed again.
 
 This ensures that control-flow decisions do not leak secrecy information.
+
+*Join:* The join operation selects the *least upper bound* of two secrecy levels.
+It ensures the result reflects the highest confidentiality required among them.
 
 === While Statement
 The rule for `while` is the same as for `if`, except that no `else` block exists.
@@ -76,6 +79,8 @@ Once the corresponding `get` is reached, the node is removed again.
 
 
 == Expressions
+
+If there is no secrecy level for an expression we instead assume the lowest possible secrecy level from the given lattice.
 
 === BinaryExp
 The secrecy level of a `BinaryExp` is the join of:

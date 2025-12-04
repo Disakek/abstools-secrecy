@@ -230,7 +230,6 @@ public class Main {
             return;
         }
 
-        //Adds parsing for the --secrecy option and makes it usable via the model sets default: Low < High otherwise
         String secrecyTypeValues = "Low < High";
         if (arguments.secrecyLattice != null)secrecyTypeValues = arguments.secrecyLattice;
         
@@ -277,7 +276,11 @@ public class Main {
 
     /**
     * @author Maximilian Paul
-    *
+    * 
+    * This is the parser for the secrecy lattice given by the user. We expect the lattice to be linear.
+    * 
+    * @param inputString - the lattice that was put in, or default "Low < High"
+    * @return - the newly parsed secrecy lattice defined by a set of levels and an order between them.
     */
     private SecrecyLatticeStructure parseSecrecyInput(String inputString) {
 
