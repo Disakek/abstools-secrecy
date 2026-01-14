@@ -157,10 +157,9 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
                             Block block = method.getBlock();
                             for (Stmt stmt : block.getStmtList()) {
                                 if (stmt instanceof VarDeclStmt varDeclStmt) {
-                                    VarOrFieldDecl varDecl = varDeclStmt.getVarDecl();
-    
-                                    String varLevel = extractSecrecyValue(varDecl);
-                                    if(varLevel != null) _secrecy.put(varDecl, varLevel);
+                                    
+                                    String varLevel = extractSecrecyValue(varDeclStmt);
+                                    if(varLevel != null) _secrecy.put(varDeclStmt.getVarDecl(), varLevel);
                                 }
                             }
                         }
@@ -201,6 +200,8 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
             annotations = param.getAnnotationList();
         } else if (declNode instanceof FieldDecl field) {
             annotations = field.getTypeUse().getAnnotationList();
+        } else if (declNode instanceof VarDeclStmt varDeclStmt) {
+            annotations = varDeclStmt.getAnnotationList();
         } else if (declNode instanceof MethodSig sig) {
             annotations = sig.getReturnType().getAnnotationList();
         } else if (declNode instanceof TypedVarOrFieldDecl typedVar) {

@@ -152,6 +152,7 @@ public class SecrecyStmtVisitor {
         if(condition.accept(ExpVisitor) != null) {
             ProgramCountNode ifNode = new ProgramCountNode("ifStmt", condition.accept(ExpVisitor));
             programConfidentiality.add(ifNode);
+            if(!ifNode.getSecrecyLevel().equals("Low")) System.out.println("Created new if stmt with secrecy level: " + ifNode.getSecrecyLevel());
 
             ExpVisitor.updateProgramPoint(programConfidentiality);
             Stmt thenCase = ifStmt.getThen();
