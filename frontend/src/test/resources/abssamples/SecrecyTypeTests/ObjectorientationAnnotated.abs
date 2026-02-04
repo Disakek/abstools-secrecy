@@ -1,0 +1,100 @@
+module NewObjectsExample;
+
+interface ObjectOrientationI {
+    Int getI();
+    ObjectOrientationI getNext();
+    Unit setNext(ObjectOrientationI obj);
+}
+
+class ObjectOrientation(Int i) implements ObjectOrientationI {
+    Int myI = i;
+    ObjectOrientationI next = null;
+    
+    Int getI() {
+        return this.myI;
+    }
+    
+    ObjectOrientationI getNext() {
+        return this.next;
+    }
+    
+    Unit setNext(ObjectOrientationI obj) {
+        this.next = obj;
+    }
+}
+
+class ObjectOrientationManager {
+    ObjectOrientationI o0 = null;
+    ObjectOrientationI o1 = null;
+    ObjectOrientationI o2 = null;
+    [Secrecy: High] ObjectOrientationI high_object = null;
+    [Secrecy: High] Bool high = False;
+    
+    ObjectOrientationI secure_object_creation() {
+        return new ObjectOrientation(1);
+    }
+    
+    ObjectOrientationI secure_object_creation_2() {
+        return new ObjectOrientation(1);
+    }
+    
+    ObjectOrientationI secure_object_creation_3() {
+        return new ObjectOrientation(1);
+    }
+    
+    Unit insecure_object_assignment() {
+        o0 = high_object;
+    }
+    
+    Unit secure_two_object_creation() {
+        o0 = new ObjectOrientation(0);
+        o1 = new ObjectOrientation(1);
+        o2 = o0;
+    }
+    
+    Unit insecure_two_object_creation() {
+        o0 = new ObjectOrientation(0);
+        o1 = new ObjectOrientation(1);
+        o2 = when high then o0 else o1;
+    }
+    
+    Unit secure_if_two_object_creation() {
+        if (high) {
+            o0 = new ObjectOrientation(0);
+            o1 = new ObjectOrientation(1);
+        } else {
+            o1 = new ObjectOrientation(1);
+            o0 = new ObjectOrientation(0);
+        }
+    }
+    
+    Unit if_two_object_creation_next() {
+        if (high) {
+            o0 = new ObjectOrientation(0);
+            o1 = new ObjectOrientation(1);
+            o1.setNext(o1);
+        } else {
+            o1 = new ObjectOrientation(1);
+            o0 = new ObjectOrientation(0);
+            o1.setNext(o0);
+        }
+    }
+    
+    Unit secure_method_call() {
+        this.secure_two_object_creation();
+        o2 = o1;
+    }
+    
+    //@ determines  (\seq_def int i; 0; a.length; a[i]) \by a.length;
+    Unit secure_while_i(List<ObjectOrientationI> a) {
+        List<ObjectOrientationI> result = Nil;
+        Int i = 0;
+        Int len = length(a);
+        
+        while (i < len) {
+            ObjectOrientationI obj = new ObjectOrientation(0);
+            result = Cons(obj, result);
+            i = i + 1;
+        }
+    }
+}

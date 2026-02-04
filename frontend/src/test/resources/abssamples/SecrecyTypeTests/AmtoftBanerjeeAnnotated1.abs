@@ -1,0 +1,36 @@
+module BackendTest;
+
+interface AmtoftBanerjeeI {
+    Int getQ();
+    Unit setQ(Int n);
+}
+
+class AmtoftBanerjee implements AmtoftBanerjeeI {
+
+    [Secrecy: High] Int secret = 0;
+    Int q = 0;
+    Int z = 0;
+
+    Int getQ() {
+        return this.q;
+    }
+
+    Unit setQ(Int n) {
+        this.q = n;
+    }
+
+    Unit m_1() {
+        AmtoftBanerjeeI x1;
+        AmtoftBanerjeeI x2 = new AmtoftBanerjee();
+        x1 = x2;
+        x1.setQ(secret);
+        z = x2.getQ();
+    }
+
+    Unit m_2() {
+        AmtoftBanerjeeI x1 = new AmtoftBanerjee();
+        AmtoftBanerjeeI x2 = new AmtoftBanerjee();
+        x1.setQ(secret);
+        z = x2.getQ();
+    }
+}
