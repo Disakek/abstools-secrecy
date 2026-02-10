@@ -8,6 +8,11 @@ package org.abs_models.frontend.typechecker.ext;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Iterator;
+import java.util.Set;
+
+import org.abs_models.frontend.analyser.ErrorMessage;
+import org.abs_models.frontend.analyser.TypeError;
+import org.abs_models.frontend.analyser.SemanticConditionList;
 
 import org.abs_models.frontend.ast.*;
 
@@ -36,6 +41,11 @@ public class SecrecyExpVisitor {
      */
     private LinkedList<ProgramCountNode> programConfidentiality;
 
+     /**
+     * The list for errors that we can add to if a rule isn't respected.
+     */
+    private final SemanticConditionList errors;
+
     /**
      * Constructor for the secrecy expression visitor that retrieves the secrecyvalues of different expressions.
      * @param _secrecy - the hashmap that links ASTNode's to their assigned secrecylevel.
@@ -43,9 +53,10 @@ public class SecrecyExpVisitor {
      * @param programConfidentiality - the list for the confidentiality at a certain point in time.
      * @param stmtVisitor - the visitor that called this so that we can visit statements with it.
      */
-    public SecrecyExpVisitor(HashMap<ASTNode<?>,String> _secrecy, SecrecyLatticeStructure secrecyLatticeStructure, LinkedList<ProgramCountNode> programConfidentiality, SecrecyStmtVisitor stmtVisitor) {
+    public SecrecyExpVisitor(HashMap<ASTNode<?>,String> _secrecy, SecrecyLatticeStructure secrecyLatticeStructure, SemanticConditionList errors, LinkedList<ProgramCountNode> programConfidentiality, SecrecyStmtVisitor stmtVisitor) {
         this._secrecy = _secrecy;
         this.secrecyLatticeStructure = secrecyLatticeStructure;
+        this.errors = errors;
         this.programConfidentiality = programConfidentiality;
         this.stmtVisitor = stmtVisitor;
     }
@@ -57,6 +68,50 @@ public class SecrecyExpVisitor {
      * @return - the join of the expressions secrecylevel and the secrecylevel of the current program point.
      */
     public String visit(Exp expression){
+
+        
+        if(expression instanceof AddAddExp addAddExp) {
+            return this.visit(addAddExp);
+        } else if (expression instanceof SubAddExp subAddExp) {
+            return this.visit(subAddExp);
+        } else if (expression instanceof VarOrFieldUse varOrFieldUse) {
+            return this.visit(varOrFieldUse);
+        } else if (expression instanceof MultMultExp multMultExp) {
+            return this.visit(multMultExp);
+        } else if (expression instanceof DivMultExp divMultExp) {
+            return this.visit(divMultExp);
+        } else if (expression instanceof ModMultExp modMultExp) {
+            return this.visit(modMultExp);
+        } else if (expression instanceof AndBoolExp andExp) {
+            return this.visit(andExp);
+        } else if (expression instanceof OrBoolExp orExp) {
+            return this.visit(orExp);
+        } else if (expression instanceof EqExp eqExp) {
+            return this.visit(eqExp);
+        } else if (expression instanceof NotEqExp noteqExp) {
+            return this.visit(noteqExp);
+        } else if (expression instanceof LTEQExp lessThanEqualsExp) {
+            return this.visit(lessThanEqualsExp);
+        } else if (expression instanceof GTEQExp greaterThanEqualsExp) {
+            return this.visit(greaterThanEqualsExp);
+        } else if (expression instanceof LTExp lessThanExp) {
+            return this.visit(lessThanExp);
+        } else if (expression instanceof GTExp greaterThanExp) {
+            return this.visit(greaterThanExp);
+        } else if (expression instanceof MinusExp minusExp) {
+            return this.visit(minusExp);
+        } else if (expression instanceof NegExp negExp) {
+            return this.visit(negExp);
+        } else if (expression instanceof VarOrFieldUse varOrFieldUse) {
+            return this.visit(varOrFieldUse);
+        } else if (expression instanceof GetExp getExp) {
+            return this.visit(getExp);
+        } else if (expression instanceof AsyncCall asyncCall) {
+            return this.visit(asyncCall);
+        } else if (expression instanceof SyncCall syncCall) {
+            return this.visit(syncCall);
+        }
+
         return secrecyLatticeStructure.join(secrecyLatticeStructure.getMinSecrecyLevel(), secrecyLatticeStructure.evaluateListLevel(programConfidentiality));
     }
 
@@ -315,7 +370,7 @@ public class SecrecyExpVisitor {
         String secrecy = _secrecy.get(variable);
 
         if (secrecy != null) {
-            return secrecy;
+            return secrecy; //TODO THIS COULD BE A BUG!! SHOULDNT IT GET COMBINED LIKE OTHERS
         }
 
         return secrecyLatticeStructure.join(secrecyLatticeStructure.getMinSecrecyLevel(), secrecyLatticeStructure.evaluateListLevel(programConfidentiality));
@@ -355,6 +410,37 @@ public class SecrecyExpVisitor {
      */
     public String visit(AsyncCall asyncCall) {
         MethodSig calledMethod = asyncCall.getMethodSig();
+        //TODO REMOVE ALL BELOW HERE AND
+
+        List<ParamDecl> parameterList = calledMethod.getParamList();
+        List<PureExp> calledParams = asyncCall.getParamList();
+        int numberOfDefinedParameters = parameterList.getNumChild();
+        
+        if(numberOfDefinedParameters > 0) {
+
+            //System.out.println(calledMethod.getName() + " with the call: " + asyncCall + "\n"); //TODO REMOVE THIS LATER
+            //System.out.println(parameterList + "\n" + calledParams);
+
+            for(int i = 0; i < parameterList.getNumChild(); i++) {
+                
+                String definedSecrecy = _secrecy.get(parameterList.getChild(i));
+                String calledSecrecy = this.visit(calledParams.getChild(i));
+                if(definedSecrecy == null) { 
+                    definedSecrecy = secrecyLatticeStructure.getMinSecrecyLevel();
+                }
+                
+                //System.out.println("Child " + i + " is defined " + parameterList.getChild(i) + " and called " + calledParams.getChild(i));
+                //System.out.println("defined is: " + definedSecrecy + ", called is: " + calledSecrecy);
+                
+                Set<String> calledSecrecySet = secrecyLatticeStructure.getSetForSecrecyLevel(calledSecrecy);
+                
+                if(!(definedSecrecy.equals(calledSecrecy)||calledSecrecySet.contains(definedSecrecy))) {
+                    errors.add(new TypeError(asyncCall, ErrorMessage.SECRECY_PARAMETER_TO_HIGH, calledSecrecy, definedSecrecy));
+                }
+            }
+        }
+
+        //ABOVE HERE THAT ISN'T FUNCTIONAL
         String secrecyLevel = _secrecy.get(calledMethod);
         if(secrecyLevel == null) secrecyLevel = secrecyLatticeStructure.getMinSecrecyLevel();
         return secrecyLatticeStructure.join(secrecyLevel, secrecyLatticeStructure.evaluateListLevel(programConfidentiality));
@@ -368,6 +454,42 @@ public class SecrecyExpVisitor {
      */
     public String visit(SyncCall syncCall) {
         MethodSig calledMethod = syncCall.getMethodSig();
+        //TODO REMOVE ALL BELOW HERE AND
+
+        List<ParamDecl> parameterList = calledMethod.getParamList();
+        List<PureExp> calledParams = syncCall.getParamList();
+        int numberOfDefinedParameters = parameterList.getNumChild();
+        
+        if(numberOfDefinedParameters > 0) {
+
+            //System.out.println(calledMethod.getName() + " with the call: " + syncCall + "\n"); //TODO REMOVE THIS LATER
+            //System.out.println(parameterList + "\n" + calledParams);
+
+            for(int i = 0; i < parameterList.getNumChild(); i++) {
+                
+                String definedSecrecy = _secrecy.get(parameterList.getChild(i));
+                String calledSecrecy = this.visit(calledParams.getChild(i));
+                if(definedSecrecy == null) { 
+                    definedSecrecy = secrecyLatticeStructure.getMinSecrecyLevel();
+                }
+                
+                //System.out.println("Child " + i + " is defined " + parameterList.getChild(i) + " and called " + calledParams.getChild(i));
+                //System.out.println("defined is: " + definedSecrecy + ", called is: " + calledSecrecy);
+                
+                Set<String> calledSecrecySet = secrecyLatticeStructure.getSetForSecrecyLevel(calledSecrecy);
+                
+                if(!(definedSecrecy.equals(calledSecrecy)||calledSecrecySet.contains(definedSecrecy))) {
+                    errors.add(new TypeError(syncCall, ErrorMessage.SECRECY_PARAMETER_TO_HIGH, calledSecrecy, definedSecrecy));
+                }
+            }
+            
+            //TODO 1: Fix the probably existing error(s) with local variables
+                //1.1: Does it work over the local variables declaration - I Believe so
+                //1.2: Do we improve runtime by removing it before we exit a method we checked / or not store it at all in the same list and keep a temp list - no we don't yet
+                //1.3: Does the retrival work for local variables - seems like it
+        }
+
+        //ABOVE HERE THAT ISN'T FUNCTIONAL
         String secrecyLevel = _secrecy.get(calledMethod);
         if(secrecyLevel == null) secrecyLevel = secrecyLatticeStructure.getMinSecrecyLevel();
         return secrecyLatticeStructure.join(secrecyLevel, secrecyLatticeStructure.evaluateListLevel(programConfidentiality));

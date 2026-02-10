@@ -57,7 +57,7 @@ public class SecrecyStmtVisitor {
         this.errors = errors;
         this.programConfidentiality = programConfidentiality;
 
-        ExpVisitor = new SecrecyExpVisitor(_secrecy, secrecyLatticeStructure, programConfidentiality, this);
+        ExpVisitor = new SecrecyExpVisitor(_secrecy, secrecyLatticeStructure, errors, programConfidentiality, this);
     }
 
     /**
@@ -66,6 +66,25 @@ public class SecrecyStmtVisitor {
      * @param stmt - the stmt we want to visit and check.
      */
     public void visit(Stmt stmt) {
+
+        if(stmt instanceof Block blockStmt) {
+            this.visit(blockStmt);
+        } else if (stmt instanceof AssignStmt assignStmt) {
+            this.visit(assignStmt);
+        } else if (stmt instanceof ReturnStmt returnStmt) {
+            this.visit(returnStmt);
+        } else if (stmt instanceof IfStmt ifStmt) {
+            this.visit(ifStmt);
+        } else if (stmt instanceof WhileStmt whileStmt) {
+            this.visit(whileStmt);
+        } else if (stmt instanceof ExpressionStmt expressionStmt) {
+            this.visit(expressionStmt);
+        } else if (stmt instanceof VarDeclStmt varDeclStmt) {
+            this.visit(varDeclStmt);
+        } else if (stmt instanceof AwaitStmt awaitStmt) {
+            this.visit(awaitStmt);
+        }
+
         return;
     }
 
@@ -212,10 +231,44 @@ public class SecrecyStmtVisitor {
     public void visit(VarDeclStmt varDeclStmt) {
 
         VarDecl varDecl = varDeclStmt.getVarDecl();
+        
+        //We need to get the level here for the check because we can't find it in the usual list
+        //until after this check is performed (I assume)
+        //Assume lowest possible value
+        String lhsLevel = secrecyLatticeStructure.getMinSecrecyLevel();
+        
+        //If there is an annotation extract it if it's for our secrecy annotation
+        if (varDeclStmt.getAnnotationList() != null) {
+            for (Annotation ann : varDeclStmt.getAnnotationList()) {
+                if (ann instanceof TypedAnnotation typedAnn) {
+
+                    ASTNode<?> valueNode = typedAnn.getChild(0);
+                    ASTNode<?> nameNode  = typedAnn.getChild(1);
+
+                    if ("Secrecy".equals(nameNode.toString()) && valueNode instanceof DataConstructorExp dataCon) {
+                        String levelName = dataCon.getConstructor();
+
+                        if (!secrecyLatticeStructure.isValidLabel(levelName)) {
+                            errors.add(new TypeError(typedAnn, ErrorMessage.WRONG_SECRECY_ANNOTATION_VALUE, levelName));
+                            return;
+                        }
+
+                        //System.out.println("Levelname: " + levelName);
+                        lhsLevel = levelName;
+                        break;
+                    }
+                }
+            }
+        }
 
         if(varDecl.hasInitExp()){
             Exp initExp = varDecl.getInitExp();
-            initExp.accept(ExpVisitor);
+            String rhsLevel = initExp.accept(ExpVisitor);
+            Set<String> rhsLevelSet = secrecyLatticeStructure.getSetForSecrecyLevel(rhsLevel);
+            
+            if(!(lhsLevel.equals(rhsLevel) || rhsLevelSet.contains(lhsLevel))) {
+                errors.add(new TypeError(varDeclStmt, ErrorMessage.SECRECY_LEAKAGE_ERROR_FROM_TO, rhsLevel, initExp.toString(), lhsLevel, varDecl.getName()));
+            }
         }
     }
 

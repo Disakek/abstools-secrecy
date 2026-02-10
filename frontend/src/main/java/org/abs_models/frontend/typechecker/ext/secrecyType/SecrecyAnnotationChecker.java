@@ -46,7 +46,7 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
     
     /**
      * The constructor for the SecrecyAnnotationChecker a class that checks a given model.
-     * @param Model - the ABS model that we want to check, is already parsed before.
+     * @param m - the ABS model that we want to check, is already parsed before.
      */
     protected SecrecyAnnotationChecker(Model m) {
         super(m);
@@ -61,7 +61,7 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
 
     /**
      * This is the main method for the SecrecyAnnotationChecker it calls the two phases and contains some prints for sanity checking.
-     * @param Model - the ABS model that we want to check
+     * @param model - the ABS model that we want to check
      */
     @Override
     public void checkModel(Model model) {
@@ -95,7 +95,7 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
      * 4. Extracts the annotation for methods of INTERFACES for their return values and their parameters
      *  4.1 - the returnvalue | 4.2 - each parameter
      * 
-     * @param Model - the model from which we retrieve the secrecy values and on which we perform the first check
+     * @param model - the model from which we retrieve the secrecy values and on which we perform the first check
      * 
      */
     private void firstExtractionPhasePass(Model model){
@@ -238,7 +238,7 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
      * A method satisfies the secrecy typerules if each statement, expression, etc. satisfies them.
      * We have a SecrecyStmtVisitor which performs the statement checks and it is called on each statement here.
      * 
-     * @param Model - the ABS model on which we want to check the respecting of the secrecy typerules
+     * @param model - the ABS model on which we want to check the respecting of the secrecy typerules
      */
     private void secondTypecheckPhasePass(Model model){
         for (CompilationUnit cu : model.getCompilationUnits()) {

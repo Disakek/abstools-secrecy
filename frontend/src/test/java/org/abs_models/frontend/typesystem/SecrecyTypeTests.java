@@ -62,4 +62,32 @@ public class SecrecyTypeTests extends FrontendTest {
         assertTrue("Has expected secrecy leakage errors", m.hasTypeErrors());
     }
 
+    /*
+    
+    assertTypeErrors
+    assertE
+
+    @Test
+    public void tch_npe() throws Exception {
+        assertTypeErrors("module Test; import ABS.StdLib.Bar; { ABS.StdLib.Bar x; }", Config.EXPECT_TYPE_ERROR);
+    }
+
+
+    @Test
+    public void ticket414_futNeedsDataType1() {
+        Model m = assertParse("module M; interface I {} { Fut<I> fi; }");
+        assertFalse(m.hasErrors());
+        Block b = m.getMainBlock();
+        assertNotNull(b);
+        VarDeclStmt s = (VarDeclStmt) b.getStmt(0);
+        ParametricDataTypeUse u = (ParametricDataTypeUse) s.getVarDecl().getTypeUse();
+        // Have:
+        TypeUse tu = u.getParam(0);
+        assertEquals("I",tu.getName());
+        assertThat(tu, instanceOf(InterfaceTypeUse.class));
+        assertThat(tu.getType(), instanceOf(InterfaceType.class));
+        assertThat(tu.getDecl(), instanceOf(InterfaceDecl.class));
+    }
+    */
+
 }
