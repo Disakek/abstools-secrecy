@@ -1,21 +1,21 @@
-module BackendTest;
+module NewObjectsExample;
 
 interface AmtoftBanerjeeI {
-    Int getQ();
-    Unit setQ(Int n);
+    [Secrecy: High] Int getQ();
+    Unit setQ([Secrecy: High] Int n);
 }
 
 class AmtoftBanerjee implements AmtoftBanerjeeI {
 
     [Secrecy: High] Int secret = 0;
-    Int q = 0;
-    Int z = 0;
+    [Secrecy: High] Int q = 0;
+    [Secrecy: High] Int z = 0;
 
-    Int getQ() {
+    [Secrecy: High]  Int getQ() {
         return this.q;
     }
 
-    Unit setQ(Int n) {
+    Unit setQ([Secrecy: High] Int n) {
         this.q = n;
     }
 
@@ -34,3 +34,4 @@ class AmtoftBanerjee implements AmtoftBanerjeeI {
         z = x2.getQ();
     }
 }
+

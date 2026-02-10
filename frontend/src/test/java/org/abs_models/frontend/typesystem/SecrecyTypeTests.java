@@ -15,6 +15,10 @@ import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.LinkedHashSet;
+import java.util.Set;
+import org.abs_models.frontend.analyser.SemanticCondition;  // For iteration type
+
 
 import org.abs_models.ABSTest;
 import org.abs_models.frontend.FrontendTest;
@@ -43,6 +47,14 @@ import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
 
+//Below here are my new imports
+import static java.nio.file.Files.readString;
+import static java.nio.file.Files.lines;
+import static java.util.stream.Collectors.toSet;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
+
 public class SecrecyTypeTests extends FrontendTest {
 
     //./gradlew test --tests org.abs_models.frontend.common.SecrecyTypeTests
@@ -51,15 +63,53 @@ public class SecrecyTypeTests extends FrontendTest {
     
     @Test
     public void amtOftBanerjee1() throws Exception {
-        String fileName = "abssamples/SecrecyTypeTests/AmtoftBanerjeeAnnotated1.abs";
+        String fileName = "abssamples/SecrecyTypeTests/passingtests/AmtoftBanerjeeAnnotated1.abs";
         assertTypeCheckFileOk(fileName);
     }
     
     @Test
     public void objectOrientation() throws Exception {
-        String fileName = "abssamples/SecrecyTypeTests/ObjectorientationAnnotated.abs";
+        String fileName = "abssamples/SecrecyTypeTests/failingtests/ObjectorientationAnnotated.abs";
         Model m = assertParseFileOk(fileName);
-        assertTrue("Has expected secrecy leakage errors", m.hasTypeErrors());
+        List<String> parsedErrors = getLinesAndErrors(m.getTypeErrors());
+        
+        // Collect expected errors as structured set (line + message)
+        //Set<String> expected = Set.of();
+        String expectedFile = fileName.replace(".abs", ".txt");
+        List<String> expected = loadExpectedErrors(expectedFile);
+        System.out.println("Expected: "+expected);
+        System.out.println("Actual: "+parsedErrors);
+        assertEquals(expected, parsedErrors);
+    }
+
+    private List<String> getLinesAndErrors(SemanticConditionList errorList) {
+        List<String> actual = new List<>();
+        for (SemanticCondition cond : errorList) {
+            if(cond.msg != null && isSecrecyError(cond.msg)){
+                if (cond.isError() || cond.isWarning()) {  // Filter errors/warnings
+                    String key = cond.getLine() + ":" + cond.getMessage();  // Adjust getters as needed
+                    actual.add(key);
+                }
+            }
+        }
+        return actual;
+    }
+
+    private boolean isSecrecyError(ErrorMessage msg) {
+        return msg == ErrorMessage.WRONG_SECRECY_ANNOTATION_VALUE ||
+               msg == ErrorMessage.SECRECY_LEAKAGE_ERROR_FROM_TO ||
+               msg == ErrorMessage.SECRECY_LEAKAGE_ERROR_AT_MOST ||
+               msg == ErrorMessage.SECRECY_PARAMETER_TO_HIGH;
+    }
+
+    private List<String> loadExpectedErrors(String expectedFilePath) throws Exception {
+        // /home/maxp/Documents/abstools-secrecy/frontend/
+        Path expectedPath = Paths.get("src/test/resources/", expectedFilePath);
+        return lines(expectedPath)
+        .map(String::trim)
+        .filter(line -> !line.isEmpty())
+        .map(line -> line.replaceAll("\"|,", ""))
+        .toList();  // Preserves file order
     }
 
     /*
