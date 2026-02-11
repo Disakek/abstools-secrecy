@@ -15,7 +15,8 @@ import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.LinkedList;
 import java.util.Set;
 import org.abs_models.frontend.analyser.SemanticCondition;  // For iteration type
 
@@ -71,19 +72,12 @@ public class SecrecyTypeTests extends FrontendTest {
     public void objectOrientation() throws Exception {
         String fileName = "abssamples/SecrecyTypeTests/failingtests/ObjectorientationAnnotated.abs";
         Model m = assertParseFileOk(fileName);
-        List<String> parsedErrors = getLinesAndErrors(m.getTypeErrors());
         
-        // Collect expected errors as structured set (line + message)
-        //Set<String> expected = Set.of();
-        String expectedFile = fileName.replace(".abs", ".txt");
-        List<String> expected = loadExpectedErrors(expectedFile);
-        System.out.println("Expected: "+expected);
-        System.out.println("Actual: "+parsedErrors);
-        assertEquals(expected, parsedErrors);
+        assertEquals(loadExpectedErrors(fileName.replace(".abs", ".txt")), getLinesAndErrors(m.getTypeErrors()));
     }
 
     private List<String> getLinesAndErrors(SemanticConditionList errorList) {
-        List<String> actual = new List<>();
+        List<String> actual = new LinkedList<String>();
         for (SemanticCondition cond : errorList) {
             if(cond.msg != null && isSecrecyError(cond.msg)){
                 if (cond.isError() || cond.isWarning()) {  // Filter errors/warnings
@@ -103,13 +97,8 @@ public class SecrecyTypeTests extends FrontendTest {
     }
 
     private List<String> loadExpectedErrors(String expectedFilePath) throws Exception {
-        // /home/maxp/Documents/abstools-secrecy/frontend/
         Path expectedPath = Paths.get("src/test/resources/", expectedFilePath);
-        return lines(expectedPath)
-        .map(String::trim)
-        .filter(line -> !line.isEmpty())
-        .map(line -> line.replaceAll("\"|,", ""))
-        .toList();  // Preserves file order
+        return lines(expectedPath).map(String::trim).filter(line -> !line.isEmpty()).toList();
     }
 
     /*
