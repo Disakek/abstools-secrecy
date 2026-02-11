@@ -1,0 +1,41 @@
+module Mini;
+
+interface DifferenceSeqLocsetI {
+    Unit m();
+}
+
+interface DI {
+    Bool getB();
+}
+
+class D implements DI {
+    Bool b = False;
+
+    Bool getB() {
+        return b;
+    }
+}
+
+class DifferenceSeqLocset implements DifferenceSeqLocsetI {
+    [Secrecy: High] Bool b = False;
+    DI l1;
+    DI l2;
+    DI l3;
+
+    //This helper function is unlike the original example from KeY as there are no invariants here
+    Unit init() {
+        l1 = new D();
+        l2 = new D();
+        l3 = l1;
+        return Unit;
+    }
+
+    Unit m() {
+        if (b) {
+            l3 = l1;
+        } else {
+            l3 = l2;
+        }
+        return Unit;
+    }
+}

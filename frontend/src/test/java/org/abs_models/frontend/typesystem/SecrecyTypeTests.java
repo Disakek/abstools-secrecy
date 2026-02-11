@@ -48,11 +48,7 @@ import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
 
-//Below here are my new imports
-//TODO Test if all of those are used/needed
-import static java.nio.file.Files.readString;
 import static java.nio.file.Files.lines;
-import static java.util.stream.Collectors.toSet;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -157,8 +153,38 @@ public class SecrecyTypeTests extends FrontendTest {
 
         assertEquals(loadExpectedErrors(fileName.replace(".abs", ".txt")), getLinesAndErrors(m.getTypeErrors()));
     }
+
+    @Test
+    public void aliasingExamples() throws Exception {
+        String fileName = "abssamples/SecrecyTypeTests/failingtests/AliasingExamplesAnnotated.abs";
+        Model m = assertParseFileOk(fileName);
+
+        assertEquals(loadExpectedErrors(fileName.replace(".abs", ".txt")), getLinesAndErrors(m.getTypeErrors()));
+    }
     
-    //TODO Insert the mini examples here!
+    @Test
+    public void differenceSeqLocset() throws Exception {
+        String fileName = "abssamples/SecrecyTypeTests/failingtests/DifferenceSeqLocsetAnnotated.abs";
+        Model m = assertParseFileOk(fileName);
+
+        assertEquals(loadExpectedErrors(fileName.replace(".abs", ".txt")), getLinesAndErrors(m.getTypeErrors()));
+    }
+    
+    @Test
+    public void miniExamples() throws Exception {
+        String fileName = "abssamples/SecrecyTypeTests/failingtests/MiniExamplesAnnotated.abs";
+        Model m = assertParseFileOk(fileName);
+
+        assertEquals(loadExpectedErrors(fileName.replace(".abs", ".txt")), getLinesAndErrors(m.getTypeErrors()));
+    }
+    
+    @Test
+    public void miniExamplesLecture() throws Exception {
+        String fileName = "abssamples/SecrecyTypeTests/failingtests/MiniExamplesLectureAnnotated.abs";
+        Model m = assertParseFileOk(fileName);
+
+        assertEquals(loadExpectedErrors(fileName.replace(".abs", ".txt")), getLinesAndErrors(m.getTypeErrors()));
+    }
 
     @Test
     public void amtOftBanerjee3() throws Exception {

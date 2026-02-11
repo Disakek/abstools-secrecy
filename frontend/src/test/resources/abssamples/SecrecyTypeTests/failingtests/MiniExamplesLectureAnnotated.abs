@@ -1,0 +1,42 @@
+module Mini;
+
+class MiniExamplesLecture {
+    [Secrecy: Low] Int l = 0;
+    [Secrecy: High] Int h = 0;
+
+    Unit m_1() {
+        l = h;
+    }
+
+    Unit m_2() {
+        if (l>0) {
+            h=1;
+        } else {
+            h=2;
+        }
+    }
+
+    Unit m_3() {
+        if (h>0) {
+            l=1;
+        } else {
+            l=2;
+        }
+    }
+
+    Unit m_4() {
+        h=0;
+        l=h;
+    }
+    
+    Unit m_5() {
+        l=h;
+        l=l-h;
+    }
+
+    //TODO this is unreachable but would be an error (is found as one)
+    Unit m_6() {
+        if (False) l=h;
+    }
+
+}

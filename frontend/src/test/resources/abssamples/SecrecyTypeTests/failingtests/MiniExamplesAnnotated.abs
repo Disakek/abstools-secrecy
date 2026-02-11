@@ -1,0 +1,97 @@
+module Mini;
+
+class MiniExamples {
+    [Secrecy: Low] Int l = 0;
+    [Secrecy: High] Int h = 0;
+
+    Unit insecure_p1_1() {
+        l = h;
+    }
+
+    Unit insecure_p1_2() {
+        if (h>0) {l=1;} else {l=2;}
+    }
+
+    Unit secure_p1_1() {
+        if (l>0) {h=1;} else {h=2;}
+    }
+
+    Unit secure_p1_2() {
+        if (h>0) {l=1;} else {l=2;}
+        l=3;
+    }
+
+    Unit secure_p1_3() {
+        h=0;
+        l=h;
+    }
+
+    Unit secure_p1_4() {
+        if (h>0) {
+            h=l;
+            l=h;
+        }
+    }
+
+    Unit secure_p1_5() {
+        if (h>0) {l=2; h=1;} else {l=2; h=2;}
+    }
+
+    Unit secure_p1_6() {
+        l = h-h;
+    }
+
+    Unit insecure_p2_1() {
+        l = h;
+    }
+
+    Unit secure_p2_1() {
+        h = l;
+    }
+
+    Unit secure_p2_2() {
+        l = 6;
+    }
+
+    Unit secure_p2_3() {
+        l=h;
+        l=6;
+    }
+
+    Unit secure_p2_4() {
+        h=l;
+        l=h;
+    }
+
+    Unit secure_p2_5() {
+        l=h;
+        l=l-h;
+    }
+
+    Unit secure_p2_6() {
+        if (False) l=h;
+    }
+
+    Unit insecure_p2_2() {
+        if (h>=0) l=1; else l=0;
+    }
+
+    Unit secure_p2_7() {
+        if (h==1) l=1; else l=0;
+        l=0;
+    }
+
+    [Secrecy: High] Int secure_parameter([Secrecy: High] Int  x) {
+        x = x+1;
+        return x;
+    }
+
+    Unit secure_p2_8(){
+        if(h>0)
+            l=1;
+        else
+            l=2;
+        l=0;
+    }
+
+}
