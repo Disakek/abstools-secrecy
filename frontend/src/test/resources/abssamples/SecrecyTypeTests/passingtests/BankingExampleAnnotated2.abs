@@ -1,0 +1,106 @@
+module BankingExample2;
+
+//TODO this example is here the same as the BankingExampleAnnotated1.abs ??
+
+interface BankAccountI {
+  Int getId();
+  [Secrecy: High] Int getBalance();
+  Unit depositMoney([Secrecy: High] Int amount);
+}
+
+interface UserAccountI {
+  Bool tryLogin(Int userID,[Secrecy: High] String password);
+  BankAccountI getBankAccount(Int number);
+}
+
+interface BankI {
+  UserAccountI login(Int userID,[Secrecy: High] String password);
+}
+
+class BankAccount(Int accountId) implements BankAccountI {
+  [Secrecy: High] Int balance = 0;
+  Int id = accountId;
+
+  Int getId() {
+      return id;
+  }
+
+  [Secrecy: High] Int getBalance() {
+      return balance;
+  }
+
+  Unit depositMoney([Secrecy: High] Int amount) {
+      this.balance = this.balance - amount;
+  }
+}
+
+
+class UserAccount(Int userId, String userPassword) implements UserAccountI {
+  Int userID = userId;
+  [Secrecy: High] String password = userPassword;
+  Int incorrectLogins = 0;
+  List<BankAccountI> bankAccounts = Nil;
+
+  Bool tryLogin(Int userID,[Secrecy: High] String password) {
+    
+    Bool userIDCorrect = (this.userID == userID);
+    Bool pwdCorrect = (strlen(this.password) == strlen(password));
+    Int i = 0;
+
+    while(i < strlen(password) && pwdCorrect) {
+      String thisChar = substr(this.password, i, i + 1);
+      String paramChar = substr(password, i, i + 1);
+      Bool charsMatch = (thisChar == paramChar);
+      
+      if (!charsMatch) {
+          pwdCorrect = False;
+      }
+      
+      i = i + 1;
+    }
+
+    Bool incorrectLoginsInRange = (0 <= incorrectLogins && incorrectLogins < 3);
+
+    if(userIDCorrect && incorrectLoginsInRange) {
+      if (pwdCorrect) {
+        this.incorrectLogins = 0;
+      } else {
+        this.incorrectLogins = this.incorrectLogins + 1;
+      }
+    }
+    return userIDCorrect && pwdCorrect && incorrectLoginsInRange;
+  }
+
+  BankAccountI getBankAccount(Int number) {
+    BankAccountI resultAccount = null;
+
+    if(number >= 0 && length(bankAccounts) > number) {
+      resultAccount = nth(bankAccounts, number);
+    }
+    return resultAccount;
+  }
+}
+
+
+class Bank implements BankI {
+  List<UserAccountI> userAccounts = Nil;
+
+  UserAccountI login(Int userID,[Secrecy: High] String password) {
+    UserAccountI accountTried = null;
+
+    if (0 <= userID && userID < length(userAccounts)) {
+      accountTried = nth(userAccounts, userID);
+
+      Bool loginSuccess = accountTried.tryLogin(userID, password);
+
+      if (!loginSuccess) {
+        accountTried =  null;
+      }
+      
+    } else {
+      accountTried =  null;
+    }
+
+    return accountTried;
+  }
+}

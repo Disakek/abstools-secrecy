@@ -1,0 +1,174 @@
+    module BlockContractsExample;
+
+class IFBlockExamples(Int in_low) {    
+    [Secrecy: Low] Int low = in_low;
+
+    Int secure_1(Int l) {
+        Int l1 = l;
+        low = low+1;
+        Int l2 = 7;
+        Int l3 = 8;
+
+        { 
+            l1 = l1+1;
+            if(l2 == 8) {}
+        }
+        
+        return l1;
+    }
+
+    Int secure_4(Int l) {
+        Int l1 = l;
+        low = low+1;
+        Int l2 = 7;
+        Int l3 = 8;
+
+        { l1 = l1+l2; }
+
+        return l1;
+    }
+
+    Int insecure_1([Secrecy: High] Int l) {
+        Int l1 = l;
+        low = low+1;
+
+        { l1 = l1+1; }
+
+        return l1;
+    }
+
+    Int secure_6(Int l) {
+        Int l1 = l;
+        low = low+1;
+
+        { l1 = l1+1; }
+
+        return l1;
+    }
+
+    Int secure_7(Int l) {
+        low = low+1;
+
+        { l = l+1; }
+
+        return l;
+    }
+
+    Int secure_8(Int l) {
+        low = low+1;
+
+        { low = low+1; }
+
+        return low;
+    }
+
+
+    Int secure_2(Int l) {
+        Int l1 = l;
+        low = low+1;
+
+        {   
+            l1 = l1+1;
+
+            {   
+                l1 = l1+1;
+
+                { l1 = l1+1; }
+            }
+        }
+
+        return l1;
+    }
+
+
+    Int secure_3(Int l) {
+        Int l1 = l;
+        low = low+1;
+
+        { 
+            l1 = l1+1;
+
+            { l1 = l1+1; }
+
+            { l1 = l1+1; }
+        }
+
+        return l1;
+    }
+
+    Int insecure_3([Secrecy: High] Int l) {
+        Int l1 = l;
+        low = low+1;
+
+        { 
+            l1 = l1+1;
+            { l1 = l1+1; }
+            { l1 = l1+1; }
+        }
+
+        return l1;
+    }
+
+    Int insecure_4([Secrecy: High] Int l) {
+        Int l1 = l;
+        low = low+1;
+
+        { 
+            l1 = l1+1;
+            { l1 = l1+1; }
+            { l1 = l1+1; }
+        }
+
+        return l1;
+    }
+
+    Unit block_while_secure(Int l) {
+        Int l1 = low;
+        { l1 = l1+1; }
+
+        while (l > 0) {
+            l = l-1;
+            l1 = l1+1;
+        }
+
+        low = l1;
+    }
+
+
+    Unit while_block_secure(Int l) {
+        Int l1 = low;
+        
+        while (l > 0) {
+            l = l-1;
+            l1 = l1+1;
+        }
+
+        { l1 = l1+1; }
+        low = l1;
+    }
+
+    Unit while_block_insecure([Secrecy: High] Int l) {
+        Int l1 = low;
+
+        while (l > 0) {
+            l = l-1;
+            l1 = l1+1;
+        }
+
+        { l1 = l1+1; }
+        low = l1;
+    }
+
+    Unit block_no_return_secure(Int l) {
+        Int l1 = low;
+
+        { l1 = l1+1; }
+
+        low = l1;
+    }
+
+    Unit secure_5() {
+        { low = low+1; }
+    }
+
+}

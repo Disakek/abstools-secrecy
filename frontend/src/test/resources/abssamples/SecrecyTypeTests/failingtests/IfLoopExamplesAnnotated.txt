@@ -1,0 +1,14 @@
+12:Calls method with parameter of secrecy level High but was only allowed to be Low at most!
+63:Leakage Error from High: AddAddExp(low,IntLiteral(1)) to Low: low
+68:Leakage Error from High: AddAddExp(low,IntLiteral(1)) to Low: low
+76:Leakage Error from High: AddAddExp(low,IntLiteral(1)) to Low: low
+81:Leakage Error from High: AddAddExp(low,IntLiteral(1)) to Low: low
+90:Leakage Error from High: AddAddExp(low,IntLiteral(1)) to Low: low
+98:Leakage Error from High: AddAddExp(low,IntLiteral(1)) to Low: low
+156:Leakage Error from High: AddAddExp(low,IntLiteral(1)) to Low: low
+160:Leakage Error from High: AddAddExp(low,IntLiteral(1)) to Low: low
+164:Leakage Error from High: AddAddExp(low,IntLiteral(1)) to Low: low
+174:Leakage Error from High: AddAddExp(low,IntLiteral(1)) to Low: low
+178:Leakage Error from High: AddAddExp(low,IntLiteral(1)) to Low: low
+183:Leakage Error from High: AddAddExp(low,IntLiteral(1)) to Low: low
+216:Leakage Error from High: AddAddExp(low,IntLiteral(1)) to Low: low

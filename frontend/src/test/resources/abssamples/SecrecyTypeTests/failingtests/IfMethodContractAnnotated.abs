@@ -1,0 +1,150 @@
+module MethodContractExample;
+
+exception NullPoInterException;
+
+class IFMethodContract {
+    [Secrecy: Low] Int low = 0;
+    [Secrecy: High] Int high = 0;
+
+    Unit secure_sequential_n1_n2() {
+        this.n1();
+        this.n2();
+    }
+
+    Unit n1() {
+        low = 27;
+    }
+
+    Unit n2() {
+        low = low + 13;
+    }
+
+    Unit secure_assignments_n2() {
+        low = 45;
+        high = high * high;
+        this.n2();
+    }
+
+    Unit insecure_assignment_n2() {
+        low = high;
+        this.n2();
+    }
+
+    Unit secure_sequential_n3_precond_n4() {
+        this.n3();
+        this.n4();
+    }
+
+    Unit n3() {
+        high = 8;
+    }
+
+    //KeY had precondition: requires high > 0 => leads to always performing: low = 2;
+    Unit n4() {
+        if (high > 0) {
+            low = 2;
+        } else {
+            low = high;
+        }
+    }
+
+    Unit secure_n5() {
+        low = this.n5(high);
+    }
+
+    Unit secure_if_high_n1() {
+        if (high > 0) {
+            high = 2 * high;
+        } else {
+            high = -2 * high;
+        }
+        this.n1();
+    }
+
+    Unit secure_if_high_n5_n1() {
+        if (high > 0) {
+            low = this.n5(high);
+        } else {
+            high = -high;
+            low = this.n5(high + low);
+        }
+        this.n1();
+    }
+
+    [Secrecy: Low] Int n5([Secrecy: High] Int x) {
+        high = 2 * x;
+        return 15;
+    }
+
+    Unit insecure_if_high_n5_n1() {
+        if (high > 0) {
+            low = this.n5(high);
+        } else {
+            low = 7;
+        }
+        this.n1();
+    }
+
+    Unit secure_assignment_0_n9() {
+        high = 0;
+        this.n9();
+    }
+
+    Unit n9() {
+        low = high;
+    }
+
+    Unit secure_array_param(List<Int> a, Int pos) {
+        Int posElement = nth(a, pos);
+        posElement = this.secure_array_param_helper();
+    }
+
+    Int secure_array_param_helper() {
+        return 0;
+    }
+
+    Unit secure_n6() {
+        this.n6();
+    }
+
+    Unit n6() {
+        high = truncate(low / high);
+    }
+
+    Unit secure_catch_exception() {
+        try {
+            this.n7();
+        } catch { NullPoInterException => {
+                low = 45;
+            }
+        }
+    }
+
+    Unit n7() {
+        throw NullPoInterException();
+    }
+
+    //This requires high != 0 because dividing by zero is evil !
+    Unit n8() {
+        high = truncate(low / high);
+        throw NullPoInterException();
+    }
+
+    //If x is low than it's fine but if x is High its not fine!!
+    //Unit secure_recursion([Secrecy: High] Int x) {
+    Unit secure_recursion(Int x) {
+        if (x > 0) {
+            this.secure_recursion(x-1);
+            low = low + 1;
+        }
+    }
+
+    //probably something similar happening as for the secure_recursion?
+    Unit secure_recursion_2(List<Int> a, Int x) {
+        if (x > 0 && x < length(a)) {
+            this.secure_recursion_2(a, x-1);
+            low = nth(a, x);
+        }
+    }
+
+}

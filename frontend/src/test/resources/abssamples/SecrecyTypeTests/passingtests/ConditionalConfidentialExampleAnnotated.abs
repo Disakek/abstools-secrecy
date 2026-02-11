@@ -1,0 +1,49 @@
+module ConditionalConfidentialExample;
+
+interface UserI {
+    [Secrecy: High] Unit setData([Secrecy: High] Int udata);
+}
+
+interface ConditionalConfidentialExampleI {
+    [Secrecy: High] Unit getConfidentialData(UserI u);
+    Bool hasAccessRight(UserI u);
+}
+
+class User(Int in_udata) implements UserI {
+    [Secrecy: High] Int udata = in_udata;
+
+    [Secrecy: High] Unit setData([Secrecy: High] Int udata) {
+        this.udata = udata;
+    }
+}
+
+class ConditionalConfidentialExample implements ConditionalConfidentialExampleI{
+    List<UserI> trustworthyUsers = Nil; //TODO not sure if the trustworthyUsers shouldn't be High (to protect from changes)
+    [Secrecy: High] Int confidentialData = 0;
+
+    [Secrecy: High] Unit getConfidentialData(UserI u) {
+        Bool hasAccess = this.hasAccessRight(u);
+
+        if (hasAccess) {
+            u.setData(confidentialData);
+        }
+    }
+
+    Bool hasAccessRight(UserI u) {
+        Int i = 0;
+        Bool result = False;
+
+        while(i < length(trustworthyUsers)) {
+
+            UserI trustworthyUser = nth(trustworthyUsers, i);
+
+            if (trustworthyUser == u) {
+                result = True;
+            }
+
+            i = i+1;
+        }
+        
+        return result;
+    }
+}

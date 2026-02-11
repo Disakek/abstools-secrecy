@@ -15,7 +15,7 @@ import org.abs_models.frontend.analyser.TypeError;
 import org.abs_models.frontend.ast.*;
 
 /**
- * This class is using two phases whcih both run over the model. 
+ * This class is using two phases which both run over the model. 
  * The first phase extracts the secrecy annotations and their level, as well as running a few basic checks.
  * The second phase performs a check for each statement/expression
  */
@@ -157,7 +157,12 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
                             Block block = method.getBlock();
                             for (Stmt stmt : block.getStmtList()) {
                                 if (stmt instanceof VarDeclStmt varDeclStmt) {
-                                    
+                                    //I thought this would return things llike this
+                                    // methodSomething() {
+                                    //      [Secrecy: High] Bool hasBallotCast = ... 
+                                    // }
+                                    //But it doesn't do that here so wrong !!
+                                    //System.out.println(varDeclStmt);
                                     String varLevel = extractSecrecyValue(varDeclStmt);
                                     if(varLevel != null) _secrecy.put(varDeclStmt.getVarDecl(), varLevel);
                                 }

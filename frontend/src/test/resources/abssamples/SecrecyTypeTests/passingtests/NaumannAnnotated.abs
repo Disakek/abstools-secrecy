@@ -1,0 +1,34 @@
+module NewObjectsExample;
+
+interface INode {
+    Int getVal();
+    Unit setVal(Int v);
+}
+
+class Node implements INode {
+    Int val = 0;
+    
+    Int getVal() {
+        return this.val;
+    }
+    
+    Unit setVal(Int v) {
+        this.val = v;
+    }
+}
+
+class Naumann {
+    List<INode> m_result = Nil; //determines m_result by x
+    
+    Unit pair_m(Int x,[Secrecy: High] Int secret) {
+        m_result = Nil; //here determines m_result by nothing
+        Int i = 0;
+        
+        while (i < 10) {
+            INode node = new Node();
+            node.setVal(x);
+            //m_result = Cons(node, m_result);
+            i = i + 1;
+        }
+    }
+}

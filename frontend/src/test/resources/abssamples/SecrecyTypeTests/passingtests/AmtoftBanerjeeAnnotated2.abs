@@ -1,0 +1,27 @@
+module NewObjectsExample;
+
+class AmtoftBanerjee2 {
+    Int marg = 0;
+    Int res = 0;
+    
+    Int cexp(Int z) {
+
+        Int result = res;
+
+        if (z == marg && z != 0) {
+
+        } else {
+
+            result = this.expensive(z);
+            marg = z;
+            res = result;
+        
+        }
+        
+        return result;
+    }
+
+    Int expensive(Int z) {
+        return z;
+    }
+}

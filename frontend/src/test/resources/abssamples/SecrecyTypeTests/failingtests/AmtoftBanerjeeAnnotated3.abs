@@ -1,0 +1,11 @@
+module NewObjectsExample;
+
+class AmtoftBanerjee3 {
+    [Secrecy: High] Int x = 0; //Setting x to High and b to Low proves wrong because b depends on x in the method m()
+    Int a = 0;
+    Int b = 0;
+
+    Unit m() {
+        b = x + (a % 4);
+    }
+}

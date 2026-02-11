@@ -1,0 +1,33 @@
+module BlockContractsExample;
+
+class IFEfficiencyExamples(Int in_h, Int in_l) {
+    [Secrecy: High] Int h = in_h;
+    [Secrecy: Low] Int l = in_l;
+
+    Unit mWithBlockContract() {
+        // low variable l only being set determined by the variable itself
+        { if (l < 0) { l = 0;} }
+        { if (l > 8) { l = 8; } }
+
+        // high variable h only being set determined by the variable itself
+        { if (h < 0) { h = 0; } }
+        { if (h > 8) { h = 8; } }
+
+        // calculate new h:High by multiplying h:High and l:Low is ok this way (l would be a violation
+        { h = h * l; }
+    }
+
+    Unit mWithoutBlockContract() {
+        // low variable l only being set determined by the variable itself
+        if (l < 0) { l = 0; }
+        if (l > 8) { l = 8; }
+
+        // high variable h only being set determined by the variable itself
+        if (h < 0) { h = 0; }
+        if (h > 8) { h = 8; }
+
+        // calculate new h:High by multiplying h:High and l:Low is ok this way (l would be a violation)
+        h = h * l;
+    }
+
+}

@@ -1,0 +1,5 @@
+27:Leakage Error from High: SyncCall(ThisExp(),high_vote) to Low: low_sendSuccessful
+30:Leakage Error from High: SyncCall(ThisExp(),IntLiteral(0)) to Low: low_sendSuccessful
+77:Leakage Error from High: SyncCall(ThisExp(),high_vote) to Low: low_sendSuccessful
+78:Leakage Error from High: AddAddExp(low_numOfVotes,IntLiteral(1)) to Low: low_numOfVotes
+81:Leakage Error from High: SyncCall(ThisExp(),high_vote) to Low: low_sendSuccessful

@@ -1,0 +1,85 @@
+module VotingExample;
+
+class Voter {
+    [Secrecy: Low] Int low_outputStream = 0;
+    [Secrecy: Low] Bool low_outputStreamAvailable = False;
+    [Secrecy: Low] Int low_NUM_OF_VOTERS = 763;
+    [Secrecy: Low] Int low_numOfVotes = 0;
+    [Secrecy: Low] Bool low_sendSuccessful = False;
+
+    [Secrecy: High] Bool high_voteValid = False;
+    [Secrecy: High] Int high_inputStream = 0;
+    
+    Unit secure_voting() {
+        
+        Int i = 0;
+
+        while (i < low_NUM_OF_VOTERS) {
+
+            [Secrecy: High] Int high_vote = this.inputVote(); 
+            //Here is a bug now !!
+
+            {
+                [Secrecy: High] Bool validCheck = this.isValid(high_vote);
+                
+                if (validCheck) {
+                    high_voteValid = True;
+                    low_sendSuccessful = this.sendVote(high_vote);
+                } else {
+                    high_voteValid = False;
+                    low_sendSuccessful = this.sendVote(0);
+                }
+            }
+            
+            {
+                if (low_sendSuccessful) {
+                    low_numOfVotes = low_numOfVotes + 1;
+                } else {
+                    low_numOfVotes = low_numOfVotes;
+                }
+            }
+
+            i = i+1;
+        }
+
+        this.publishVoterParticipation();
+    }
+   
+    [Secrecy: High] Int inputVote() {
+        return high_inputStream;
+    }
+    
+    Bool sendVote([Secrecy: High] Int x) {
+        Bool result = False;
+        if (low_outputStreamAvailable) {
+            // encrypt and send over some channel (not further modeled here)
+            result = True;
+        }
+        return result;
+    }
+    
+    [Secrecy: High] Bool isValid([Secrecy: High] Int high_vote) {
+        // vote has to be in range 1..255
+        return 0 < high_vote && high_vote <= 255;
+    }
+    
+    Unit publishVoterParticipation() {
+        low_outputStream = truncate((low_numOfVotes * 100) / low_NUM_OF_VOTERS);
+    }
+    
+    //This example is insecure.
+    //The values of the low variables low_sendSuccessful and low_numOfVotes are set depending on the if-condition.
+    //The if-condition rises the secrecy level to high because is uses the high variable high_vote.
+    Unit insecure_voting() {
+        [Secrecy: High] Int high_vote = this.inputVote();
+        // vote has to be in range 1..255
+        if (0 < high_vote && high_vote <= 255) {
+            low_sendSuccessful = this.sendVote(high_vote);
+            low_numOfVotes = low_numOfVotes+1;
+        } else {
+            high_vote = 0;
+            low_sendSuccessful = this.sendVote(high_vote);
+        }
+        this.publishVoterParticipation();
+    }
+}

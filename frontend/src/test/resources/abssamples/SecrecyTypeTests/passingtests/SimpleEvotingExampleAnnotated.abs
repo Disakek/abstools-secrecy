@@ -1,0 +1,267 @@
+module SimpleEvotingExample;
+
+data Byte = ByteVal(Int value);
+
+interface MessageI {
+    [Secrecy: High] Int getId();
+    [Secrecy: High] Int getBallot();
+}
+
+class Message(Int in_id, Int in_ballot) implements MessageI {
+    [Secrecy: High] Int id = in_id;
+    [Secrecy: High] Int ballot = in_ballot;
+
+    [Secrecy: High] Int getId() {
+        return id;
+    }
+
+    [Secrecy: High] Int getBallot() {
+        return ballot;
+    }
+}
+
+interface EnvironmentI {
+    Int untrustedInput();
+    Int untrustedInputWithParam(Int x);
+    Unit untrustedOutput(Int x);
+    List<Byte> untrustedInputMessage();
+    List<Byte> untrustedInputMessageHelper(List<Byte> returnval, Int len);
+    Unit untrustedOutputMessage(List<Byte> t);
+    Unit outputMessageHelper(List<Byte> t, Int index, Int len);
+}
+
+class Environment implements EnvironmentI {
+    Bool result = False;
+    
+    Int untrustedInput() {
+        return 0;
+    }
+    
+    Int untrustedInputWithParam(Int x) {
+        return 0;
+    }
+    
+    Unit untrustedOutput(Int x) {}
+    
+    List<Byte> untrustedInputMessage() {
+        Int len = this.untrustedInput();
+        List<Byte> returnval = Nil;
+
+        if (len < 0) {
+        } else {
+            returnval = this.untrustedInputMessageHelper(returnval, len);
+        }
+
+        return returnval;
+    }
+    
+    List<Byte> untrustedInputMessageHelper(List<Byte> returnval, Int len) {
+        Int i = 0;
+        
+        while (i < len) {
+            Int inputVal = this.untrustedInput();
+            Byte b = ByteVal(inputVal);
+            returnval = appendright(returnval, b);
+            i = i + 1;
+        }
+        
+        return returnval;
+    }
+    
+    Unit untrustedOutputMessage(List<Byte> t) {
+        if (t == Nil) {
+        } else {
+            Int len = length(t);
+            this.untrustedOutput(len);
+            
+            this.outputMessageHelper(t, 0, len);
+        }
+    }
+    
+    Unit outputMessageHelper(List<Byte> t, Int index, Int len) {
+        if (index < len) {
+            List<Byte> temp = t;
+            Int i = 0;
+            
+            while (i < index && temp != Nil) {
+                temp = tail(temp);
+                i = i + 1;
+            }
+            
+            if (temp != Nil) {
+                Byte b = head(temp);
+                switch (b) {
+                    ByteVal(value) => this.untrustedOutput(value);
+                }
+            }
+            
+            this.outputMessageHelper(t, index + 1, len);
+        }
+    }
+}
+
+interface ServerI {
+    Unit onCollectBallot([Secrecy: High] MessageI msg);
+    Unit onSendResult();
+    Bool resultReady();
+    List<Int> getResult();
+}
+
+class Server(Int n, Int m) implements ServerI {
+
+    Int numberOfVoters = n;
+    Int numberOfCandidates = m;
+    List<Bool> ballotCast = Nil;
+    List<Int> votesForCandidates = Nil; 
+
+    Unit onCollectBallot([Secrecy: High] MessageI msg) {
+        if (msg != null) {
+            [Secrecy: High] Int voterID = msg.getId();
+            [Secrecy: High] Int voteFor = msg.getBallot();
+
+            if( voterID>0 && voterID<numberOfVoters ) {
+
+                //TODO FIX THIS ERROR !
+                [Secrecy: High] Bool hasBallotCast = nth(ballotCast, voterID);
+
+                if( !hasBallotCast ) {
+
+                    hasBallotCast = True;
+                    
+                    if (voteFor < 0 || voteFor >= numberOfCandidates ) {} else {
+                        
+                        //TODO FIX THIS ERROR !
+                        [Secrecy: High] Int candidateVotingFor = nth(votesForCandidates, voteFor);
+                        candidateVotingFor = candidateVotingFor+1;
+                    } 
+                }
+            }
+        }
+    }
+
+    Unit onSendResult() { List<Int> result = this.getResult(); }
+
+    Bool resultReady() {
+        Int i = 0;
+        Bool result = True;
+
+        while (i < numberOfVoters) {
+            Bool hasBallotCast = nth(ballotCast, i);
+            
+            if(!hasBallotCast ) {
+                result = False;
+            }
+
+            i = i+1;
+        }
+        
+        return result;
+    }
+
+    List<Int> getResult() {
+        List<Int> result = Nil;
+        Bool isResultReady = this.resultReady();
+
+        if (isResultReady) {
+            result = votesForCandidates;
+        }
+        
+        return result;
+    }
+}
+
+interface NetworkClientI {
+    Unit send(List<Byte> message, ServerI server, Int port);
+}
+
+class NetworkClient implements NetworkClientI {
+
+    Unit send(List<Byte> message, ServerI server, Int port) {
+        EnvironmentI env = new Environment();
+        env.untrustedOutput(8961);
+        env.untrustedOutputMessage(message);
+        env.untrustedOutput(port);
+    }
+}
+
+interface SMTEnvI {
+    List<Byte> send(Int message_length, Int sender_id, Int recipient_id, ServerI server,   Int port);
+}
+
+class SMTEnv implements SMTEnvI {
+
+    List<Byte> send(Int message_length, Int sender_id, Int recipient_id, ServerI server,   Int port) {
+        EnvironmentI env = new Environment();
+        env.untrustedOutput(7803);
+        env.untrustedOutput(message_length);
+        env.untrustedOutput(sender_id);
+        env.untrustedOutput(recipient_id);
+        env.untrustedOutput(port);
+        
+        return env.untrustedInputMessage();
+    }
+}
+
+interface SMTI {
+    Unit init();
+    Unit send([Secrecy: High] MessageI msg, [Secrecy: High] Int senderID, ServerI server);
+}
+
+class SMT implements SMTI {
+
+    NetworkClientI networkClientField;
+    SMTEnvI smtEnvField;
+
+    Unit init() {
+        this.networkClientField = new NetworkClient();
+        this.smtEnvField = new SMTEnv();
+    }
+
+    Unit send([Secrecy: High] MessageI msg, [Secrecy: High] Int senderID, ServerI server) {
+        List<Byte> output_message = smtEnvField.send(1, 0, 0, server, 0);
+        server.onCollectBallot(msg);
+        networkClientField.send(output_message, server, 0);
+    }
+}
+
+interface VoterI {
+    Unit onSendBallot(ServerI server);
+}
+
+class Voter(Int in_id, Int in_vote) implements VoterI {
+
+    [Secrecy: High] Int id = in_id;
+    [Secrecy: High] Int vote = in_vote;
+
+    Unit onSendBallot(ServerI server) {
+        [Secrecy: High] MessageI message = new Message(id, vote);
+        SMTI smt = new SMT();
+        smt.init();
+        smt.send(message, id, server);
+    }
+}
+
+class Setup {
+    List<Int> out = Nil;
+    List<VoterI> voters = Nil;
+    ServerI server;
+    Int numberOfVoters = 0;
+    Int numberOfCandidates  = 0;
+
+    Unit main () {
+        EnvironmentI env = new Environment();
+        Bool resultReady = server.resultReady();
+        
+        while ( !resultReady ) {
+            Int k = env.untrustedInputWithParam(length(voters));
+            VoterI v = nth(voters, k);
+            v.onSendBallot(server);
+            resultReady = server.resultReady();
+        }
+
+        this.publishResult();
+    }
+
+    Unit publishResult () { out = server.getResult(); }
+
+}
