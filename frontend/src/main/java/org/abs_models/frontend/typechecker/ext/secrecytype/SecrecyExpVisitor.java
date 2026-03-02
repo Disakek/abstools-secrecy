@@ -67,41 +67,12 @@ public class SecrecyExpVisitor {
      * @param expression - the expression for which we want to retrieve the secrecylevel.
      * @return - the join of the expressions secrecylevel and the secrecylevel of the current program point.
      */
-    public String visit(Exp expression){
+    public String visit(Exp expression) {
 
-        
-        if(expression instanceof AddAddExp addAddExp) {
-            return this.visit(addAddExp);
-        } else if (expression instanceof SubAddExp subAddExp) {
-            return this.visit(subAddExp);
-        } else if (expression instanceof VarOrFieldUse varOrFieldUse) {
-            return this.visit(varOrFieldUse);
-        } else if (expression instanceof MultMultExp multMultExp) {
-            return this.visit(multMultExp);
-        } else if (expression instanceof DivMultExp divMultExp) {
-            return this.visit(divMultExp);
-        } else if (expression instanceof ModMultExp modMultExp) {
-            return this.visit(modMultExp);
-        } else if (expression instanceof AndBoolExp andExp) {
-            return this.visit(andExp);
-        } else if (expression instanceof OrBoolExp orExp) {
-            return this.visit(orExp);
-        } else if (expression instanceof EqExp eqExp) {
-            return this.visit(eqExp);
-        } else if (expression instanceof NotEqExp noteqExp) {
-            return this.visit(noteqExp);
-        } else if (expression instanceof LTEQExp lessThanEqualsExp) {
-            return this.visit(lessThanEqualsExp);
-        } else if (expression instanceof GTEQExp greaterThanEqualsExp) {
-            return this.visit(greaterThanEqualsExp);
-        } else if (expression instanceof LTExp lessThanExp) {
-            return this.visit(lessThanExp);
-        } else if (expression instanceof GTExp greaterThanExp) {
-            return this.visit(greaterThanExp);
-        } else if (expression instanceof MinusExp minusExp) {
-            return this.visit(minusExp);
-        } else if (expression instanceof NegExp negExp) {
-            return this.visit(negExp);
+        if (expression instanceof Binary binaryExp) {
+            return this.visit(binaryExp);
+        } else if(expression instanceof Unary unaryExp){
+            return this.visit(unaryExp);
         } else if (expression instanceof VarOrFieldUse varOrFieldUse) {
             return this.visit(varOrFieldUse);
         } else if (expression instanceof GetExp getExp) {
@@ -110,245 +81,28 @@ public class SecrecyExpVisitor {
             return this.visit(asyncCall);
         } else if (expression instanceof SyncCall syncCall) {
             return this.visit(syncCall);
+        } else if (expression instanceof FnApp fnApp) {
+            return this.visit(fnApp);
         }
 
         return secrecyLatticeStructure.join(secrecyLatticeStructure.getMinSecrecyLevel(), secrecyLatticeStructure.evaluateListLevel(programConfidentiality));
     }
 
-    /**
-     * Visit function for additive expressions.
-     * Set combine as the join of the left and right values.
-     * 
-     * @param addAddExp - the expression for which we want to retrieve the secrecylevel.
-     * @return - the join of the combine and the secrecylevel of the current program point.
-     */
-    public String visit(AddAddExp addAddExp) {
+
+    public String visit(Binary binaryExp) {
         
-        String leftLevel = addAddExp.getLeft().accept(this);
-        String rightLevel = addAddExp.getRight().accept(this);
+        String leftLevel = binaryExp.getLeft().accept(this);
+        String rightLevel = binaryExp.getRight().accept(this);
         String combined = secrecyLatticeStructure.join(leftLevel, rightLevel);
 
         return secrecyLatticeStructure.join(combined, secrecyLatticeStructure.evaluateListLevel(programConfidentiality));
     }
 
-    /**
-     * Visit function for subtractive expressions.
-     * Set combine as the join of the left and right values.
-     * 
-     * @param subAddExp - the expression for which we want to retrieve the secrecylevel.
-     * @return - the join of the combine and the secrecylevel of the current program point.
-     */
-    public String visit(SubAddExp subAddExp) {
-        
-        String leftLevel = subAddExp.getLeft().accept(this);
-        String rightLevel = subAddExp.getRight().accept(this);
-        String combined = secrecyLatticeStructure.join(leftLevel, rightLevel);
+    public String visit(Unary unaryExp) {
 
-        return secrecyLatticeStructure.join(combined, secrecyLatticeStructure.evaluateListLevel(programConfidentiality));
-    }
-
-    /**
-     * Visit function for multiplicative expressions.
-     * Set combine as the join of the left and right values.
-     * 
-     * @param multMultExp - the expression for which we want to retrieve the secrecylevel.
-     * @return - the join of the combine and the secrecylevel of the current program point.
-     */
-    public String visit(MultMultExp multMultExp) {
-        
-        String leftLevel = multMultExp.getLeft().accept(this);
-        String rightLevel = multMultExp.getRight().accept(this);
-        String combined = secrecyLatticeStructure.join(leftLevel, rightLevel);
-
-        return secrecyLatticeStructure.join(combined, secrecyLatticeStructure.evaluateListLevel(programConfidentiality));
-    }
-
-    /**
-     * Visit function for divisive expressions.
-     * Set combine as the join of the left and right values.
-     * 
-     * @param divMultExp - the expression for which we want to retrieve the secrecylevel.
-     * @return - the join of the combine and the secrecylevel of the current program point.
-     */
-    public String visit(DivMultExp divMultExp) {
-        
-        String leftLevel = divMultExp.getLeft().accept(this);
-        String rightLevel = divMultExp.getRight().accept(this);
-        String combined = secrecyLatticeStructure.join(leftLevel, rightLevel);
-
-        return secrecyLatticeStructure.join(combined, secrecyLatticeStructure.evaluateListLevel(programConfidentiality));
-    }
-
-    /**
-     * Visit function for modulative expressions.
-     * Set combine as the join of the left and right values.
-     * 
-     * @param modMultExp - the expression for which we want to retrieve the secrecylevel.
-     * @return - the join of the combine and the secrecylevel of the current program point.
-     */
-    public String visit(ModMultExp modMultExp) {
-        
-        String leftLevel = modMultExp.getLeft().accept(this);
-        String rightLevel = modMultExp.getRight().accept(this);
-        String combined = secrecyLatticeStructure.join(leftLevel, rightLevel);
-
-        return secrecyLatticeStructure.join(combined, secrecyLatticeStructure.evaluateListLevel(programConfidentiality));
-    }
-
-    /**
-     * Visit function for and expressions.
-     * Set combine as the join of the left and right values.
-     * 
-     * @param andExp - the expression for which we want to retrieve the secrecylevel.
-     * @return - the join of the combine and the secrecylevel of the current program point.
-     */
-    public String visit(AndBoolExp andExp) {
-        
-        String leftLevel = andExp.getLeft().accept(this);
-        String rightLevel = andExp.getRight().accept(this);
-        String combined = secrecyLatticeStructure.join(leftLevel, rightLevel);
-
-        return secrecyLatticeStructure.join(combined, secrecyLatticeStructure.evaluateListLevel(programConfidentiality));
-    }
-
-    /**
-     * Visit function for or expressions.
-     * Set combine as the join of the left and right values.
-     * 
-     * @param orExp - the expression for which we want to retrieve the secrecylevel.
-     * @return - the join of the combine and the secrecylevel of the current program point.
-     */    
-    public String visit(OrBoolExp orExp) {
-        
-        String leftLevel = orExp.getLeft().accept(this);
-        String rightLevel = orExp.getRight().accept(this);
-        String combined = secrecyLatticeStructure.join(leftLevel, rightLevel);
-
-        return secrecyLatticeStructure.join(combined, secrecyLatticeStructure.evaluateListLevel(programConfidentiality));
-    }
-
-    /**
-     * Visit function for equality expressions.
-     * Set combine as the join of the left and right values.
-     * 
-     * @param eqExp - the expression for which we want to retrieve the secrecylevel.
-     * @return - the join of the combine and the secrecylevel of the current program point.
-     */
-    public String visit(EqExp eqExp) {
-        
-        String leftLevel = eqExp.getLeft().accept(this);
-        String rightLevel = eqExp.getRight().accept(this);
-        String combined = secrecyLatticeStructure.join(leftLevel, rightLevel);
-
-        return secrecyLatticeStructure.join(combined, secrecyLatticeStructure.evaluateListLevel(programConfidentiality));
-    }
-
-    /**
-     * Visit function for inequality expressions.
-     * Set combine as the join of the left and right values.
-     * 
-     * @param notEqExp - the expression for which we want to retrieve the secrecylevel.
-     * @return - the join of the combine and the secrecylevel of the current program point.
-     */
-    public String visit(NotEqExp notEqExp) {
-        
-        String leftLevel = notEqExp.getLeft().accept(this);
-        String rightLevel = notEqExp.getRight().accept(this);
-        String combined = secrecyLatticeStructure.join(leftLevel, rightLevel);
-
-        return secrecyLatticeStructure.join(combined, secrecyLatticeStructure.evaluateListLevel(programConfidentiality));
-    }
-
-    /**
-     * Visit function for less than equals expressions.
-     * Set combine as the join of the left and right values.
-     * 
-     * @param lessThanEqualsExp - the expression for which we want to retrieve the secrecylevel.
-     * @return - the join of the combine and the secrecylevel of the current program point.
-     */
-    public String visit(LTEQExp lessThanEqualsExp) {
-
-        String leftLevel = lessThanEqualsExp.getLeft().accept(this);
-        String rightLevel = lessThanEqualsExp.getRight().accept(this);
-        String combined = secrecyLatticeStructure.join(leftLevel, rightLevel);
-
-        return secrecyLatticeStructure.join(combined, secrecyLatticeStructure.evaluateListLevel(programConfidentiality));
-    }
-
-    /**
-     * Visit function for greater than equals expressions.
-     * Set combine as the join of the left and right values.
-     * 
-     * @param greaterThanEqualsExp - the expression for which we want to retrieve the secrecylevel.
-     * @return - the join of the combine and the secrecylevel of the current program point.
-     */
-    public String visit(GTEQExp greaterThanEqualsExp) {
-
-        String leftLevel = greaterThanEqualsExp.getLeft().accept(this);
-        String rightLevel = greaterThanEqualsExp.getRight().accept(this);
-        String combined = secrecyLatticeStructure.join(leftLevel, rightLevel);
-
-        return secrecyLatticeStructure.join(combined, secrecyLatticeStructure.evaluateListLevel(programConfidentiality));
-    }
-   
-    /**
-     * Visit function for less than expressions.
-     * Set combine as the join of the left and right values.
-     * 
-     * @param lessThanExp - the expression for which we want to retrieve the secrecylevel.
-     * @return - the join of the combine and the secrecylevel of the current program point.
-     */
-    public String visit(LTExp lessThanExp) {
-
-        String leftLevel = lessThanExp.getLeft().accept(this);
-        String rightLevel = lessThanExp.getRight().accept(this);
-        String combined = secrecyLatticeStructure.join(leftLevel, rightLevel);
-
-        return secrecyLatticeStructure.join(combined, secrecyLatticeStructure.evaluateListLevel(programConfidentiality));
-    }
-
-    /**
-     * Visit function for greater than expressions.
-     * Set combine as the join of the left and right values.
-     * 
-     * @param greaterThanExp - the expression for which we want to retrieve the secrecylevel.
-     * @return - the join of the combine and the secrecylevel of the current program point.
-     */
-    public String visit(GTExp greaterThanExp) {
-
-        String leftLevel = greaterThanExp.getLeft().accept(this);
-        String rightLevel = greaterThanExp.getRight().accept(this);
-        String combined = secrecyLatticeStructure.join(leftLevel, rightLevel);
-
-        return secrecyLatticeStructure.join(combined, secrecyLatticeStructure.evaluateListLevel(programConfidentiality));
-    }
-
-    /**
-     * Visit function for minus expressions.
-     * 
-     * @param minusExp - the expression for which we want to retrieve the secrecylevel.
-     * @return - the join of the secrecylevel of the exp below and the secrecylevel of the current program point.
-     */
-    public String visit(MinusExp minusExp) {
-        
-        ASTNode<?> child = minusExp.getChild(0);
-
-        if(child instanceof Exp expr) {
-            return secrecyLatticeStructure.join(expr.accept(this), secrecyLatticeStructure.evaluateListLevel(programConfidentiality));
-        }
-
-        return null;
-    }
-
-    /** 
-     * Visit function for negate expressions.
-     * 
-     * @param negExp - the expression for which we want to retrieve the secrecylevel.
-     * @return - the join of the secrecylevel of the exp below and the secrecylevel of the current program point.
-     */
-    public String visit(NegExp negExp) {
-        
-        ASTNode<?> child = negExp.getChild(0);
+        System.out.println("Triggered unaryExp");
+        System.out.println(unaryExp);
+        ASTNode<?> child = unaryExp.getChild(0);
 
         if(child instanceof Exp expr) {
             return secrecyLatticeStructure.join(expr.accept(this), secrecyLatticeStructure.evaluateListLevel(programConfidentiality));
@@ -362,24 +116,18 @@ public class SecrecyExpVisitor {
      * 
      * @param varOrFieldUse - the expression for which we want to retrieve the secrecylevel.
      * @return - the join of the secrecylevel of the variable or field and the secrecylevel of the current program point.
-     * if there is no secrecy attached to the variable or field then use the lowest value from the lattice structure.
+     * if there is no secrecy attached to the variable or field then use the lowest value from the lattice structure (which is guaranteed to be >= minimum secrecy level of the lattice).
      */
     public String visit(VarOrFieldUse varOrFieldUse) {
-
-        //Todo here is the varOrFieldUse and this is where I need to check for the SumExample's issue
-        //[Secrecy: High] List<Int> values = nil;
-        //while (i < length(values)) {...}
-        //System.out.println(varOrFieldUse);
 
         ASTNode<?> variable = varOrFieldUse.getDecl();
         String secrecy = _secrecy.get(variable);
 
         if (secrecy != null) {
             return secrecyLatticeStructure.join(secrecy, secrecyLatticeStructure.evaluateListLevel(programConfidentiality));
-            //If there was a secrecy found then return it combined with the current pc otherwise combine pc with lowest possible.
         }
 
-        return secrecyLatticeStructure.join(secrecyLatticeStructure.getMinSecrecyLevel(), secrecyLatticeStructure.evaluateListLevel(programConfidentiality));
+        return secrecyLatticeStructure.evaluateListLevel(programConfidentiality);
     }
 
     /**
@@ -511,15 +259,12 @@ public class SecrecyExpVisitor {
      */
     public String visit(FnApp fnApp) {
 
-        //System.out.println(fnApp);
-
         List<PureExp> fnAppParameters = fnApp.getParamList();
-
-        //System.out.println(fnAppParameters);
 
         String secrecy = null;
 
         for(PureExp fnAppParam : fnAppParameters) {
+
             String paramSecrecy = this.visit(fnAppParam);
             //System.out.println(fnAppParam + " with secrecy: " + paramSecrecy);
 
@@ -530,19 +275,10 @@ public class SecrecyExpVisitor {
             }
         }
 
-        //FnApp is defined as: FnApp : PureExp ::= <Name> Param:PureExp* ;
-        //so retrieve the value of the pureExp below! (or if multiple of all of the ones below)
-        //then combine them to one value and with the pc level and return that
-        //or otherwise return min level combined with pc directly
-
-        //ASTNode<?> variable = varOrFieldUse.getDecl();
-        //String secrecy = _secrecy.get(variable);
-        //
         if (secrecy != null) {
             return secrecyLatticeStructure.join(secrecy, secrecyLatticeStructure.evaluateListLevel(programConfidentiality));
         }
-        //
-        //return secrecyLatticeStructure.join(secrecyLatticeStructure.getMinSecrecyLevel(), secrecyLatticeStructure.evaluateListLevel(programConfidentiality));
+
         return secrecyLatticeStructure.getMinSecrecyLevel();
     }
 

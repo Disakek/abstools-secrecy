@@ -11,52 +11,15 @@ aspect AddExpVisitor {
   public String Exp.accept(SecrecyExpVisitor v) { return v.visit(this); }
 
   @Override
-  public String AddAddExp.accept(SecrecyExpVisitor v) { return v.visit(this); }
+  public String Binary.accept(SecrecyExpVisitor v) { return v.visit(this); }
+  
+  @Override
+  public String Unary.accept(SecrecyExpVisitor v) { return v.visit(this); }
 
-  @Override
-  public String SubAddExp.accept(SecrecyExpVisitor v) { return v.visit(this); }
-
-  @Override
-  public String MultMultExp.accept(SecrecyExpVisitor v) { return v.visit(this); }
-
-  @Override
-  public String DivMultExp.accept(SecrecyExpVisitor v) { return v.visit(this); }
-
-  @Override
-  public String ModMultExp.accept(SecrecyExpVisitor v) { return v.visit(this); }
-
-  @Override
-  public String MinusExp.accept(SecrecyExpVisitor v) { return v.visit(this); }
-
-  @Override
-  public String NegExp.accept(SecrecyExpVisitor v) { return v.visit(this); }
-
-  @Override
-  public String EqExp.accept(SecrecyExpVisitor v) { return v.visit(this); }
-
-  @Override
-  public String NotEqExp.accept(SecrecyExpVisitor v) { return v.visit(this); }
-
-  @Override
-  public String AndBoolExp.accept(SecrecyExpVisitor v) { return v.visit(this); }
-
-  @Override
-  public String OrBoolExp.accept(SecrecyExpVisitor v) { return v.visit(this); }
-
-  @Override
-  public String LTEQExp.accept(SecrecyExpVisitor v) { return v.visit(this); }
-
-  @Override
-  public String GTEQExp.accept(SecrecyExpVisitor v) { return v.visit(this); }
-   
-  @Override
-  public String LTExp.accept(SecrecyExpVisitor v) { return v.visit(this); }
-   
-  @Override
-  public String GTExp.accept(SecrecyExpVisitor v) { return v.visit(this); }
-    
   @Override
   public String VarOrFieldUse.accept(SecrecyExpVisitor v) { return v.visit(this); }
+
+  //The ones below are expressions with sideeffects!!
 
   @Override
   public String GetExp.accept(SecrecyExpVisitor v) { return v.visit(this); }
