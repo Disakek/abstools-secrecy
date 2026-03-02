@@ -100,8 +100,6 @@ public class SecrecyExpVisitor {
 
     public String visit(Unary unaryExp) {
 
-        System.out.println("Triggered unaryExp");
-        System.out.println(unaryExp);
         ASTNode<?> child = unaryExp.getChild(0);
 
         if(child instanceof Exp expr) {
