@@ -1,0 +1,374 @@
+package org.abs_models.backend.java.observing;
+
+import org.abs_models.backend.java.lib.WeakValueHashMap;
+import org.abs_models.backend.java.lib.runtime.ABSFut;
+import org.abs_models.backend.java.lib.runtime.ABSObject;
+import org.abs_models.backend.java.lib.runtime.COG;
+import org.abs_models.backend.java.lib.runtime.Logging;
+import org.abs_models.backend.java.lib.types.ABSAlgebraicDataType;
+import org.abs_models.backend.java.lib.types.ABSInterface;
+import org.abs_models.backend.java.lib.types.ABSUnit;
+import org.apache.jena.query.*;
+import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.ModelFactory;
+import org.apache.jena.rdf.model.Property;
+import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.riot.Lang;
+import org.apache.jena.sparql.ARQConstants;
+import org.apache.jena.sparql.core.Prologue;
+import org.apache.jena.sparql.resultset.ResultsWriter;
+import org.apache.jena.vocabulary.RDF;
+import org.apache.jena.vocabulary.RDFS;
+import org.apfloat.Apint;
+import org.apfloat.Aprational;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.StringReader;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
+import java.util.logging.Logger;
+import java.util.stream.Collectors;
+
+/**
+ * An observer that follows cog (and, transitively, object) creation.
+ * It is used to create an object graph upon request.
+ */
+public class GraphObserver extends DefaultSystemObserver implements ObjectCreationObserver {
+
+    protected static final Logger log = Logging.getLogger(GraphObserver.class.getName());
+
+    /** The namespace prefixes used by the ABS ontology. */
+    public static final Map<String, String> absNamespaces;
+
+    public static String sparqlPrefix;
+
+    /// The program model, generated at compile time.
+    static Model progModel = ModelFactory.createDefaultModel();
+    /// Class resources, indexed by the fully-qualified class name.
+    /// Initialized during model start.
+    static Map<String, Resource> knownClasses = new HashMap<>();
+    /// Interface resources, indexed by the fully-qualified interface
+    /// name.  Initialized during model start.
+    static Map<String, Resource> knownInterfaces = new HashMap<>();
+    /// Datatype resources, indexed by the fully-qualified datatype
+    /// name.  Initialized during model start.
+    static Map<String, Resource> knownDatatypes = new HashMap<>();
+    /// Constructor resources, indexed by the fully-qualified
+    /// constructor name.  Initialized during model start.
+    static Map<String, Resource> knownConstructors = new HashMap<>();
+    /// Domain class resources that are referenced by a `DomainClass`
+    /// annotation.  Initially empty, filled on-demand when lifting a
+    /// mirrored class.
+    static Map<String, Resource> knownDomainClasses = new HashMap<>();
+
+    /// The domain ontology, specified via command line
+    static Model domainModel = ModelFactory.createDefaultModel();
+
+    static {
+        try (InputStream is = GraphObserver.class.getResourceAsStream("/resources/domain.ttl")) {
+            if (is != null) {
+                String domainModelString = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+                domainModel.read(new StringReader(domainModelString), null, "TURTLE");
+            }
+        } catch (IOException e) {
+            log.warning("Failed to read the domain ontology, will be missing from lifted state");
+        }
+        try (InputStream is = GraphObserver.class.getResourceAsStream("/resources/prog.ttl")) {
+            if (is != null) {
+                String progModelString = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+                progModel.read(new StringReader(progModelString), null, "TURTLE");
+            }
+        } catch (IOException e) {
+            log.warning("Failed to read the abs and program ontologies, will be missing from lifted state");
+        }
+
+        absNamespaces = progModel.getNsPrefixMap(); // getNsPrefixMap returns a modifiable copy per its documentation
+        absNamespaces.putAll(
+            Map.of("rdfs", RDFS.label.getNameSpace(),
+                "abs", "http://abs-models.org/ns/abs/",
+                "prog", "http://abs-models.org/ns/prog/",
+                "run", "http://abs-models.org/ns/run/"));
+
+        sparqlPrefix = absNamespaces.entrySet()
+            .stream()
+            .map(e -> "PREFIX " + e.getKey() + ": <" + e.getValue() + ">\n")
+            .collect(Collectors.joining());
+
+        String absns = absNamespaces.get("abs");
+        progModel.listSubjectsWithProperty(RDF.type, progModel.createResource(absns + "class"))
+            .forEach(
+                classres -> {
+                    if (classres.hasProperty(RDFS.label)) {
+                        knownClasses.put(classres.getProperty(RDFS.label).getString(), classres);
+                    }
+                });
+        progModel.listSubjectsWithProperty(RDF.type, progModel.createResource(absns + "interface"))
+            .forEach(
+                interfaceres -> {
+                    if (interfaceres.hasProperty(RDFS.label)) {
+                        knownInterfaces.put(interfaceres.getProperty(RDFS.label).getString(), interfaceres);
+                    }
+                });
+        progModel.listSubjectsWithProperty(RDF.type, progModel.createResource(absns + "datatype"))
+            .forEach(
+                datatyperes -> {
+                    if (datatyperes.hasProperty(RDFS.label)) {
+                        knownDatatypes.put(datatyperes.getProperty(RDFS.label).getString(), datatyperes);
+                    }
+                });
+        progModel.listSubjectsWithProperty(RDF.type, progModel.createResource(absns + "dataconstructor"))
+            .forEach(
+                constructorres -> {
+                    if (constructorres.hasProperty(RDFS.label)) {
+                        knownConstructors.put(constructorres.getProperty(RDFS.label).getString(), constructorres);
+                    }
+                });
+    }
+
+    // Note: do not iterate over these two data structures directly
+    // since the garbage collector could remove entries at any time;
+    // instead, use a snapshot, for example `for (Object obj :
+    // Set.copyOf(cogSet)) { /* ... */ }`
+    private static Map<String, ObjectView> objectMap = new WeakValueHashMap<String, ObjectView>();
+    private static Set<COGView> cogSet = Collections.newSetFromMap(new WeakHashMap<COGView, Boolean>());
+
+    /**
+     * Add the ABS standard namespaces to {@code model}.
+     */
+    public static void initNamespaces(Model model) {
+        for (var e : absNamespaces.entrySet()) {
+            model.setNsPrefix(e.getKey(), e.getValue());
+        }
+    }
+
+    /**
+     * Deactivate garbage collection of registered objects and sets,
+     * and make these sets immmutable.  Done at the end of the model
+     * run to preserve the ending state before printing the RDF graph
+     * and/or running a SPARQL query from the command line.
+     */
+    public static synchronized void freezeObserver() {
+        objectMap = Map.copyOf(objectMap);
+        cogSet = Set.copyOf(cogSet);
+    }
+
+    /// Create the URI of a resource representing an ABS object.
+    public static String objectResourceName(Object o) {
+        return absNamespaces.get("run") + "obj" + o.hashCode();
+    }
+
+    /**
+     * Note an object to be added to the object graph.
+     */
+    public static synchronized void addObject(ObjectView o) {
+        objectMap.put(objectResourceName(o.getObject()), o);
+    }
+
+    /**
+     * Note a cog to be added to the object graph.
+     */
+    public static synchronized void addCog(COGView c) {
+        cogSet.add(c);
+    }
+
+    @Override
+    public void newCOGCreated(COGView cog, ObjectView initialObject) {
+        cog.registerObjectCreationListener(this);
+        cogSet.add(cog);
+        this.objectCreated(initialObject);
+    }
+
+    @Override
+    public void objectCreated(ObjectView o) {
+        addObject(o);
+    }
+
+    @Override
+    public void objectInitialized(ObjectView o) { }
+
+    /**
+     * Find the ABS object named by the given resource in the RDF
+     * model.  Returns `null` if none found.
+     */
+    public static ABSObject findObjectForResource(String r) {
+        ObjectView v = objectMap.get(r);
+        if (v == null) return null;
+        else return v.getObject();
+    }
+
+    /**
+     * Run a SPARQL query over the current ABS state.  The {@code
+     * abs:}, {@code prog:} and {@code run:} namespaces are added to
+     * the query string, so do not need to be defined.
+     */
+    public static List<QuerySolution> runQuery(Model model, String queryString) {
+        queryString = sparqlPrefix + queryString;
+        Query query = QueryFactory.create(queryString);
+        try (QueryExecution qexec = QueryExecutionFactory.create(query, model)) {
+            ResultSet results = qexec.execSelect();
+            return ResultSetFormatter.toList(results);
+        }
+    }
+
+    public static String runQuery(Model model, String queryString, Lang language) {
+        queryString = sparqlPrefix + queryString;
+        String result = "";
+        Query query = QueryFactory.create(queryString);
+        try (QueryExecution qexec = QueryExecutionFactory.create(query, model);
+             ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+            ResultSet results = qexec.execSelect();
+            ResultsWriter.create()
+                .lang(language)
+                // see ResultSetFormat.out(OutputStream, ResultSet, Prologue)
+                // TODO: figure out why text format uses namespace prefixes but json, xml etc. don't
+                .set(ARQConstants.symPrologue, new Prologue(query.getPrefixMapping()))
+                .write(baos, results);
+            result = baos.toString();
+        } catch (IOException e) {
+            log.warning("Caught exception closing a string output stream; ignoring it since this should not happen.");
+        }
+        return result;
+    }
+
+    /**
+     * Print an RDF graph of the current ABS state, in TRTL format.
+     */
+    public static void printGraph(Model model) {
+        model.write(System.out, "TURTLE");
+    }
+
+    /**
+     * Return an RDF model of the current ABS state.
+     */
+    public static Model getModel() {
+        // Copy the weak map and set to pacify the gc
+        Map<String, ObjectView> objects = Map.copyOf(objectMap);
+        Set<COGView> cogs = Set.copyOf(cogSet);
+        Model model = ModelFactory.createDefaultModel();
+        initNamespaces(model);
+        model.add(progModel);
+        for (ObjectView view : objects.values()) {
+            addObjectTriples(model, view);
+        }
+        for (COGView view : cogs) {
+            addCogTriples(model, view);
+        }
+        model.add(progModel);
+        model.add(domainModel);
+        return model;
+    }
+
+    private static void addCogTriples(Model model, COGView view) {
+        COG cog = view.getCOG();
+        ABSInterface dc = cog.getDC();
+        String absNS = absNamespaces.get("abs");
+        String runNS = absNamespaces.get("run");
+        Resource cogRes = model.createResource(runNS + "cog" + cog.hashCode(),
+            model.createResource(absNS + "cog"));
+        Property inProp = model.createProperty(absNS + "in");
+        cogRes.addProperty(inProp, model.createResource(objectResourceName(dc)));
+    }
+
+    /**
+     * Add all triples defining the given object to the model.
+     */
+    static void addObjectTriples(Model model, ObjectView view) {
+        ABSObject obj = view.getObject();
+        String packagename = obj.getClass().getPackageName();
+        String type = packagename + "." + obj.getClassName();
+        String absNS = absNamespaces.get("abs");
+        String progNS = absNamespaces.get("prog");
+        String runNS = absNamespaces.get("run");
+        Optional<String> domainClass = obj.$domainClass();
+        Resource classRes = knownClasses.getOrDefault(type, model.createResource(progNS + type));
+        Resource objRes = model.createResource(objectResourceName(obj), classRes);
+        Property inProp = model.createProperty(absNS + "in");
+        if (domainClass.isPresent()) {
+            String domainClassUri = domainClass.get();
+            if (!knownDomainClasses.containsKey(domainClassUri)) {
+                knownDomainClasses.put(domainClassUri, model.createResource(domainClassUri));
+            }
+            Resource domainClassRes = knownDomainClasses.get(domainClassUri);
+            objRes.addProperty(RDF.type, domainClassRes);
+        }
+        objRes.addProperty(inProp, model.createResource(runNS + "cog" + obj.getCOG().hashCode()));
+        for (String fieldName : obj.getFieldNames()) {
+            Property fieldProp = model.createProperty(progNS + packagename + "." + fieldName);
+            try {
+                addFieldTriples(model, objRes, fieldProp, obj.getView().getFieldValue(fieldName));
+            } catch (NoSuchFieldException e) {
+                continue;
+                // should never happen
+            }
+        }
+    }
+
+    /**
+     * Queue entry for data structure reflection method
+     */
+    private record WorkItem(Resource resource, Property property, Object value) {}
+
+    static void addFieldTriples(Model model, Resource res, Property fieldProp, Object value) {
+        String runNS = absNamespaces.get("run");
+        String progNS = absNamespaces.get("prog");
+        String absNS = absNamespaces.get("abs");
+
+        Deque<WorkItem> queue = new ArrayDeque<>();
+        queue.addLast(new WorkItem(res, fieldProp, value));
+
+        while (!queue.isEmpty()) {
+            WorkItem item = queue.removeFirst();
+            Resource currentRes = item.resource;
+            Property currentProp = item.property;
+            Object currentValue = item.value;
+
+            switch (currentValue) {
+                case null:
+                    currentRes.addLiteral(currentProp, model.createTypedLiteral("null"));
+                    break;
+                case Apint i:
+                    currentRes.addLiteral(currentProp, model.createTypedLiteral(i.toBigInteger()));
+                    break;
+                case Aprational r:
+                    currentRes.addLiteral(currentProp, model.createTypedLiteral(r.doubleValue()));
+                    break;
+                case ABSObject o2:
+                    currentRes.addProperty(currentProp, model.createResource(objectResourceName(o2)));
+                    break;
+                case ABSUnit u:
+                    Resource unitClass = knownDatatypes.getOrDefault("ABS.StdLib.Unit", model.createResource(progNS + "ABS.StdLib.Unit"));
+                    Resource unitRes = model.createResource(unitClass);
+                    currentRes.addProperty(currentProp, unitRes);
+                    break;
+                case ABSFut f:
+                    Resource futureClass = knownDatatypes.getOrDefault("ABS.StdLib.Fut", model.createResource(progNS + "ABS.StdLib.Fut"));
+                    Resource futureRes = model.createResource(futureClass);
+                    currentRes.addProperty(currentProp, futureRes);
+                    if (f.isDone()) {
+                        Property futureValueProperty = model.createProperty(absNS + "hasValue");
+                        Object result = f.getValue();
+                        queue.addLast(new WorkItem(futureRes, futureValueProperty, result));
+                    }
+                    break;
+                case ABSAlgebraicDataType a:
+                    // Create the resource for this algebraic data type
+                    String type = a.getClass().getPackageName() + "." + a.getConstructorName();
+                    Resource cons = knownConstructors.getOrDefault(type, model.createResource(progNS + type));
+                    Resource dataRes = model.createResource(cons);
+                    // Link it to the parent
+                    currentRes.addProperty(currentProp, dataRes);
+                    // Add all of its arguments to the queue
+                    for (int i = 0; i < a.getNumArgs(); i++) {
+                        Property argProp = model.createProperty(progNS + "arg" + i);
+                        Object argValue = a.getArg(i);
+                        queue.addLast(new WorkItem(dataRes, argProp, argValue));
+                    }
+                    break;
+                default:
+                    currentRes.addLiteral(currentProp, model.createTypedLiteral(currentValue));
+            }
+        }
+    }
+}
