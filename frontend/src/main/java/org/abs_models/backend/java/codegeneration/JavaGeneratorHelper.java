@@ -10,7 +10,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.lang.reflect.Method;
-import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -18,6 +17,7 @@ import java.util.stream.StreamSupport;
 
 import org.abs_models.backend.java.JavaBackend;
 import org.abs_models.backend.java.JavaBackendConstants;
+import org.abs_models.backend.java.JavaBackendException;
 import org.abs_models.backend.java.lib.expr.BinOp;
 import org.abs_models.backend.java.lib.runtime.ABSBuiltInFunctions;
 import org.abs_models.backend.java.lib.runtime.ABSFut;
@@ -28,6 +28,7 @@ import org.abs_models.backend.java.lib.runtime.ModelApi;
 import org.abs_models.backend.java.lib.runtime.Task;
 import org.abs_models.backend.java.lib.types.ABSProcess;
 import org.abs_models.backend.java.lib.types.ABSValue;
+import org.abs_models.backend.java.observing.GraphObserver;
 import org.abs_models.backend.java.scheduling.UserSchedulingStrategy;
 import org.abs_models.common.Constants;
 import org.abs_models.frontend.analyser.AnnotationHelper;
@@ -37,27 +38,25 @@ import org.abs_models.frontend.ast.AsyncCall;
 import org.abs_models.frontend.ast.AwaitAsyncCall;
 import org.abs_models.frontend.ast.AwaitStmt;
 import org.abs_models.frontend.ast.BuiltinFunctionDef;
-import org.abs_models.frontend.ast.CaseStmt;
 import org.abs_models.frontend.ast.ClassDecl;
 import org.abs_models.frontend.ast.ConstructorArg;
-import org.abs_models.frontend.ast.ConstructorPattern;
 import org.abs_models.frontend.ast.DataConstructor;
 import org.abs_models.frontend.ast.DataTypeDecl;
 import org.abs_models.frontend.ast.Decl;
-import org.abs_models.frontend.ast.Exp;
 import org.abs_models.frontend.ast.ExpGuard;
+import org.abs_models.frontend.ast.FieldDecl;
 import org.abs_models.frontend.ast.FnApp;
 import org.abs_models.frontend.ast.FunctionDecl;
 import org.abs_models.frontend.ast.HasTypeParameters;
+import org.abs_models.frontend.ast.InterfaceDecl;
+import org.abs_models.frontend.ast.InterfaceTypeUse;
 import org.abs_models.frontend.ast.LetExp;
 import org.abs_models.frontend.ast.List;
 import org.abs_models.frontend.ast.MethodImpl;
 import org.abs_models.frontend.ast.MethodSig;
+import org.abs_models.frontend.ast.ModuleDecl;
 import org.abs_models.frontend.ast.NewExp;
 import org.abs_models.frontend.ast.ParamDecl;
-import org.abs_models.frontend.ast.Pattern;
-import org.abs_models.frontend.ast.PatternVar;
-import org.abs_models.frontend.ast.PatternVarUse;
 import org.abs_models.frontend.ast.PureExp;
 import org.abs_models.frontend.ast.ReturnStmt;
 import org.abs_models.frontend.ast.Stmt;
@@ -69,7 +68,11 @@ import org.abs_models.frontend.ast.VarDecl;
 import org.abs_models.frontend.ast.VarOrFieldDecl;
 import org.abs_models.frontend.ast.VarUse;
 import org.abs_models.frontend.typechecker.DataTypeType;
+import org.abs_models.frontend.typechecker.InterfaceType;
 import org.abs_models.frontend.typechecker.Type;
+import org.apache.jena.query.ParameterizedSparqlString;
+import org.apache.jena.rdf.model.ModelFactory;
+import org.apache.jena.vocabulary.RDFS;
 import org.apfloat.Apint;
 import org.apfloat.Aprational;
 
@@ -77,6 +80,10 @@ public class JavaGeneratorHelper {
 
     private static final String FLI_METHOD_PREFIX = "fli_";
 
+    /**
+     * Generate a Java comment with filename + line number of {@code
+     * node}.
+     */
     public static void generateHelpLine(PrintStream stream, ASTNode<?> node) {
         stream.println("// " + node.getPositionString());
     }
@@ -176,6 +183,10 @@ public class JavaGeneratorHelper {
         stream.print(getTypeParameters(dtd));
     }
 
+    /**
+     * Generate function calls for ABS functions marked "builtin"
+     * (i.e., special in some way).
+     */
     public static void generateBuiltInFnApp(PrintStream stream, FnApp app) {
         FunctionDecl d = (FunctionDecl) app.getDecl();
         String name = builtInFunctionJavaName(d.getName());
@@ -196,20 +207,25 @@ public class JavaGeneratorHelper {
             if (returnsGeneratedDataType)
                 stream.print(")");
         } else {
-            // We're (hopefully) an SQLite query; optimistically emit a call
+            // We're (hopefully) an SQLite query; optimistically emit
+            // a call -- type-checking should have intervened already.
             stream.print(JavaBackend.getQualifiedString(d) + ".");
-            Type declaredResultType = d.getTypeUse().getType();
             stream.print("apply");
             JavaGeneratorHelper.generateArgs(stream, app.getParams(), d.getTypes());
         }
     }
 
+    /**
+     * Generate function body for SQLite3 query functions.  Those are
+     * functions defined as {@code builtin(sqlite3, ...)} -- see the
+     * language manual for details.
+     */
     public static void generateSqlite3Body(PrintStream stream, BuiltinFunctionDef body) {
 
         String dbname = ((StringLiteral)body.getArgument(1)).getContent();
         String query = ((StringLiteral)body.getArgument(2)).getContent()
             .replaceAll("[\r\n]+\\s*", " ")
-            .replaceAll("\"", "\\\"");
+            .replace("\"", "\\\"");
         FunctionDecl decl = body.closestParent(FunctionDecl.class);
         // Type checking ensures that decl has a type `List<X>'; get the X
         Type query_type = ((DataTypeType)decl.getType()).getTypeArg(0);
@@ -322,6 +338,106 @@ public class JavaGeneratorHelper {
         stream.println("return result;");
     }
 
+    /**
+     * Generate function body for Sparql query functions.  Those are
+     * functions defined as {@code builtin(sparql, ...)} -- see the
+     * language manual for details.
+     */
+    public static void generateSparqlBody(PrintStream stream, BuiltinFunctionDef body) {
+
+        String query = (GraphObserver.sparqlPrefix + ((StringLiteral)body.getArgument(1)).getContent())
+            .replaceAll("[\r\n]+\\s*", " ")
+            .replace("\"", "\\\"");
+
+        FunctionDecl decl = body.closestParent(FunctionDecl.class);
+        // Type checking ensures that decl has a type `List<X>'; get the X
+        Type query_type = ((DataTypeType)decl.getType()).getTypeArg(0);
+
+        String obs = GraphObserver.class.getName();
+
+        stream.println("java.util.List<Object> $acc = new java.util.ArrayList<>();");
+        stream.println("ABS.StdLib.List $result = new ABS.StdLib.List_Nil();");
+        stream.println("var $query = new " + ParameterizedSparqlString.class.getName() + "(\"" + query + "\");");
+        for (int i = 2; i < body.getNumArgument(); i++) {
+            // skip 'sparql' and query string
+            PureExp e = body.getArgument(i);
+            Type t = e.getType();
+            if (t.isBoolType()) {
+                stream.print("$query.setLiteral(" + (i - 2) + ", (");
+                e.generateJava(stream);
+                stream.println("));");
+            } else if (t.isIntType()) {
+                stream.print("$query.setLiteral(" + (i - 2) + ", (");
+                e.generateJava(stream);
+                stream.println(").longValueExact());"); // crash rather than return wrong info
+            } else if (t.isRatType()) {
+                stream.print("$query.setLiteral(" + (i - 2) + ", (");
+                e.generateJava(stream);
+                stream.println(").doubleValue());");
+            } else if (t.isFloatType()) {
+                stream.print("$query.setLiteral(" + (i - 2) + ", (");
+                e.generateJava(stream);
+                stream.println("));");
+            } else if (t.isStringType()) {
+                stream.print("$query.setLiteral(" + (i - 2) + ", (");
+                e.generateJava(stream);
+                stream.println("));");
+            } else if (t.isInterfaceType()) {
+                stream.print("$query.setIri(" + (i - 2) + ", " + GraphObserver.class.getName() + ".objectResourceName(");
+                e.generateJava(stream);
+                stream.println("));");
+            } else {
+                // unreachable: query parameters are type-checked
+                // before code generation starts
+                throw new JavaBackendException(body, "Unexpected argument type for SPARQL query; probably a type-checking bug");
+            }
+        }
+        stream.println("var $solutions = " + obs + ".runQuery(" + obs + ".getModel(), $query.toString());");
+        stream.println("for (var $solution : $solutions) {");
+        if (query_type.isIntType() || query_type.isFloatType() || query_type.isStringType() || query_type.isBoolType() || query_type.isRatType()) {
+            // handle singleton literal return value
+            stream.println("var $o = $solution.get($solution.varNames().next());");
+            stream.println("if ($o.isLiteral()) {");
+            stream.println("var $l = $o.asLiteral();");
+            stream.print("$acc.add(0, ");
+            if (query_type.isBoolType()) {
+                stream.print("$l.getBoolean()");
+            } else if (query_type.isIntType()) {
+                stream.print("new " + Apint.class.getName() + "($l.getLong())");
+            } else if (query_type.isFloatType()) {
+                stream.print("$l.getDouble()");
+            } else if (query_type.isRatType()) {
+                stream.print("new " + Aprational.class.getName() + "($l.getDouble())");
+            } else if (query_type.isStringType()) {
+                stream.print("$l.getString()");
+            } else {
+                // unreachable: query result is type-checked before code
+                // generation starts
+                throw new JavaBackendException(body, "Unexpected return type for SPARQL query; probably a type-checking bug");
+            }
+            stream.println(");");
+            stream.println("}");
+        } else if (query_type.isInterfaceType()) {
+            InterfaceType int_query_t = (InterfaceType)query_type;
+            // handle singleton interface return value
+            stream.println("var $o = $solution.get($solution.varNames().next());");
+            stream.println("if ($o.isResource()) {");
+            stream.println("var $absObject = " + obs + ".findObjectForResource($o.asResource().getURI());");
+            stream.println("if ($absObject instanceof " + JavaBackend.getQualifiedString(int_query_t) + ") {");
+            stream.print("$acc.add(0, $absObject);");
+            stream.println("}");
+            stream.println("}");
+        } else {
+            // TODO: implement datatype construction
+            throw new JavaBackendException(body, "Unexpected return type for SPARQL query; probably a type-checking bug");
+        }
+        stream.println("}");
+        stream.println("for (Object $row : $acc) {");
+        stream.println("$result = new ABS.StdLib.List_Cons($row, $result);");
+        stream.println("}");
+        stream.println("return $result;");
+    }
+
     public static void generateDataConstructor(PrintStream stream, DataConstructor c, String datatypeName, DataTypeDecl dataTypeDecl) {
         String constructorClassName = JavaBackend.getConstructorName(c);
         JavaGeneratorHelper.generateHelpLine(stream,c);
@@ -365,12 +481,7 @@ public class JavaGeneratorHelper {
                     stream.println("sb.append(\"" + separator + "\");");
                 }
                 separator = ",";
-                ConstructorArg a = c.getConstructorArg(i);
-                if (a.getType().isStringType()) {
-                    stream.println("sb.append(\"\\\"\" + arg" + i + " + \"\\\"\");");
-                } else {
-                    stream.println("sb.append(" + ABSBuiltInFunctions.class.getName() + ".toString(arg" + i + "));");
-                }
+                stream.println("sb.append(" + ABSBuiltInFunctions.class.getName() + ".toString(arg" + i + ", false));");
             }
             stream.println("sb.append(\")\");");
         }
@@ -429,15 +540,15 @@ public class JavaGeneratorHelper {
         if (qualifiedName.equals("ABS.StdLib.List_Cons")) {
             stream.println(
                 """
-                java.lang.String className = this.getClass().getName();
-                java.util.ArrayList<Object> result = new java.util.ArrayList<>();
-                org.abs_models.backend.java.lib.types.ABSDataType value = this;
-                while (className.equals("ABS.StdLib.List_Cons")) {
-                    result.addLast(org.abs_models.backend.java.lib.runtime.ModelApi.absToJson(value.getArg(0)));
-                    value = (org.abs_models.backend.java.lib.types.ABSDataType)value.getArg(1);
-                    className = value.getClass().getName();
-                }
-                return result;
+                        java.lang.String className = this.getClass().getName();
+                        java.util.ArrayList<Object> result = new java.util.ArrayList<>();
+                        org.abs_models.backend.java.lib.types.ABSDataType value = this;
+                        while (className.equals("ABS.StdLib.List_Cons")) {
+                            result.addLast(org.abs_models.backend.java.lib.runtime.ModelApi.absToJson(value.getArg(0)));
+                            value = (org.abs_models.backend.java.lib.types.ABSDataType)value.getArg(1);
+                            className = value.getClass().getName();
+                        }
+                        return result;
                 """);
         } else if (qualifiedName.equals("ABS.StdLib.List_Nil")) {
             stream.println("return java.util.List.of();");
@@ -954,6 +1065,83 @@ public class JavaGeneratorHelper {
             e.printStackTrace();
         }
         return null;
+    }
+
+    /**
+     * Create an RDF model that formalizes the program structure:
+     * classes and fields, interfaces and inheritance, etc.
+     *
+     * <p>Note that the resources added here are re-used in the {@link
+     * GraphObserver} class for the runtime ontology, so should be
+     * named identically.
+     */
+    public static org.apache.jena.rdf.model.Model generateProgramOntology(org.abs_models.frontend.ast.Model model) {
+        var ontology = ModelFactory.createDefaultModel();
+        GraphObserver.initNamespaces(ontology);
+        var absNS = GraphObserver.absNamespaces.get("abs");
+        var progNS = GraphObserver.absNamespaces.get("prog");
+        var classResource = ontology.createResource(absNS + "class");
+        var interfaceResource = ontology.createResource(absNS + "interface");
+        var fieldResource = ontology.createResource(absNS + "field");
+        var datatypeResource = ontology.createResource(absNS + "datatype");
+        var dataconstructorResource = ontology.createResource(absNS + "dataconstructor");
+        var hasFieldProperty = ontology.createProperty(absNS + "hasField");
+        var hasConstructorProperty = ontology.createProperty(absNS + "hasConstructor");
+        var implementsProperty = ontology.createProperty(absNS + "implements");
+        var extendsProperty = ontology.createProperty(absNS + "extends");
+        for (ModuleDecl moduleDecl : model.getModuleDecls()) {
+            var namePrefix = moduleDecl.getName() + ".";
+            for (Decl decl : moduleDecl.getDecls()) {
+                switch (decl) {
+                    case ClassDecl classDecl:
+                        var classDeclResource = ontology.createResource(progNS + classDecl.getModuleDecl().getName() + "." + classDecl.hashCode(), classResource);
+                        classDeclResource.addProperty(RDFS.label, namePrefix + classDecl.getName());
+                        for (InterfaceTypeUse interface__ : classDecl.getImplementedInterfaceUses()) {
+                            var interface_ = interface__.getDecl();
+                            String mname = interface_.getModuleDecl().getName() + ".";
+                            var classInterfaceResource = ontology.createResource(progNS + mname + interface_.hashCode(), interfaceResource);
+                            classDeclResource.addProperty(implementsProperty, classInterfaceResource);
+                        }
+                        for (ParamDecl param : classDecl.getParams()) {
+                            var classFieldResource = ontology.createResource(progNS + namePrefix + param.getName(), fieldResource);
+                            // var classFieldResource = ontology.createResource(progNS + namePrefix + param.hashCode(), fieldResource);
+                            classFieldResource.addProperty(RDFS.label, namePrefix + param.getName());
+                            classDeclResource.addProperty(hasFieldProperty, classFieldResource);
+                        }
+                        for (FieldDecl field : classDecl.getFields()) {
+                            var classFieldResource = ontology.createResource(progNS + namePrefix + field.getName(), fieldResource);
+                            // var classFieldResource = ontology.createResource(progNS + namePrefix + field.hashCode(), fieldResource);
+                            classFieldResource.addProperty(RDFS.label, namePrefix + field.getName());
+                            classDeclResource.addProperty(hasFieldProperty, classFieldResource);
+                        }
+                        break;
+                    case InterfaceDecl interfaceDecl:
+                        var interfaceDeclResource = ontology.createResource(progNS + namePrefix + interfaceDecl.hashCode(), interfaceResource);
+                        interfaceDeclResource.addProperty(RDFS.label, namePrefix + interfaceDecl.getName());
+                        for (InterfaceTypeUse superinterface_ : interfaceDecl.getExtendedInterfaceUses()) {
+                            var superinterface = superinterface_.getDecl();
+                            String mname = superinterface.getModuleDecl().getName() + ".";
+                            var superInterfaceResource = ontology.createResource(progNS + mname + superinterface.hashCode(), interfaceResource);
+                            interfaceDeclResource.addProperty(extendsProperty, superInterfaceResource);
+                        }
+                        break;
+                    case DataTypeDecl datatypeDecl:
+                        var datatypeDeclResource = ontology.createResource(progNS + namePrefix + datatypeDecl.hashCode(), datatypeResource);
+                        datatypeDeclResource.addProperty(RDFS.label, namePrefix + datatypeDecl.getName());
+                        for (DataConstructor constructor : datatypeDecl.getDataConstructors()) {
+                            var dataconstructorDeclResource = ontology.createResource(progNS + namePrefix + constructor.getName(),
+                                dataconstructorResource);
+                            // var dataconstructorDeclResource = ontology.createResource(progNS + namePrefix + constructor.hashCode(),
+                            //     dataconstructorResource);
+                            dataconstructorDeclResource.addProperty(RDFS.label, namePrefix + constructor.getName());
+                            datatypeDeclResource.addProperty(hasConstructorProperty, dataconstructorDeclResource);
+                        }
+                    default:
+                        break;
+                }
+            }
+        }
+        return ontology;
     }
 
 }

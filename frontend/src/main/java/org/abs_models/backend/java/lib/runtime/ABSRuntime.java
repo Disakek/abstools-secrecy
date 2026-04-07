@@ -25,7 +25,7 @@ import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Properties;
 import java.util.Random;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Logger;
 
 import org.abs_models.backend.java.lib.types.ABSInterface;
@@ -71,8 +71,8 @@ public class ABSRuntime {
      */
     protected static ABSRuntime runtimeSingleton = null;
     private final ABSThreadManager threadManager = new ABSThreadManager(this);
-    private final AtomicInteger cogCounter = new AtomicInteger();
-    private final AtomicInteger taskCounter = new AtomicInteger();
+    private final AtomicLong cogCounter = new AtomicLong();
+    private final AtomicLong taskCounter = new AtomicLong();
 
     /** The number of currently active cogs in the system. */
     private long nActiveCogs = 0;
@@ -193,11 +193,11 @@ public class ABSRuntime {
         }
     }
 
-    int freshTaskID() {
+    long freshTaskID() {
         return taskCounter.incrementAndGet();
     }
 
-    int freshCOGID() {
+    long freshCOGID() {
         return cogCounter.incrementAndGet();
     }
 
@@ -489,13 +489,13 @@ public class ABSRuntime {
         return task.getFut();
     }
 
-    private final Map<Class<?>,AtomicInteger> objectIds = new HashMap<>();
+    private final Map<Class<?>,AtomicLong> objectIds = new HashMap<>();
     public long getFreshObjectID(Class<?> clazz) {
-        AtomicInteger ai = null;
+        AtomicLong ai = null;
         synchronized (objectIds) {
             ai = objectIds.get(clazz);
             if (ai == null) {
-                ai = new AtomicInteger();
+                ai = new AtomicLong();
                 objectIds.put(clazz, ai);
             }
             return ai.incrementAndGet();
@@ -843,6 +843,10 @@ public class ABSRuntime {
                     .map(ABSDurationGuard::getMaxTime)
                     .reduce(duration_guards.peek().getMaxTime(), (t1, t2) -> t1.compareTo(t2) < 0 ? t1 : t2);
             }
+            // stupid java "lambdas"
+            var nRG = resourceGuardsWoken;
+            var nDG = durationGuardsWoken;
+            log.finest(() -> "Woke " + nRG + " tasks waiting for resources and " + nDG + " tasks waiting for time");
             guardsWoken = guardsWoken + resourceGuardsWoken + durationGuardsWoken;
         }
         this.nWakingCogs = guardsWoken;
