@@ -91,6 +91,7 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
         System.out.println("Print all Levels: " + secrecyLatticeStructure.getSecrecyLevels().toString());
         System.out.println("Print the order" + secrecyLatticeStructure.getLatticeOrder().toString());
         System.out.println("Confidentiality of current program point is: " + programConfidentiality.getLast().getSecrecyLevel());
+        System.out.println("Print all methods in from all classes:" + methodList);
     }
 
     /**
@@ -140,7 +141,13 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
                         
                         //3.
                         for (MethodImpl method : classDecl.getMethods()) {
+
+                            methodList.add(new SecrecyMethod(classDecl, method));
                             
+//                            if (method.getMethodSig() == null) {
+//                                return;
+//                            }
+//
                             MethodSig methodSigNat = method.getMethodSig();
 
                             //3.1
@@ -242,6 +249,7 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
      * @param model - the ABS model on which we want to check the respecting of the secrecy typerules
      */
     private void secondTypecheckPhasePass(Model model){
+        /*
         for (CompilationUnit cu : model.getCompilationUnits()) {
             for (ModuleDecl moduleDecl : cu.getModuleDecls()) {
                 for (Decl decl : moduleDecl.getDecls()) {
@@ -249,13 +257,40 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
                         //TODO this is to "later" reset the current secrecy before we check the next method
                         //_currentSecrecy = new HashMap<>(_maxSecrecy);
                         for (MethodImpl method : classDecl.getMethods()) {
+                            //For each method of that class
+                            //TODO probably it's best to start a check here and after each method check we have to reset the current to be the same as max
                             Block block = method.getBlock();
+                            //Get the block and then perform a check on each statement in the block!
                             for (Stmt stmt : block.getStmtList()) {
                                 stmt.accept(visitor);
                             }
                         }
                     }
                 }
+            }
+        }*/
+       //This should now be replaceable by instead checking each method in the methodList
+        for (SecrecyMethod methodToCheck : methodList) {
+            if(!methodToCheck.getIsChecked()) {
+
+                MethodImpl methodToCheckImpl = methodToCheck.getMethodNode();
+                MethodSig methodToCheckSig = methodToCheckImpl.getMethodSig();
+                String methodToCheckName = methodToCheckSig.getName();
+                int errorCountBefore = errors.getErrorCount();
+                //System.out.println("Error Count before checking: " + methodToCheckName + ":" + errorCountBefore);
+
+                Block methodToCheckBlock = methodToCheckImpl.getBlock();
+                methodToCheckBlock.accept(visitor);
+                
+                int errorCountAfter = errors.getErrorCount();
+                //System.out.println("Error Count after checking: " + methodToCheckName + ":" + errorCountAfter);
+                if(errorCountAfter == errorCountBefore) {
+                    methodToCheck.setIsSecure(true);
+                } else {
+                    methodToCheck.setIsSecure(false);
+                    System.out.println(methodToCheck);
+                }
+                methodToCheck.setIsChecked(true);
             }
         }
     }
@@ -372,5 +407,6 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
             }
         }
     }
+
 }
 
