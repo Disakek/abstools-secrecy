@@ -266,6 +266,14 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
                 }
             }
         }*/
+        //Check the main block
+        for (CompilationUnit cu : model.getCompilationUnits()) {
+            if (cu.hasMainBlock()) {
+                Block mainBlock = cu.getMainBlock();
+                mainBlock.accept(visitor);
+            }
+        }
+
         //This should now be replaceable by instead checking each method in the methodList
         for (SecrecyMethod methodToCheck : methodList) {
             if(!methodToCheck.getIsChecked()) {
