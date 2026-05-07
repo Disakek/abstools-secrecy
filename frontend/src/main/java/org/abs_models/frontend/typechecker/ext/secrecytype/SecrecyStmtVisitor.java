@@ -53,6 +53,9 @@ public class SecrecyStmtVisitor {
      */
     private final SemanticConditionList errors;
 
+    private Model m;
+    private LinkedList<CalledMethod> methodsCallingOthers = new LinkedList<CalledMethod>();
+
     /**
      * Constructor for the SecrecyStmtVisitor.
      * @param _maxSecrecy - the hashmap that links ASTNode's to their assigned secrecylevel.
@@ -66,6 +69,7 @@ public class SecrecyStmtVisitor {
         this.secrecyLatticeStructure = secrecyLatticeStructure;
         this.errors = errors;
         this.programConfidentiality = programConfidentiality;
+        this.methodsCallingOthers = methodsCallingOthers;
 
         ExpVisitor = new SecrecyExpVisitor(_maxSecrecy, _currentSecrecy, secrecyLatticeStructure, errors, programConfidentiality, this);
     }

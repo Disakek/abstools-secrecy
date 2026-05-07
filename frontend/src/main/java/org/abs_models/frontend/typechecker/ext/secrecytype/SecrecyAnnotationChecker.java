@@ -13,7 +13,8 @@ import java.util.LinkedList;
 import org.abs_models.frontend.analyser.ErrorMessage;
 import org.abs_models.frontend.analyser.TypeError;
 import org.abs_models.frontend.ast.*;
-
+import org.abs_models.frontend.analyser.SemanticConditionList;
+import org.abs_models.frontend.analyser.SemanticCondition;
 /**
  * This class is using two phases which both run over the model. 
  * The first phase extracts the secrecy annotations and their level, as well as running a few basic checks.
@@ -48,7 +49,7 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
      * List holds entries for confidentiality levels if evaluated at a point in time it is the current secrecylevel. 
      */
     private LinkedList<ProgramCountNode> programConfidentiality;
-    
+
     /**
      * The constructor for the SecrecyAnnotationChecker a class that checks a given model.
      * @param m - the ABS model that we want to check, is already parsed before.
@@ -56,6 +57,7 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
     protected SecrecyAnnotationChecker(Model m) {
         super(m);
 
+        //model = m;TODO remove
         programConfidentiality = new LinkedList<ProgramCountNode>();
 
         if (m.secrecyLatticeStructure != null) {
@@ -143,11 +145,6 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
                         for (MethodImpl method : classDecl.getMethods()) {
 
                             methodList.add(new SecrecyMethod(classDecl, method));
-                            
-//                            if (method.getMethodSig() == null) {
-//                                return;
-//                            }
-//
                             MethodSig methodSigNat = method.getMethodSig();
 
                             //3.1
@@ -269,7 +266,15 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
                 }
             }
         }*/
-       //This should now be replaceable by instead checking each method in the methodList
+        //Check the main block
+        for (CompilationUnit cu : model.getCompilationUnits()) {
+            if (cu.hasMainBlock()) {
+                Block mainBlock = cu.getMainBlock();
+                mainBlock.accept(visitor);
+            }
+        }
+
+        //This should now be replaceable by instead checking each method in the methodList
         for (SecrecyMethod methodToCheck : methodList) {
             if(!methodToCheck.getIsChecked()) {
 
@@ -291,6 +296,25 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
                     System.out.println(methodToCheck);
                 }
                 methodToCheck.setIsChecked(true);
+            }
+        }
+
+        //TODO future work => add the corresponding SecrecyMethod to the CalledMethod so that we don't have to search it twice !!
+        for(CalledMethod called : methodsCallingOthers) {
+            
+            //get the corresponding SecrecyMethod
+            SecrecyMethod key = new SecrecyMethod(called.getCallParentClass(), called.getMethodImpl());
+            SecrecyMethod found = null;
+
+            for (SecrecyMethod sm : methodList) {
+                if (sm.equals(key)) {
+                    found = sm; // This is the actual instance from your list
+                    break;
+                }
+            }
+
+            if(found.getIsChecked() && (!found.getIsSecure())) {
+               errors.addSortedByLine(new TypeError(called.getMethodCall(), ErrorMessage.SECRECY_CALLING_INSECURE_METHOD, called.getMethodImpl().getMethodSig().getName()));
             }
         }
     }
@@ -407,6 +431,9 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
             }
         }
     }
+    
+    public static void addCalledMethod(ClassDecl parentClass, Call functionCall, MethodImpl calledMethodImpl, LinkedList<CalledMethod> methodsCallingOthers) {
+        methodsCallingOthers.add(new CalledMethod(parentClass, functionCall, calledMethodImpl));
+    }
 
 }
-

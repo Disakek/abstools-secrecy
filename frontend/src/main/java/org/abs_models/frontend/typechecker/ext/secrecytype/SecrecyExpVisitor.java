@@ -54,6 +54,9 @@ public class SecrecyExpVisitor {
      */
     private final SemanticConditionList errors;
 
+    private Model m;
+    private LinkedList<CalledMethod> methodsCallingOthers = new LinkedList<CalledMethod>();
+
     /**
      * Constructor for the secrecy expression visitor that retrieves the secrecyvalues of different expressions.
      * @param _maxSecrecy - the hashmap that links ASTNode's to their assigned secrecylevel.
@@ -68,6 +71,7 @@ public class SecrecyExpVisitor {
         this.errors = errors;
         this.programConfidentiality = programConfidentiality;
         this.stmtVisitor = stmtVisitor;
+        this.methodsCallingOthers = methodsCallingOthers;
     }
 
     /**
@@ -285,6 +289,23 @@ public class SecrecyExpVisitor {
             List<PureExp> calledParams = functionCall.getParamList();
             int numberOfDefinedParameters = parameterList.getNumChild();
 
+            //TODO check here wether the called method is secure (if the caller is in the same class - ThisExp)
+            Exp caller = functionCall.getCallee();
+            
+            //Check if it's a ThisExp
+            if(caller instanceof ThisExp callerIsThis) {
+                
+                //Get the declaring class
+                ClassDecl implementingClass = findImplementingClassHelper(m, calledMethod);
+                //
+                if (implementingClass != null) {
+                    MethodImpl calledMethodImpl = findMethodImpl(implementingClass, calledMethod);
+                    if (calledMethodImpl != null) {
+                        SecrecyAnnotationChecker.addCalledMethod(implementingClass, functionCall, calledMethodImpl, methodsCallingOthers);
+                    }
+                }
+            }
+
             if(numberOfDefinedParameters > 0) {
 
                 for(int i = 0; i < parameterList.getNumChild(); i++) {
@@ -343,6 +364,35 @@ public class SecrecyExpVisitor {
         }
 
         return listLevel;
+    }
+
+    private ClassDecl findImplementingClassHelper (Model m, MethodSig inMethod) {
+
+        ClassDecl result = null;
+
+        for (CompilationUnit cu : m.getCompilationUnits()) {
+            for (ModuleDecl moduleDecl : cu.getModuleDecls()) {
+                for (Decl decl : moduleDecl.getDecls()) {
+                    if (decl instanceof ClassDecl classDecl) {
+                        result = classDecl;
+                        for (MethodImpl method : classDecl.getMethods()) {
+                            if(inMethod == method.getMethodSig()) {
+                                return result;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private MethodImpl findMethodImpl(ClassDecl parentClass, MethodSig inMethod) {
+        for (MethodImpl method : parentClass.getMethods()) {
+            if (method.getMethodSig() == inMethod) return method;
+        }
+        return null;
     }
 
     /**
