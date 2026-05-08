@@ -15,23 +15,24 @@ aspect AddStmtVisitor {
   public void AssignStmt.accept(SecrecyStmtVisitor v) { v.visit(this); }
 
   @Override
-  public void ReturnStmt.accept(SecrecyStmtVisitor v) { v.visit(this); }
-
-  @Override
-  public void IfStmt.accept(SecrecyStmtVisitor v) { v.visit(this); }
-
-  @Override
-  public void WhileStmt.accept(SecrecyStmtVisitor v) { v.visit(this); }
+  public void AwaitStmt.accept(SecrecyStmtVisitor v) { v.visit(this); }
 
   @Override
   public void Block.accept(SecrecyStmtVisitor v) { v.visit(this); }  
 
   @Override
-  public void AwaitStmt.accept(SecrecyStmtVisitor v) { v.visit(this); }
+  public void ExpressionStmt.accept(SecrecyStmtVisitor v) { v.visit(this); }
 
   @Override
-  public void ExpressionStmt.accept(SecrecyStmtVisitor v) { v.visit(this); }
-  
+  public void IfStmt.accept(SecrecyStmtVisitor v) { v.visit(this); }
+
+  @Override
+  public void ReturnStmt.accept(SecrecyStmtVisitor v) { v.visit(this); }
+
   @Override
   public void VarDeclStmt.accept(SecrecyStmtVisitor v) { v.visit(this); }
+
+  @Override
+  public void WhileStmt.accept(SecrecyStmtVisitor v) { v.visit(this); }
+  
 }

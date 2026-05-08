@@ -26,7 +26,6 @@ public class SecrecyStmtVisitor {
      */
     private HashMap<ASTNode<?>,String> _maxSecrecy = new HashMap<>();
 
-    //todo current secrecy is here 
     /**
      * Stores mappings between ASTNode's (declarations) and the assigned current secrecy values.
      * Meaning e.g. a variable may hold a vlaue smaller than it's max secrecy value which would allow certain actions. 
@@ -53,7 +52,14 @@ public class SecrecyStmtVisitor {
      */
     private final SemanticConditionList errors;
 
+    /**
+     * The current model m that we want to check the secrecy type rules for.
+     */
     private Model m;
+
+    /**
+     * The list of methods that contain a call to another method and thus could be insecure if the called method is insecure.
+     */
     private LinkedList<CalledMethod> methodsCallingOthers = new LinkedList<CalledMethod>();
 
     /**
@@ -80,36 +86,7 @@ public class SecrecyStmtVisitor {
      * @param stmt - the stmt we want to visit and check.
      */
     public void visit(Stmt stmt) {
-
-        if(stmt instanceof Block blockStmt) {
-            this.visit(blockStmt);
-        } else if (stmt instanceof AssignStmt assignStmt) {
-            this.visit(assignStmt);
-        } else if (stmt instanceof ReturnStmt returnStmt) {
-            this.visit(returnStmt);
-        } else if (stmt instanceof IfStmt ifStmt) {
-            this.visit(ifStmt);
-        } else if (stmt instanceof WhileStmt whileStmt) {
-            this.visit(whileStmt);
-        } else if (stmt instanceof ExpressionStmt expressionStmt) {
-            this.visit(expressionStmt);
-        } else if (stmt instanceof VarDeclStmt varDeclStmt) {
-            this.visit(varDeclStmt);
-        } else if (stmt instanceof AwaitStmt awaitStmt) {
-            this.visit(awaitStmt);
-        }
-
         return;
-    }
-
-    /**
-     * Visit function for block statements. We check every statement in the block with this visitor.
-     * @param blockStmt - the blockstmt from which we want to visit each stmt.
-     */
-    public void visit(Block blockStmt){
-        for(Stmt stmt : blockStmt.getStmtList()) {
-            stmt.accept(this);
-        }
     }
 
     /**
@@ -162,50 +139,26 @@ public class SecrecyStmtVisitor {
     }
 
     /**
-     * Visit function for return statements. 
-     * We check that for methoda:High and b:Low we never return b.
-     * Secrecylevel of return has to be lower or equal the return secrecylevel of the method. (default: Low)
-     * @param returnStmt - the return stmt that has to respect the returnstmt rule.
+     * Visit function for await statements. 
+     * When we check an await we need to add it to the programConfidentiality.
+     * Once the await finishes we have a get so between await and get everything gets the higher program context.
+     * The level of the "higher context" is defined by the level of the await's value.
+     * @param awaitStmt - the await stmt that has to be handled similar to the if-stmt.
+     * Handling performed by with the helper function handleGuards().
      */
-    public void visit(ReturnStmt returnStmt){
-        
-        ASTNode<?> returnExp = returnStmt.getChild(1);
-        ASTNode<?> parentNode = returnStmt.getParent();
+    public void visit(AwaitStmt awaitStmt) {
 
-        String returnDefinitionLevel = secrecyLatticeStructure.getMinSecrecyLevel();
-        String returnActualLevel = secrecyLatticeStructure.getMinSecrecyLevel();
+        //TODO update the documentation
+        checkFieldsRespectMax(awaitStmt);
 
-        while(!(parentNode instanceof MethodImpl)) {
-            parentNode = parentNode.getParent();
-        }
-
-        if((parentNode instanceof MethodImpl methodImpl)) {
-
-            MethodSig methodSig = methodImpl.getMethodSig();
-            String possibleMethodSigSecrecy = _maxSecrecy.get(methodSig);
-
-            if(possibleMethodSigSecrecy != null)returnDefinitionLevel = possibleMethodSigSecrecy;
-        }
-
-        if(returnExp instanceof Exp exp) {
-
-            if(exp.accept(ExpVisitor) != null)returnActualLevel = exp.accept(ExpVisitor);
-
-        }
-
-        Set<String> methodReturnSet = secrecyLatticeStructure.getSetForSecrecyLevel(returnActualLevel);
-
-        if(!(methodReturnSet.contains(returnDefinitionLevel)) && !(returnActualLevel.equals(returnDefinitionLevel))) {
-            errors.add(new TypeError(returnStmt, ErrorMessage.SECRECY_LEAKAGE_ERROR_FROM_TO, returnActualLevel, "returnStmt", returnDefinitionLevel, "returnDefinition"));
-        }
+        Guard getGuard = awaitStmt.getGuard();
+        handleGuards(getGuard);
+    
     }
 
     /**
-     * Visit function for if-statements. 
-     * When we check the then (or else) block we might have a higher program point context.
-     * The program point is defined by the one we had joined with the secrecylevel of the condition. (default: Low)
-     * For this we add the secrecylevel of the condition to the programConfidentiality list and remove it once checked. 
-     * @param ifStmt - the if-stmt that has to respect the if-rule.
+     * Visit function for block statements. We check every statement in the block with this visitor.
+     * @param blockStmt - the blockstmt from which we want to visit each stmt.
      */
     public void visit(IfStmt ifStmt){
 
@@ -302,6 +255,77 @@ public class SecrecyStmtVisitor {
     }
 
     /**
+     * Visit function for if-statements. 
+     * When we check the then (or else) block we might have a higher program point context.
+     * The program point is defined by the one we had joined with the secrecylevel of the condition. (default: Low)
+     * For this we add the secrecylevel of the condition to the programConfidentiality list and remove it once checked. 
+     * @param ifStmt - the if-stmt that has to respect the if-rule.
+     */
+    public void visit(IfStmt ifStmt){
+
+        Exp condition = ifStmt.getCondition();
+        //System.out.println("If-condition: " + condition + " with " + condition.accept(ExpVisitor));
+
+        if(condition.accept(ExpVisitor) != null) {
+            ProgramCountNode ifNode = new ProgramCountNode("ifStmt", condition.accept(ExpVisitor));
+            programConfidentiality.add(ifNode);
+            //The print below can be used when one is not sure that the if-stmt's work properly
+            //if(!ifNode.getSecrecyLevel().equals("Low")) System.out.println("Created new if stmt with secrecy level: " + ifNode.getSecrecyLevel());
+
+            ExpVisitor.updateProgramPoint(programConfidentiality);
+            Stmt thenCase = ifStmt.getThen();
+            thenCase.accept(this);
+
+            if(ifStmt.hasElse()) {
+                Stmt elseCase = ifStmt.getElse();
+                elseCase.accept(this);
+            }
+
+            programConfidentiality.remove(ifNode);
+            ExpVisitor.updateProgramPoint(programConfidentiality);
+        }
+    }
+
+    /**
+     * Visit function for return statements. 
+     * We check that for methoda:High and b:Low we never return b.
+     * Secrecylevel of return has to be lower or equal the return secrecylevel of the method. (default: Low)
+     * @param returnStmt - the return stmt that has to respect the returnstmt rule.
+     */
+    public void visit(ReturnStmt returnStmt){
+        
+        ASTNode<?> returnExp = returnStmt.getChild(1);
+        ASTNode<?> parentNode = returnStmt.getParent();
+
+        String returnDefinitionLevel = secrecyLatticeStructure.getMinSecrecyLevel();
+        String returnActualLevel = secrecyLatticeStructure.getMinSecrecyLevel();
+
+        while(!(parentNode instanceof MethodImpl)) {
+            parentNode = parentNode.getParent();
+        }
+
+        if((parentNode instanceof MethodImpl methodImpl)) {
+
+            MethodSig methodSig = methodImpl.getMethodSig();
+            String possibleMethodSigSecrecy = _maxSecrecy.get(methodSig);
+
+            if(possibleMethodSigSecrecy != null)returnDefinitionLevel = possibleMethodSigSecrecy;
+        }
+
+        if(returnExp instanceof Exp exp) {
+
+            if(exp.accept(ExpVisitor) != null)returnActualLevel = exp.accept(ExpVisitor);
+
+        }
+
+        Set<String> methodReturnSet = secrecyLatticeStructure.getSetForSecrecyLevel(returnActualLevel);
+
+        if(!(methodReturnSet.contains(returnDefinitionLevel)) && !(returnActualLevel.equals(returnDefinitionLevel))) {
+            errors.add(new TypeError(returnStmt, ErrorMessage.SECRECY_LEAKAGE_ERROR_FROM_TO, returnActualLevel, "returnStmt", returnDefinitionLevel, "returnDefinition"));
+        }
+    }
+
+    /**
      * Visit function for varDeclStmt statements.
      * We want to ensure that if a declaration has an initialization (exp) that we visit the init with the expression visitor.
      * @param varDeclStmt - the variable declaration statement that has to respect the rule.
@@ -354,24 +378,31 @@ public class SecrecyStmtVisitor {
                 errors.add(new TypeError(varDeclStmt, ErrorMessage.SECRECY_LEAKAGE_ERROR_FROM_TO, rhsLevel, initExp.toString(), lhsLevel, varDecl.getName()));
             }
         }
-    }
+    }    
 
     /**
-     * Visit function for await statements. 
-     * When we check an await we need to add it to the programConfidentiality.
-     * Once the await finishes we have a get so between await and get everything gets the higher program context.
-     * The level of the "higher context" is defined by the level of the await's value.
-     * @param awaitStmt - the await stmt that has to be handled similar to the if-stmt.
-     * Handling performed by with the helper function handleGuards().
+     * Visit function for while-statements. 
+     * When we check the while block we might have a higher program point context.
+     * The program point is defined by the one we had joined with the secrecylevel of the condition. (default: Low)
+     * For this we add the secrecylevel of the condition to the programConfidentiality list and remove it once checked. 
+     * @param whileStmt - the while stmt that has to respect the while rule.
+     * It is very similar to the if-stmt (without an else).
      */
-    public void visit(AwaitStmt awaitStmt) {
+    public void visit(WhileStmt whileStmt) {
+        
+        Exp condition = whileStmt.getCondition();
 
-        //TODO update the documentation
-        checkFieldsRespectMax(awaitStmt);
+        if(condition.accept(ExpVisitor) != null){
+            ProgramCountNode whileNode = new ProgramCountNode("whileStmt", condition.accept(ExpVisitor));
+            programConfidentiality.add(whileNode);
 
-        Guard getGuard = awaitStmt.getGuard();
-        handleGuards(getGuard);
-    
+            ExpVisitor.updateProgramPoint(programConfidentiality);
+            Stmt body = whileStmt.getBody();
+            body.accept(this);
+
+            programConfidentiality.remove(whileNode);
+            ExpVisitor.updateProgramPoint(programConfidentiality);
+        }
     }
 
     /**
@@ -414,6 +445,7 @@ public class SecrecyStmtVisitor {
         programConfidentiality = newConfidentiality;
     }
 
+    //TODO doc missing
     public boolean containsFnAppHelper(Exp expression) {
 
         if(expression instanceof FnApp) {
@@ -431,6 +463,7 @@ public class SecrecyStmtVisitor {
         return false;
     }
 
+    //TODO doc missing
     public FnApp getFnAppHelper(Exp expression) {
 
         if(expression instanceof FnApp fnapp) {

@@ -81,22 +81,6 @@ public class SecrecyExpVisitor {
      */
     public String visit(Exp expression) {
 
-        if (expression instanceof Binary binaryExp) {
-            return this.visit(binaryExp);
-        } else if(expression instanceof Unary unaryExp){
-            return this.visit(unaryExp);
-        } else if (expression instanceof VarOrFieldUse varOrFieldUse) {
-            return this.visit(varOrFieldUse);
-        } else if (expression instanceof GetExp getExp) {
-            return this.visit(getExp);
-        } else if (expression instanceof AsyncCall asyncCall) {
-            return this.visit(asyncCall);
-        } else if (expression instanceof SyncCall syncCall) {
-            return this.visit(syncCall);
-        } else if (expression instanceof FnApp fnApp) {
-            return this.visit(fnApp);
-        }
-
         return secrecyLatticeStructure.evaluateListLevel(programConfidentiality);
     }
 
