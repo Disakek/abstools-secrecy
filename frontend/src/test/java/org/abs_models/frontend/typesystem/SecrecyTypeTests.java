@@ -252,6 +252,7 @@ public class SecrecyTypeTests extends FrontendTest {
                msg == ErrorMessage.SECRECY_LEAKAGE_ERROR_AT_MOST ||
                msg == ErrorMessage.SECRECY_PARAMETER_TO_HIGH ||
                msg == ErrorMessage.SECRECY_FNAPP_NOT_EQUAL ||
+               msg == ErrorMessage.SECRECY_AWAIT_FIELD_VIOLATION ||
                msg == ErrorMessage.SECRECY_LEVEL_NON_EXISTANT;
     }
 

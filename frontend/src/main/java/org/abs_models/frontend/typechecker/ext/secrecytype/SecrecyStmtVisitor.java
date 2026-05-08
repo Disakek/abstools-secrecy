@@ -147,13 +147,18 @@ public class SecrecyStmtVisitor {
         
         if(LHScontainedIn.contains(RHSsecLevel)) {
             errors.add(new TypeError(assignStmt, ErrorMessage.SECRECY_LEAKAGE_ERROR_FROM_TO, RHSsecLevel, assignStmt.getValue().toString(), LHSsecLevel, assignStmt.getVar().getName()));
-            return;
+            //return;
+            
+            //TODO in order to enforce the double check with the fields respecting max we have to remove the return (e.g. outcomment)
+            //Also we have to change the currentSecrecy for the left handside in general and not only if lhs has a max higher than min!!
+            _currentSecrecy.put(LHS, RHSsecLevel); //Update the current secrecy level if it has a max level != to the min secrecy level (minLevel is not added to the structure)
         }
 
-        //Update the current secrecy level if it has a max level != to the min secrecy level
+        //Update the current secrecy level if it has a max level != to the min secrecy level (minLevel is not added to the structure)
+        /*
         if (!LHSsecLevel.equals(minSecLevel)) {
             _currentSecrecy.put(LHS, RHSsecLevel);
-        }
+        }*/
     }
 
     /**
@@ -360,6 +365,9 @@ public class SecrecyStmtVisitor {
      * Handling performed by with the helper function handleGuards().
      */
     public void visit(AwaitStmt awaitStmt) {
+
+        //TODO update the documentation
+        checkFieldsRespectMax(awaitStmt);
 
         Guard getGuard = awaitStmt.getGuard();
         handleGuards(getGuard);

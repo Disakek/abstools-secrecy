@@ -20,6 +20,8 @@ aspect AddExpVisitor {
   public String VarOrFieldUse.accept(SecrecyExpVisitor v) { return v.visit(this); }
 
   //The ones below are expressions with sideeffects!!
+  @Override
+  public String NewExp.accept(SecrecyExpVisitor v) { return v.visit(this); }
 
   @Override
   public String GetExp.accept(SecrecyExpVisitor v) { return v.visit(this); }

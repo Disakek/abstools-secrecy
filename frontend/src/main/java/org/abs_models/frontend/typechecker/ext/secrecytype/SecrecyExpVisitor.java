@@ -27,7 +27,6 @@ public class SecrecyExpVisitor {
      */
     private HashMap<ASTNode<?>,String> _maxSecrecy = new HashMap<>();
 
-    //todo current secrecy is here 
     /**
      * Stores mappings between ASTNode's (declarations) and the assigned current secrecy values.
      * Meaning e.g. a variable may hold a vlaue smaller than it's max secrecy value which would allow certain actions. 
@@ -139,6 +138,41 @@ public class SecrecyExpVisitor {
         if (variableSecrecy != null) {
             return secrecyLatticeStructure.join(variableSecrecy, secrecyLatticeStructure.evaluateListLevel(programConfidentiality));
         }
+
+        return listLevel;
+    }
+
+    //TODO remove the prints and write the doc
+    public String visit(NewExp newExp) {
+
+        // When we create a new exp of a class we have to ensure that for all parameters the maximum declared secrecy level is respected
+        String listLevel = secrecyLatticeStructure.evaluateListLevel(programConfidentiality);
+        String className = newExp.getClassName();
+        ClassDecl classToCreateOf = findClassByName(m, className);
+        List<PureExp> calledParams = newExp.getParamList(); //the input parameters
+        List<ParamDecl> declaredParams = classToCreateOf.getParamList(); //the declared parameters
+
+        if(calledParams.getNumChild() > 0) {
+
+            for(int i = 0; i < calledParams.getNumChild(); i++) {
+
+                //Retrieve the _currentSecrecy for the input parameters
+                String calledSecrecy = this.visit(calledParams.getChild(i));
+                //Retrieve the _maxSecrecy for the class parameters of the class we try to create an object for                
+                String definedSecrecy = _maxSecrecy.get(declaredParams.getChild(i));
+                
+                if(definedSecrecy == null) { 
+                    definedSecrecy = secrecyLatticeStructure.getMinSecrecyLevel();
+                }
+
+                Set<String> calledSecrecySet = secrecyLatticeStructure.getSetForSecrecyLevel(calledSecrecy);
+
+                //Ensure that the _currentSecrecy smaller or equal to the _maxSecrecy otherwise add a type error
+                if(!(definedSecrecy.equals(calledSecrecy) || calledSecrecySet.contains(definedSecrecy))) {
+                    errors.add(new TypeError(newExp, ErrorMessage.SECRECY_PARAMETER_TO_HIGH, calledSecrecy, declaredParams.getChild(i).getName(), definedSecrecy));
+                }
+            }
+        }        
 
         return listLevel;
     }
@@ -379,6 +413,25 @@ public class SecrecyExpVisitor {
                             if(inMethod == method.getMethodSig()) {
                                 return result;
                             }
+                        }
+                    }
+                }
+            }
+        }
+
+        return null;
+    }
+
+    public ClassDecl findClassByName (Model m, String className) {
+
+        ClassDecl result = null;
+
+        for (CompilationUnit cu : m.getCompilationUnits()) {
+            for (ModuleDecl moduleDecl : cu.getModuleDecls()) {
+                for (Decl decl : moduleDecl.getDecls()) {
+                    if (decl instanceof ClassDecl classDecl) {
+                        if (classDecl.getName().equals(className)) {
+                            return classDecl;
                         }
                     }
                 }

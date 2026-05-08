@@ -57,7 +57,6 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
     protected SecrecyAnnotationChecker(Model m) {
         super(m);
 
-        //model = m;TODO remove
         programConfidentiality = new LinkedList<ProgramCountNode>();
 
         if (m.secrecyLatticeStructure != null) {
@@ -96,6 +95,7 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
         System.out.println("Print all methods in from all classes:" + methodList);
     }
 
+    //TODO add the 1.5 where I extract the declared max secrecy levels for the class parameters
     /**
      * First phase (extraction) retrieves and stores the following information from the model/ast.
      * 
@@ -133,6 +133,13 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
                                 }
 
                             }
+                        }
+
+                        //TODO check if I also properly check the init method of the classes because I am not sure about it!!
+
+                        for(ParamDecl classParams : classDecl.getParamList()) {
+                            String level = extractSecrecyValue(classParams);
+                            if(level != null)_maxSecrecy.put(classParams, level);
                         }
         
                         //2.
@@ -299,7 +306,7 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
             }
         }
 
-        //TODO future work => add the corresponding SecrecyMethod to the CalledMethod so that we don't have to search it twice !!
+        //TODO idea => add the corresponding SecrecyMethod to the CalledMethod so that we don't have to search it twice !!
         for(CalledMethod called : methodsCallingOthers) {
             
             //get the corresponding SecrecyMethod
