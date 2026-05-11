@@ -15,6 +15,7 @@ import org.abs_models.frontend.analyser.TypeError;
 import org.abs_models.frontend.ast.*;
 import org.abs_models.frontend.analyser.SemanticConditionList;
 import org.abs_models.frontend.analyser.SemanticCondition;
+
 /**
  * This class is using two phases which both run over the model. 
  * The first phase extracts the secrecy annotations and their level, as well as running a few basic checks.
@@ -73,7 +74,7 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
     public void checkModel(Model model) {
 
         if (secrecyLatticeStructure == null){
-            System.out.println("Secrecy lattice was null!"); //means we dont want to perform any of these checks
+            System.out.println("Secrecy lattice was null so no secrecy type checks get performed!"); //means we dont want to perform any of these checks
             return;
         }
 
@@ -135,8 +136,6 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
                             }
                         }
 
-                        //TODO check if I also properly check the init method of the classes because I am not sure about it!!
-
                         for(ParamDecl classParams : classDecl.getParamList()) {
                             String level = extractSecrecyValue(classParams);
                             if(level != null)_maxSecrecy.put(classParams, level);
@@ -147,7 +146,7 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
                             String level = extractSecrecyValue(fieldDecl);
                             if(level != null)_maxSecrecy.put(fieldDecl, level);
                         }
-                        
+
                         //3.
                         for (MethodImpl method : classDecl.getMethods()) {
 
@@ -277,7 +276,19 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
         for (CompilationUnit cu : model.getCompilationUnits()) {
             if (cu.hasMainBlock()) {
                 Block mainBlock = cu.getMainBlock();
+                visitor.updateCurrentSecrecy(new HashMap<>(_maxSecrecy));
                 mainBlock.accept(visitor);
+            }
+
+            for (ModuleDecl moduleDecl : cu.getModuleDecls()) {
+                for (Decl decl : moduleDecl.getDecls()) {
+                    if (decl instanceof ClassDecl classDecl) {
+                        if (classDecl.hasInitBlock()) {
+                            visitor.updateCurrentSecrecy(new HashMap<>(_maxSecrecy));
+                            classDecl.getInitBlock().accept(visitor);
+                        }
+                    }
+                }
             }
         }
 
