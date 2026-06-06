@@ -230,10 +230,8 @@ public class Main {
             return;
         }
 
-        String secrecyTypeValues = "Low < High";
-        if (arguments.secrecyLattice != null)secrecyTypeValues = arguments.secrecyLattice;
-        
-        SecrecyLatticeStructure secrecyInput = parseSecrecyInput(secrecyTypeValues);
+        System.out.println("flowInsensitive is " + arguments.flowInsensitive);
+        SecrecyLatticeStructure secrecyInput = parseSecrecyInput(arguments.secrecyLattice, arguments.flowInsensitive);
         m.secrecyLatticeStructure = secrecyInput;
 
         m.evaluateAllProductDeclarations(); // resolve ProductExpressions to simple sets of features
@@ -282,7 +280,7 @@ public class Main {
     * @param inputString - the lattice that was put in, or default "Low < High"
     * @return - the newly parsed secrecy lattice defined by a set of levels and an order between them.
     */
-    private SecrecyLatticeStructure parseSecrecyInput(String inputString) {
+    private SecrecyLatticeStructure parseSecrecyInput(String inputString, Boolean flowInsensitive) {
 
         Set<String> levels = new HashSet<>();
         HashMap<String, Set<String>> order = new HashMap<>();
@@ -348,7 +346,7 @@ public class Main {
             throw new IllegalArgumentException("No secrecy levels input found!");
         }
 
-        return new SecrecyLatticeStructure(levels, order);
+        return new SecrecyLatticeStructure(levels, order, flowInsensitive);
     }
 
 

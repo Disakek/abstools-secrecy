@@ -27,6 +27,8 @@ public class SecrecyLatticeStructure {
      * (default: (Low, [High]), (High, []))
      */
     private final HashMap<String, Set<String>> latticeOrder;
+
+    private final Boolean flowInsensitive;
     
     /**
      * Is the highest secrecyvalue for a lattice.
@@ -44,9 +46,10 @@ public class SecrecyLatticeStructure {
      * @param levels - the set of all different existing levels in a lattice
      * @param order - the order defining structure
      */
-    public SecrecyLatticeStructure(Set<String> levels, HashMap<String, Set<String>> order) {
+    public SecrecyLatticeStructure(Set<String> levels, HashMap<String, Set<String>> order, Boolean flowInsensitive) {
         this.secrecyLevels = new HashSet<>(levels);
         this.latticeOrder = new HashMap<>(order);
+        this.flowInsensitive = flowInsensitive;
 
         calculateMaxAndMin();
         //System.out.println("Lowest: " + minSecrecyLevel + "\nHighest: " + maxSecrecyLevel);
@@ -85,6 +88,10 @@ public class SecrecyLatticeStructure {
         }
     }
     
+    public Boolean getFlowInsensitive() {
+        return flowInsensitive;
+    }
+
     /**
      * Getter for the maximum secrecylevel of our lattice.
      * @return - the maximum secrecylevel.

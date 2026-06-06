@@ -189,10 +189,15 @@ public class Absc implements Callable<Integer> {
         }
     }
 
+    //TODO option to instead use flow-insensitive analysis (default is flow-sensitive because that's what I would recommend)
+    @Option(names = { "--flow-insensitive" },
+            description = "Too use flow-insensitive rules for the analysis instead of the flow-sensitive ones")
+    public boolean flowInsensitive = false;
+
     @Option(names = { "--secrecy" },
             description = {"Set user-defined secrecy lattice"},
             paramLabel = "string")
-    public String secrecyLattice;
+    public String secrecyLattice = "Low < High";
 
     static class NullableTypeConverter implements ITypeConverter<NullableType> {
         @Override
