@@ -97,6 +97,21 @@ public class SecrecyStmtVisitor {
      */
     public void visit(AssignStmt assignStmt){
 
+        Boolean hasDeclassify = isDeclassifying(assignStmt);
+        //TODO add functionality for Declassify keyword here !!
+        /*
+        If we have a declassification then we allow the assignment of confidential information to a lower lhs.
+
+        The change in functionality consists of 2 changes:
+        1. We do not add a type error no matter what!! (add "!hasDeclassify" to the condition for the type error)
+        2. We've said we want to set the actual level of the lhs differently 
+        (I believe it was the highest value that lhs is allowed to take and that is equal to or lower than the rhs?)
+
+        For 2. taking LHS joined with pc should be fine:
+        - declassify only makes sense if lhs is lower than rhs so no lhs value can represent the value of rhs !! => take max possible of LHS
+        - we need to consider pc as well so join that to it !! => join(pc, maxOfLHS)
+        */
+
         ASTNode<?> LHS = assignStmt.getVar().getDecl();
         Exp RhsExp = assignStmt.getValue();
 
@@ -124,18 +139,19 @@ public class SecrecyStmtVisitor {
         
         if(LHScontainedIn.contains(RHSsecLevel)) {
             errors.add(new TypeError(assignStmt, ErrorMessage.SECRECY_LEAKAGE_ERROR_FROM_TO, RHSsecLevel, assignStmt.getValue().toString(), LHSsecLevel, assignStmt.getVar().getName()));
-            //return;
-            
-            //TODO in order to enforce the double check with the fields respecting max we have to remove the return (e.g. outcomment)
-            //Also we have to change the currentSecrecy for the left handside in general and not only if lhs has a max higher than min!!
-            _currentSecrecy.put(LHS, RHSsecLevel); //Update the current secrecy level if it has a max level != to the min secrecy level (minLevel is not added to the structure)
         }
-
-        //Update the current secrecy level if it has a max level != to the min secrecy level (minLevel is not added to the structure)
-        /*
-        if (!LHSsecLevel.equals(minSecLevel)) {
-            _currentSecrecy.put(LHS, RHSsecLevel);
-        }*/
+        
+        //TODO in order to enforce the double check with the fields respecting max we have to remove the return (e.g. outcomment)
+        //Also we have to change the currentSecrecy for the left handside in general and not only if lhs has a max higher than min!!
+        //TODO check that this below is working as intended
+        if(hasDeclassify) {
+            String listLevel = secrecyLatticeStructure.evaluateListLevel(programConfidentiality);
+            _currentSecrecy.put(LHS, secrecyLatticeStructure.join(LHSsecLevel, listLevel));
+            //System.out.println("WORKS GOOD HERE!! ASSIGNSTMT");
+        } else {
+            _currentSecrecy.put(LHS, RHSsecLevel); 
+            //Update the current secrecy level if it has a max level != to the min secrecy level (minLevel is not added to the structure)
+        }
     }
 
     /**
@@ -332,6 +348,9 @@ public class SecrecyStmtVisitor {
      */
     public void visit(VarDeclStmt varDeclStmt) {
 
+        Boolean hasDeclassify = isDeclassifying(varDeclStmt);
+        //TODO add functionality for Declassify keyword here !!
+
         VarDecl varDecl = varDeclStmt.getVarDecl();
         
         //We need to get the level here for the check because we can't find it in the usual list
@@ -374,8 +393,18 @@ public class SecrecyStmtVisitor {
             String rhsLevel = initExp.accept(ExpVisitor);
             Set<String> rhsLevelSet = secrecyLatticeStructure.getSetForSecrecyLevel(rhsLevel);
             
-            if(!(lhsLevel.equals(rhsLevel) || rhsLevelSet.contains(lhsLevel))) {
+            if(!hasDeclassify && !(lhsLevel.equals(rhsLevel) || rhsLevelSet.contains(lhsLevel))) {
                 errors.add(new TypeError(varDeclStmt, ErrorMessage.SECRECY_LEAKAGE_ERROR_FROM_TO, rhsLevel, initExp.toString(), lhsLevel, varDecl.getName()));
+            }
+
+            //TODO missing here functionality that updates the current level!! even important for a vardeclstmt I think
+            //TODO check if this below is all it took!!
+            if(hasDeclassify) {
+                String listLevel = secrecyLatticeStructure.evaluateListLevel(programConfidentiality);
+                _currentSecrecy.put(varDecl, secrecyLatticeStructure.join(lhsLevel, listLevel));
+                //System.out.println("WORKS GOOD HERE!! VARDECLSTMT");
+            } else {
+                _currentSecrecy.put(varDecl, rhsLevel);
             }
         }
     }    
@@ -390,6 +419,17 @@ public class SecrecyStmtVisitor {
      */
     public void visit(WhileStmt whileStmt) {
         
+        //1.Iteration of the loop
+        visitWhileHelper(whileStmt);
+        //2.Iteration of the loop
+        visitWhileHelper(whileStmt);
+        //3.Iteration of the loop
+        visitWhileHelper(whileStmt);
+    
+    }
+
+    private void visitWhileHelper(WhileStmt whileStmt) {
+
         Exp condition = whileStmt.getCondition();
 
         if(condition.accept(ExpVisitor) != null){
