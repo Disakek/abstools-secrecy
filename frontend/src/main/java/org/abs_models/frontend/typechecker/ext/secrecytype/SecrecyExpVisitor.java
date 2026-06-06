@@ -1,31 +1,19 @@
-/**
- * Copyright (c) 2009-2011, The HATS Consortium. All rights reserved. 
- * This file is licensed under the terms of the Modified BSD License.
- * Written by @Maximilian_Paul for questions please refer to uukln@student.kit.edu
- */
 package org.abs_models.frontend.typechecker.ext;
 
 import java.util.HashMap;
 import java.util.LinkedList;
-import java.util.Iterator;
-import java.util.Set;
 
-import org.abs_models.frontend.analyser.ErrorMessage;
-import org.abs_models.frontend.analyser.TypeError;
 import org.abs_models.frontend.analyser.SemanticConditionList;
-
 import org.abs_models.frontend.ast.*;
 
-/**
- * This class is used to extract the secrecylevels for the different expressions and enforce rules with it.
- */
-public class SecrecyExpVisitor {
+public abstract class SecrecyExpVisitor {
 
-    /**
-     * Stores mappings between ASTNode's (declarations) and the assigned maximum secrecy values.
-     * Meaning e.g. a variable may never hold a value higher than it's value from this _maxSecrecy.
-     */
-    private HashMap<ASTNode<?>,String> _maxSecrecy = new HashMap<>();
+    protected SecrecyLatticeStructure secrecyLatticeStructure;
+    protected SecrecyStmtVisitor stmtVisitor;
+    protected LinkedList<ProgramCountNode> programConfidentiality;
+    protected final SemanticConditionList errors;
+    protected Model m;
+    protected LinkedList<CalledMethod> methodsCallingOthers;
 
     /**
      * Stores mappings between ASTNode's (declarations) and the assigned current secrecy values.
@@ -73,13 +61,13 @@ public class SecrecyExpVisitor {
         this.methodsCallingOthers = methodsCallingOthers;
     }
 
-    /**
-     * Visit function for expressions tries to return an attached secrecylevel.
-     * Dependinding on the kind of expression the matching implementation of visit is called.
-     * @param expression - the expression for which we want to retrieve the secrecylevel.
-     * @return - the join of the expressions secrecylevel and the secrecylevel of the current program point.
-     */
-    public String visit(Exp expression) {
+    public abstract String visit(Exp expression);
+    public abstract String visit(Binary binaryExp);
+    public abstract String visit(Unary unaryExp);
+    public abstract String visit(VarOrFieldUse varOrFieldUse);
+    public abstract String visit(GetExp getExp);
+    public abstract String visit(Call functionCall);
+    public abstract String visit(FnApp fnApp);
 
         return secrecyLatticeStructure.evaluateListLevel(programConfidentiality);
     }

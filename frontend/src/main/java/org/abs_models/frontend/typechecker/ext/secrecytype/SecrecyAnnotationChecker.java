@@ -44,7 +44,7 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
     /**
      * Visitor for statements that performs typechecking for the secrecy rules.
      */
-    private SecrecyStmtVisitor visitor;               
+    private FlowSensitiveStmtVisitor visitor;               
 
     /**
      * List holds entries for confidentiality levels if evaluated at a point in time it is the current secrecylevel. 
@@ -247,7 +247,7 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
      * Second phase which checks for the secrecy typerules.
      * A class satisfies the secrecy typerules if each method of a class satisfies them.
      * A method satisfies the secrecy typerules if each statement, expression, etc. satisfies them.
-     * We have a SecrecyStmtVisitor which performs the statement checks and it is called on each statement here.
+     * We have an implementation of a SecrecyStmtVisitor which performs the statement checks and it is called on each statement here.
      * 
      * @param model - the ABS model on which we want to check the respecting of the secrecy typerules
      */

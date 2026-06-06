@@ -18,60 +18,49 @@ import org.abs_models.frontend.analyser.SemanticConditionList;
 /**
  * This class is used to extract the secrecylevels for the different statements and enforce rules with it.
  */
-public class FlowInsensitiveStmtVisitor {
+public class FlowSensitiveStmtVisitor extends SecrecyStmtVisitor{
 
     /**
      * Stores mappings between ASTNode's (declarations) and the assigned maximum secrecy values.
      * Meaning e.g. a variable may never hold a value higher than it's value from this _maxSecrecy.
      */
     private HashMap<ASTNode<?>,String> _maxSecrecy = new HashMap<>();
-    
+
     /**
-     * Contains the secrecy lattice either given by the user or a default. (default is: Low < High)
+     * Stores mappings between ASTNode's (declarations) and the assigned current secrecy values.
+     * Meaning e.g. a variable may hold a vlaue smaller than it's max secrecy value which would allow certain actions. 
      */
-    private SecrecyLatticeStructure secrecyLatticeStructure;
+    private HashMap<ASTNode<?>,String> _currentSecrecy = new HashMap<>();
     
     /**
      * Visitor for expressions that performs typechecking for the secrecy rules.
      */
-    private FlowInsensitiveExpVisitor ExpVisitor;               
+    private FlowSensitiveExpVisitor ExpVisitor;               
 
     /**
-     * List holds entries for confidentiality levels if evaluated at a point in time it is the current secrecylevel. 
-     */
-    private LinkedList<ProgramCountNode> programConfidentiality;
-
-    /**
-     * The list for errors that we can add to if a rule isn't respected.
-     */
-    private final SemanticConditionList errors;
-
-    /**
-     * The current model m that we want to check the secrecy type rules for.
-     */
-    private Model m;
-
-    /**
-     * The list of methods that contain a call to another method and thus could be insecure if the called method is insecure.
-     */
-    private LinkedList<CalledMethod> methodsCallingOthers = new LinkedList<CalledMethod>();
-
-    /**
-     * Constructor for the SecrecyStmtVisitor.
+     * Constructor for the FlowSensitiveStmtVisitor.
      * @param _maxSecrecy - the hashmap that links ASTNode's to their assigned secrecylevel.
      * @param secrecyLatticeStructure - the datastructure that holds the information for the lattice. 
      * @param errors - the error list that we can add typeerrors to.
      * @param programConfidentiality - the list for the confidentiality at a certain point in time.
      */
-    public FlowInsensitiveStmtVisitor(Model m, HashMap<ASTNode<?>,String> _maxSecrecy,SecrecyLatticeStructure secrecyLatticeStructure, SemanticConditionList errors,LinkedList<ProgramCountNode> programConfidentiality, LinkedList<CalledMethod> methodsCallingOthers) {
+    public FlowSensitiveStmtVisitor(Model m, HashMap<ASTNode<?>,String> _maxSecrecy, HashMap<ASTNode<?>,String> _currentSecrecy, SecrecyLatticeStructure secrecyLatticeStructure, SemanticConditionList errors,LinkedList<ProgramCountNode> programConfidentiality, LinkedList<CalledMethod> methodsCallingOthers) {
+        
+        super(m, secrecyLatticeStructure, errors, programConfidentiality, methodsCallingOthers); // ← must be first line
+        this._maxSecrecy = _maxSecrecy;
+        this._currentSecrecy = _currentSecrecy;
+        
+        /*
         this.m = m;
         this._maxSecrecy = _maxSecrecy;
+        this._currentSecrecy = _currentSecrecy;
         this.secrecyLatticeStructure = secrecyLatticeStructure;
         this.errors = errors;
         this.programConfidentiality = programConfidentiality;
         this.methodsCallingOthers = methodsCallingOthers;
+        */
 
-        ExpVisitor = new FlowInsensitiveExpVisitor(m, _maxSecrecy, secrecyLatticeStructure, errors, programConfidentiality, this, methodsCallingOthers);
+        ExpVisitor = new FlowSensitiveExpVisitor(m, _maxSecrecy, _currentSecrecy, secrecyLatticeStructure, errors, programConfidentiality, this, methodsCallingOthers);
     }
 
     /**
@@ -93,6 +82,18 @@ public class FlowInsensitiveStmtVisitor {
 
         Boolean hasDeclassify = isDeclassifying(assignStmt);
         //TODO add functionality for Declassify keyword here !!
+        /*
+        If we have a declassification then we allow the assignment of confidential information to a lower lhs.
+
+        The change in functionality consists of 2 changes:
+        1. We do not add a type error no matter what!! (add "!hasDeclassify" to the condition for the type error)
+        2. We've said we want to set the actual level of the lhs differently 
+        (I believe it was the highest value that lhs is allowed to take and that is equal to or lower than the rhs?)
+
+        For 2. taking LHS joined with pc should be fine:
+        - declassify only makes sense if lhs is lower than rhs so no lhs value can represent the value of rhs !! => take max possible of LHS
+        - we need to consider pc as well so join that to it !! => join(pc, maxOfLHS)
+        */
 
         ASTNode<?> LHS = assignStmt.getVar().getDecl();
         Exp RhsExp = assignStmt.getValue();
@@ -117,6 +118,17 @@ public class FlowInsensitiveStmtVisitor {
             errors.add(new TypeError(assignStmt, ErrorMessage.SECRECY_LEAKAGE_ERROR_FROM_TO, RHSsecLevel, assignStmt.getValue().toString(), LHSsecLevel, assignStmt.getVar().getName()));
         }
         
+        //TODO in order to enforce the double check with the fields respecting max we have to remove the return (e.g. outcomment)
+        //Also we have to change the currentSecrecy for the left handside in general and not only if lhs has a max higher than min!!
+        //TODO check that this below is working as intended
+        if(hasDeclassify) {
+            String listLevel = secrecyLatticeStructure.evaluateListLevel(programConfidentiality);
+            _currentSecrecy.put(LHS, secrecyLatticeStructure.join(LHSsecLevel, listLevel));
+            //System.out.println("WORKS GOOD HERE!! ASSIGNSTMT");
+        } else {
+            _currentSecrecy.put(LHS, RHSsecLevel); 
+            //Update the current secrecy level if it has a max level != to the min secrecy level (minLevel is not added to the structure)
+        }
     }
 
     /**
@@ -128,6 +140,9 @@ public class FlowInsensitiveStmtVisitor {
      * Handling performed by with the helper function handleGuards().
      */
     public void visit(AwaitStmt awaitStmt) {
+
+        //TODO update the documentation
+        checkFieldsRespectMax(awaitStmt);
 
         Guard getGuard = awaitStmt.getGuard();
         handleGuards(getGuard);
@@ -288,6 +303,16 @@ public class FlowInsensitiveStmtVisitor {
             if(!hasDeclassify && !(lhsLevel.equals(rhsLevel) || rhsLevelSet.contains(lhsLevel))) {
                 errors.add(new TypeError(varDeclStmt, ErrorMessage.SECRECY_LEAKAGE_ERROR_FROM_TO, rhsLevel, initExp.toString(), lhsLevel, varDecl.getName()));
             }
+
+            //TODO missing here functionality that updates the current level!! even important for a vardeclstmt I think
+            //TODO check if this below is all it took!!
+            if(hasDeclassify) {
+                String listLevel = secrecyLatticeStructure.evaluateListLevel(programConfidentiality);
+                _currentSecrecy.put(varDecl, secrecyLatticeStructure.join(lhsLevel, listLevel));
+                //System.out.println("WORKS GOOD HERE!! VARDECLSTMT");
+            } else {
+                _currentSecrecy.put(varDecl, rhsLevel);
+            }
         }
     }    
 
@@ -418,6 +443,37 @@ public class FlowInsensitiveStmtVisitor {
         return null;
     }
 
+    //TODO doc missing
+    private void checkFieldsRespectMax(AwaitStmt awaitStmt) {
+        //System.out.println();
+        //TODO - in this class ensure that each field only contains something where the current secrecy is smaller or equal to the max secrecy  
+        //String className = awaitStmt.getClassName();
+        ClassDecl classContainingAwait = findContainingClass(m, awaitStmt);
+        String minimumSecLevel = secrecyLatticeStructure.getMinSecrecyLevel();
+
+        //In the case we were unable to find the class which contains the await I belive it has to be in the main block
+        //In that case there are no fields and thus the check is not to be performed!
+        if(classContainingAwait == null) return;
+
+        for(FieldDecl fieldDecl : classContainingAwait.getFields()) {
+            
+            String currentSecOfField = _currentSecrecy.get(fieldDecl);
+            String maxSecOfField = _maxSecrecy.get(fieldDecl);
+
+            if(maxSecOfField == null) maxSecOfField = minimumSecLevel;
+            if(currentSecOfField == null) currentSecOfField = minimumSecLevel;
+
+            //Current has to be smaller or equal to max thus the set of current has to contain max 
+            Set<String> setOfCurrent = secrecyLatticeStructure.getSetForSecrecyLevel(currentSecOfField); 
+            
+            if(!(setOfCurrent.contains(maxSecOfField)) && !(maxSecOfField.equals(currentSecOfField))) {
+
+                //TODO add a new SECRECY_AWAIT_FIELD_VIOLATION error message that describes this error
+                errors.add(new TypeError(awaitStmt, ErrorMessage.SECRECY_AWAIT_FIELD_VIOLATION, fieldDecl.getName(), currentSecOfField, maxSecOfField));
+            }
+        }
+    }
+
     private Boolean isDeclassifying(Stmt stmt) {
         
         List<Annotation> annotations = stmt.getAnnotationList();
@@ -442,4 +498,9 @@ public class FlowInsensitiveStmtVisitor {
         return false;
     }
 
+    //TODO doc missing
+    public void updateCurrentSecrecy(HashMap<ASTNode<?>, String> newCurrentSecrecy) {
+        this._currentSecrecy = newCurrentSecrecy;
+        ExpVisitor.updateCurrentSecrecy(_currentSecrecy);
+    }
 }

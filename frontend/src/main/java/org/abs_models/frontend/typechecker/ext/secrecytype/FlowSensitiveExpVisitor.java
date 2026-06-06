@@ -19,13 +19,19 @@ import org.abs_models.frontend.ast.*;
 /**
  * This class is used to extract the secrecylevels for the different expressions and enforce rules with it.
  */
-public class FlowInsensitiveExpVisitor {
+public class FlowSensitiveExpVisitor extends SecrecyExpVisitor {
 
     /**
      * Stores mappings between ASTNode's (declarations) and the assigned maximum secrecy values.
      * Meaning e.g. a variable may never hold a value higher than it's value from this _maxSecrecy.
      */
     private HashMap<ASTNode<?>,String> _maxSecrecy = new HashMap<>();
+
+    /**
+     * Stores mappings between ASTNode's (declarations) and the assigned current secrecy values.
+     * Meaning e.g. a variable may hold a vlaue smaller than it's max secrecy value which would allow certain actions. 
+     */
+    private HashMap<ASTNode<?>,String> _currentSecrecy = new HashMap<>();
 
     /**
      * Contains the secrecy lattice either given by the user or a default. (default is: Low < High)
@@ -57,14 +63,21 @@ public class FlowInsensitiveExpVisitor {
      * @param programConfidentiality - the list for the confidentiality at a certain point in time.
      * @param stmtVisitor - the visitor that called this so that we can visit statements with it.
      */
-    public FlowInsensitiveExpVisitor(Model m, HashMap<ASTNode<?>,String> _maxSecrecy, SecrecyLatticeStructure secrecyLatticeStructure, SemanticConditionList errors, LinkedList<ProgramCountNode> programConfidentiality, SecrecyStmtVisitor stmtVisitor, LinkedList<CalledMethod> methodsCallingOthers) {
+    public FlowSensitiveExpVisitor(Model m, HashMap<ASTNode<?>,String> _maxSecrecy, HashMap<ASTNode<?>,String> _currentSecrecy, SecrecyLatticeStructure secrecyLatticeStructure, SemanticConditionList errors, LinkedList<ProgramCountNode> programConfidentiality, SecrecyStmtVisitor stmtVisitor, LinkedList<CalledMethod> methodsCallingOthers) {
+        
+        super(m, secrecyLatticeStructure, errors, programConfidentiality, stmtVisitor, methodsCallingOthers);
+        this._maxSecrecy = _maxSecrecy;
+        this._currentSecrecy = _currentSecrecy;
+        /*
         this.m = m;
         this._maxSecrecy = _maxSecrecy;
+        this._currentSecrecy = _currentSecrecy;
         this.secrecyLatticeStructure = secrecyLatticeStructure;
         this.errors = errors;
         this.programConfidentiality = programConfidentiality;
         this.stmtVisitor = stmtVisitor;
         this.methodsCallingOthers = methodsCallingOthers;
+        */
     }
 
     /**
@@ -110,7 +123,7 @@ public class FlowInsensitiveExpVisitor {
     public String visit(VarOrFieldUse varOrFieldUse) {
 
         ASTNode<?> variable = varOrFieldUse.getDecl();
-        String variableSecrecy = _maxSecrecy.get(variable);
+        String variableSecrecy = _currentSecrecy.get(variable);
         String listLevel = secrecyLatticeStructure.evaluateListLevel(programConfidentiality);
 
         if (variableSecrecy != null) {
@@ -246,7 +259,7 @@ public class FlowInsensitiveExpVisitor {
 
             //TODO think about the _maxSecrecy/_currentSecrecy level here and what it will/would/should say
             //secrecyLevel = _maxSecrecy.get(calledMethod);
-            secrecyLevel = _maxSecrecy.get(calledMethod);
+            secrecyLevel = _currentSecrecy.get(calledMethod);
             
             if (secrecyLevel != null) {
                 return secrecyLatticeStructure.join(secrecyLevel, listLevel);
@@ -343,4 +356,7 @@ public class FlowInsensitiveExpVisitor {
         programConfidentiality = newConfidentiality;
     }
 
+    public void updateCurrentSecrecy(HashMap<ASTNode<?>, String> newCurrentSecrecy) {
+        this._currentSecrecy = newCurrentSecrecy;
+    }
 }

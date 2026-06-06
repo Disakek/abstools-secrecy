@@ -1,24 +1,16 @@
-/**
- * Copyright (c) 2009-2011, The HATS Consortium. All rights reserved. 
- * This file is licensed under the terms of the Modified BSD License.
- * Written by @Maximilian_Paul for questions please refer to uukln@student.kit.edu
- */
 package org.abs_models.frontend.typechecker.ext;
 
-import java.util.HashMap;
-import java.util.Set;
 import java.util.LinkedList;
-
 import org.abs_models.frontend.ast.*;
-import org.abs_models.frontend.analyser.ErrorMessage;
-import org.abs_models.frontend.analyser.TypeError;
 import org.abs_models.frontend.analyser.SemanticConditionList;
 
+public abstract class SecrecyStmtVisitor {
 
-/**
- * This class is used to extract the secrecylevels for the different statements and enforce rules with it.
- */
-public class SecrecyStmtVisitor {
+    protected SecrecyLatticeStructure secrecyLatticeStructure;
+    protected LinkedList<ProgramCountNode> programConfidentiality;
+    protected final SemanticConditionList errors;
+    protected Model m;
+    protected LinkedList<CalledMethod> methodsCallingOthers;
 
     /**
      * Stores mappings between ASTNode's (declarations) and the assigned maximum secrecy values.
@@ -80,14 +72,15 @@ public class SecrecyStmtVisitor {
         ExpVisitor = new SecrecyExpVisitor(_maxSecrecy, _currentSecrecy, secrecyLatticeStructure, errors, programConfidentiality, this);
     }
 
-    /**
-     * Visit function for statements.
-     * Depending on the kind of statement we call the matching implementation of visit. 
-     * @param stmt - the stmt we want to visit and check.
-     */
-    public void visit(Stmt stmt) {
-        return;
-    }
+    public abstract void visit(Stmt stmt);
+    public abstract void visit(AssignStmt assignStmt);
+    public abstract void visit(ReturnStmt returnStmt);
+    public abstract void visit(IfStmt ifStmt);
+    public abstract void visit(WhileStmt whileStmt);
+    public abstract void visit(ExpressionStmt expressionStmt);
+    public abstract void visit(VarDeclStmt varDeclStmt);
+    public abstract void visit(AwaitStmt awaitStmt);
+    public abstract void visit(Block blockStmt);
 
     /**
      * Visit function for assign statements. 
@@ -485,41 +478,29 @@ public class SecrecyStmtVisitor {
         programConfidentiality = newConfidentiality;
     }
 
-    //TODO doc missing
     public boolean containsFnAppHelper(Exp expression) {
-
-        if(expression instanceof FnApp) {
-            return true;
-        }
-
-        if(expression instanceof Unary unaryExp) {
+        if (expression instanceof FnApp) return true;
+        if (expression instanceof Unary unaryExp) {
             containsFnAppHelper(unaryExp);
-        } else if(expression instanceof Binary binaryExp) {
-            if (containsFnAppHelper(binaryExp.getLeft()) || (containsFnAppHelper(binaryExp.getRight()))) {
+        } else if (expression instanceof Binary binaryExp) {
+            if (containsFnAppHelper(binaryExp.getLeft()) || containsFnAppHelper(binaryExp.getRight())) {
                 return true;
             }
         }
-
         return false;
     }
 
-    //TODO doc missing
     public FnApp getFnAppHelper(Exp expression) {
-
-        if(expression instanceof FnApp fnapp) {
-            return fnapp;
-        }
-
-        if(expression instanceof Unary unaryExp) {
+        if (expression instanceof FnApp fnapp) return fnapp;
+        if (expression instanceof Unary unaryExp) {
             getFnAppHelper(unaryExp);
-        } else if(expression instanceof Binary binaryExp) {
+        } else if (expression instanceof Binary binaryExp) {
             if (containsFnAppHelper(binaryExp.getLeft())) {
                 getFnAppHelper(binaryExp.getRight());
             } else if (containsFnAppHelper(binaryExp.getRight())) {
                 getFnAppHelper(binaryExp.getRight());
             }
         }
-
         return null;
     }
 }
