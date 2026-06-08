@@ -51,6 +51,12 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
      */
     private LinkedList<ProgramCountNode> programConfidentiality;
 
+    private Model m; 
+    
+    private LinkedList<CalledMethod> methodsCallingOthers;
+
+    private LinkedList<SecrecyMethod> methodList;
+
     /**
      * The constructor for the SecrecyAnnotationChecker a class that checks a given model.
      * @param m - the ABS model that we want to check, is already parsed before.
@@ -78,9 +84,13 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
             return;
         }
 
-        firstExtractionPhasePass(model); 
+        firstExtractionPhasePass(model);
 
-        visitor = new SecrecyStmtVisitor(_maxSecrecy, _currentSecrecy, secrecyLatticeStructure, errors, programConfidentiality);
+        visitor = new FlowSensitiveStmtVisitor(m, _maxSecrecy, _currentSecrecy, secrecyLatticeStructure, errors, programConfidentiality, methodsCallingOthers);
+        
+        if(secrecyLatticeStructure.getFlowInsensitive()) {
+            visitor = new FlowInsensitiveStmtVisitor(m, _maxSecrecy, secrecyLatticeStructure, errors, programConfidentiality, methodsCallingOthers);
+        }
 
         secondTypecheckPhasePass(model); 
         

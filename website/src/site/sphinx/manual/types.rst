@@ -357,3 +357,52 @@ Example::
   the return type ``[Far] I``.
 | ② Here, ``o``’s type ``[Near] I`` can be converted to ``[Somewhere]
   I``.
+
+.. _sec:secrecy-types:
+
+Secrecy types
+=============
+
+The secrecytype extension introduces secrecy types into ABS, enabling
+static information flow control within modules.  When this extension
+is activated, the ABS compiler checks whether information flows comply
+with a user-defined secrecy policy.  The policy is expressed as a
+secrecy lattice, where each element represents a confidentiality level
+and the lattice ordering determines which flows are permitted.
+
+By default, the extension provides a simple lattice:
+
+Example::
+
+  Low < High
+
+A different lattice can be supplied by the user via the
+``--secrecy="<lattice>"`` compiler option.  Developers annotate their
+models using the secrecy annotations provided by the extension (e.g.,
+on fields, methods, and data types).  The compiler then verifies that
+model operations respect the declared confidentiality levels.
+
+A simple example that shows the user an issue concerning the
+information flow could look like this:
+
+Example::
+
+  class Addition{
+
+      [Secrecy: High] Int a = 20;
+
+      [Secrecy: Low] Int b = 3;
+
+      Int compare(Int x, Int y) {
+          b = a;
+          return b;
+      }
+
+  }
+
+The example above illustrates that assigning a value of secrecy level
+``a:High`` to a variable of level ``b:Low`` constitutes an
+information-flow leak.  The developer can use the checker to ensure
+that such violations do not occur.
+
+For the full set of rules, see :ref:`secrecy-rules`.
