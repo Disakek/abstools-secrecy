@@ -404,5 +404,21 @@ The example above illustrates that assigning a value of secrecy level
 ``a:High`` to a variable of level ``b:Low`` constitutes an
 information-flow leak.  The developer can use the checker to ensure
 that such violations do not occur.
+The example above illustrates that assigning a value of secrecy level a:High to a variable of level b:Low constitutes an information-flow leak.
+The developer can use the checker to ensure that such violations do not occur.
+
+To verify the secrecy level of an expression equals an expected secrecy level we provide a new function application (FnApp) and reserve it with the keyword "secrecy".
+
+Example of ``secrecy()``::
+
+  secrecy(input_expression, "expectedLabelAsString");
+
+
+It is an ExpressionStmt and only matches if the input_expression has the expected secrecy label during compilation. No code is generated for it and no return type set.
+It is used for testing the secrecy extension and ensuring that level evaluation for expressions works as intended for this it generates a type error when the expression is different to the expected Label.
+
+The error message is: 
+
+"The level of the variable {input_expr} doesn't match the expected of {expectedLabel} but is {actual} instead!" 
 
 For the full set of rules, see :ref:`secrecy-rules`.
