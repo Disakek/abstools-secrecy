@@ -44,7 +44,7 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
     /**
      * Visitor for statements that performs typechecking for the secrecy rules.
      */
-    private FlowSensitiveStmtVisitor visitor;               
+    private SecrecyStmtVisitor visitor;               
 
     /**
      * List holds entries for confidentiality levels if evaluated at a point in time it is the current secrecylevel. 

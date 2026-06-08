@@ -1,5 +1,6 @@
 package org.abs_models.frontend.typechecker.ext;
 
+import java.util.HashMap;
 import java.util.LinkedList;
 import org.abs_models.frontend.ast.*;
 import org.abs_models.frontend.analyser.SemanticConditionList;
@@ -81,6 +82,7 @@ public abstract class SecrecyStmtVisitor {
     public abstract void visit(VarDeclStmt varDeclStmt);
     public abstract void visit(AwaitStmt awaitStmt);
     public abstract void visit(Block blockStmt);
+    public void updateCurrentSecrecy(HashMap<ASTNode<?>, String> newCurrentSecrecy) {}
 
     /**
      * Visit function for assign statements. 

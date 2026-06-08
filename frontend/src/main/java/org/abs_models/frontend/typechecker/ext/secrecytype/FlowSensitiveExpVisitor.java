@@ -34,29 +34,6 @@ public class FlowSensitiveExpVisitor extends SecrecyExpVisitor {
     private HashMap<ASTNode<?>,String> _currentSecrecy = new HashMap<>();
 
     /**
-     * Contains the secrecy lattice either given by the user or a default. (default is: Low < High)
-     */
-    private SecrecyLatticeStructure secrecyLatticeStructure;
-
-    /**
-     * Visitor for statements that performs typechecking for the secrecy rules.
-     */
-    private SecrecyStmtVisitor stmtVisitor;  
-
-    /**
-     * List holds entries for confidentiality levels if evaluated at a point in time it is the current secrecylevel. 
-     */
-    private LinkedList<ProgramCountNode> programConfidentiality;
-
-     /**
-     * The list for errors that we can add to if a rule isn't respected.
-     */
-    private final SemanticConditionList errors;
-
-    private Model m;
-    private LinkedList<CalledMethod> methodsCallingOthers = new LinkedList<CalledMethod>();
-
-    /**
      * Constructor for the secrecy expression visitor that retrieves the secrecyvalues of different expressions.
      * @param _maxSecrecy - the hashmap that links ASTNode's to their assigned secrecylevel.
      * @param secrecyLatticeStructure - the datastructure that holds the information for the lattice.

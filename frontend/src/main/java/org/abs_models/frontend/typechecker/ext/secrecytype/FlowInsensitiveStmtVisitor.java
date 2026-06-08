@@ -15,6 +15,7 @@ import org.abs_models.frontend.analyser.TypeError;
 import org.abs_models.frontend.analyser.SemanticConditionList;
 
 
+
 /**
  * This class is used to extract the secrecylevels for the different statements and enforce rules with it.
  */
@@ -389,5 +390,6 @@ public class FlowInsensitiveStmtVisitor extends SecrecyStmtVisitor{
 
         return null;
     }
+
 }
 
