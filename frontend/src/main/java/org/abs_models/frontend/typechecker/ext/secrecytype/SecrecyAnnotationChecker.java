@@ -53,9 +53,9 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
 
     private Model m; 
     
-    private LinkedList<CalledMethod> methodsCallingOthers;
+    private LinkedList<CalledMethod> methodsCallingOthers = new LinkedList<CalledMethod>();
 
-    private LinkedList<SecrecyMethod> methodList;
+    private LinkedList<SecrecyMethod> methodList = new LinkedList<SecrecyMethod>();
 
     /**
      * The constructor for the SecrecyAnnotationChecker a class that checks a given model.
@@ -64,6 +64,7 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
     protected SecrecyAnnotationChecker(Model m) {
         super(m);
 
+        this.m = m;
         programConfidentiality = new LinkedList<ProgramCountNode>();
 
         if (m.secrecyLatticeStructure != null) {
