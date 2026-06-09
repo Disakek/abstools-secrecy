@@ -4,7 +4,7 @@
 Secrecy Rules
 **************
 
-To return to the main documentation, follow this link: :ref:`index`.
+To return  back to the types, follow this link: :ref:`sec:secrecy-types`.
 
 
 Statement rules
