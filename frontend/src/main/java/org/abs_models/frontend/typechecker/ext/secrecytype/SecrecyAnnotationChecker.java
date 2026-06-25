@@ -95,7 +95,6 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
         }
 
         firstExtractionPhasePass(model);
-        System.out.println("MaxHashmapAfterExtraction: " + _maxSecrecy);
 
         visitor = new FlowSensitiveStmtVisitor(m, _maxSecrecy, _currentSecrecy, secrecyLatticeStructure, errors, programConfidentiality, methodsCallingOthers);
         

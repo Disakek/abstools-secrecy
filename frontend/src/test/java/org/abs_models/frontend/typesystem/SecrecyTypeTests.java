@@ -373,10 +373,10 @@ public class SecrecyTypeTests extends FrontendTest {
     */
 
     @Test
-    public void bankingExample1FLOWINSENSITIVE() throws Exception {
+    public void bankingExample1_FlowInsensitive() throws Exception {
         String fileName = "abssamples/SecrecyTypeTests/failingtests/BankingExampleAnnotated1.abs";
         Model m = assertParseFileOk(fileName);
-        //m.flowInsensitiveFlag = true;
+        m.flowInsensitiveFlag = true;
 
         assertEquals(loadExpectedErrors(fileName.replace(".abs", ".txt")), getLinesAndErrors(m.getTypeErrors()));
     }

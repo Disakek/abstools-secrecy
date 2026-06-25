@@ -54,12 +54,9 @@ public class FlowSensitiveExpVisitor extends SecrecyExpVisitor {
      */
     public String visit(VarOrFieldUse varOrFieldUse) {
 
-        //System.out.println("VARORFIELDUSE: " + varOrFieldUse);
         ASTNode<?> variable = varOrFieldUse.getDecl();
         String variableSecrecy = _currentSecrecy.get(variable);
-        //System.out.println("VARORFIELDUSE VAR SECRECY: " + varOrFieldUse);
         String listLevel = secrecyLatticeStructure.evaluateListLevel(programConfidentiality);
-        //System.out.println("VARORFIELDUSE: LIST SECRECY: " + varOrFieldUse);
 
         if (variableSecrecy != null) {
             return secrecyLatticeStructure.join(variableSecrecy, secrecyLatticeStructure.evaluateListLevel(programConfidentiality));
@@ -69,15 +66,10 @@ public class FlowSensitiveExpVisitor extends SecrecyExpVisitor {
     }
 
     public String visit(Binary binaryExp) {
-        //System.out.println("Overwritten version flow-sensitive");
-        
-        //System.out.println("VISITING BINARY EXP: " + binaryExp);
+
         String leftLevelAccept = binaryExp.getLeft().accept(this);
-        //System.out.println("LEFTLEVEL ACCEPT: " + leftLevelAccept);
         String leftLevelVisit = this.visit(binaryExp.getLeft());
-        //System.out.println("LEFTLEVEL VISIT: " + leftLevelVisit);
         String rightLevel = binaryExp.getRight().accept(this);
-        //System.out.println("Rightlevel: " + rightLevel);
         String combined = secrecyLatticeStructure.join(leftLevelAccept, rightLevel);
 
         return secrecyLatticeStructure.join(combined, secrecyLatticeStructure.evaluateListLevel(programConfidentiality));
