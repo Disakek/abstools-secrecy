@@ -3,18 +3,16 @@
  * This file is licensed under the terms of the Modified BSD License.
  * Written by @Maximilian_Paul for questions please refer to uukln@student.kit.edu
  */
-package org.abs_models.frontend.typechecker.ext;
+package org.abs_models.frontend.typechecker.ext.secrecytype;
 
 import java.util.HashMap;
 import java.util.LinkedList;
-import java.util.Iterator;
 import java.util.Set;
 
-import org.abs_models.frontend.analyser.ErrorMessage;
-import org.abs_models.frontend.analyser.TypeError;
-import org.abs_models.frontend.analyser.SemanticConditionList;
-
 import org.abs_models.frontend.ast.*;
+import org.abs_models.frontend.analyser.ErrorMessage;
+import org.abs_models.frontend.analyser.SemanticConditionList;
+import org.abs_models.frontend.analyser.TypeError;
 
 /**
  * This class is used to extract the secrecylevels for the different expressions and enforce rules with it.
@@ -45,49 +43,6 @@ public class FlowSensitiveExpVisitor extends SecrecyExpVisitor {
         super(m, secrecyLatticeStructure, errors, programConfidentiality, stmtVisitor, methodsCallingOthers);
         this._maxSecrecy = _maxSecrecy;
         this._currentSecrecy = _currentSecrecy;
-        /*
-        this.m = m;
-        this._maxSecrecy = _maxSecrecy;
-        this._currentSecrecy = _currentSecrecy;
-        this.secrecyLatticeStructure = secrecyLatticeStructure;
-        this.errors = errors;
-        this.programConfidentiality = programConfidentiality;
-        this.stmtVisitor = stmtVisitor;
-        this.methodsCallingOthers = methodsCallingOthers;
-        */
-    }
-
-    /**
-     * Visit function for expressions tries to return an attached secrecylevel.
-     * Dependinding on the kind of expression the matching implementation of visit is called.
-     * @param expression - the expression for which we want to retrieve the secrecylevel.
-     * @return - the join of the expressions secrecylevel and the secrecylevel of the current program point.
-     */
-    public String visit(Exp expression) {
-
-        return secrecyLatticeStructure.evaluateListLevel(programConfidentiality);
-    }
-
-
-    public String visit(Binary binaryExp) {
-        
-        String leftLevel = binaryExp.getLeft().accept(this);
-        String rightLevel = binaryExp.getRight().accept(this);
-        String combined = secrecyLatticeStructure.join(leftLevel, rightLevel);
-
-        return secrecyLatticeStructure.join(combined, secrecyLatticeStructure.evaluateListLevel(programConfidentiality));
-    }
-
-    public String visit(Unary unaryExp) {
-
-        ASTNode<?> child = unaryExp.getChild(0);
-        String listLevel = secrecyLatticeStructure.evaluateListLevel(programConfidentiality);
-
-        if(child instanceof Exp expr) {
-            return secrecyLatticeStructure.join(expr.accept(this), listLevel);
-        }
-
-        return listLevel;
     }
 
     /**
@@ -99,9 +54,12 @@ public class FlowSensitiveExpVisitor extends SecrecyExpVisitor {
      */
     public String visit(VarOrFieldUse varOrFieldUse) {
 
+        //System.out.println("VARORFIELDUSE: " + varOrFieldUse);
         ASTNode<?> variable = varOrFieldUse.getDecl();
         String variableSecrecy = _currentSecrecy.get(variable);
+        //System.out.println("VARORFIELDUSE VAR SECRECY: " + varOrFieldUse);
         String listLevel = secrecyLatticeStructure.evaluateListLevel(programConfidentiality);
+        //System.out.println("VARORFIELDUSE: LIST SECRECY: " + varOrFieldUse);
 
         if (variableSecrecy != null) {
             return secrecyLatticeStructure.join(variableSecrecy, secrecyLatticeStructure.evaluateListLevel(programConfidentiality));
@@ -110,7 +68,28 @@ public class FlowSensitiveExpVisitor extends SecrecyExpVisitor {
         return listLevel;
     }
 
-    //TODO remove the prints and write the doc
+    public String visit(Binary binaryExp) {
+        //System.out.println("Overwritten version flow-sensitive");
+        
+        //System.out.println("VISITING BINARY EXP: " + binaryExp);
+        String leftLevelAccept = binaryExp.getLeft().accept(this);
+        //System.out.println("LEFTLEVEL ACCEPT: " + leftLevelAccept);
+        String leftLevelVisit = this.visit(binaryExp.getLeft());
+        //System.out.println("LEFTLEVEL VISIT: " + leftLevelVisit);
+        String rightLevel = binaryExp.getRight().accept(this);
+        //System.out.println("Rightlevel: " + rightLevel);
+        String combined = secrecyLatticeStructure.join(leftLevelAccept, rightLevel);
+
+        return secrecyLatticeStructure.join(combined, secrecyLatticeStructure.evaluateListLevel(programConfidentiality));
+    }
+
+    /**
+     * Visit function for a new expression.
+     * When creating a new object of a class we have to ensure that the parameters with which we want to create the new object respect the maximum allowed secrecy levels.
+     * 
+     * @param newExp - the new expression to visit.
+     * @return - the secrecy level of a new object which is given by the current secrecy level of the program point.
+     */
     public String visit(NewExp newExp) {
 
         // When we create a new exp of a class we have to ensure that for all parameters the maximum declared secrecy level is respected
@@ -146,40 +125,6 @@ public class FlowSensitiveExpVisitor extends SecrecyExpVisitor {
     }
 
     /**
-     * Visit function for get expressions.
-     * When we have a get we remove the associated await change from the programConfidentiality list!
-     * 
-     * @param getExp - the expression for which we want to retrieve the secrecylevel.
-     * @return - the lowest possible value from the lattice
-     */
-    public String visit(GetExp getExp) {
-
-        ASTNode<?> target = (Exp) getExp.getChild(0);
-        String targetString = target.toString();
-        String varUseSecrecy = null;
-        String listLevel = secrecyLatticeStructure.evaluateListLevel(programConfidentiality);
-
-        if(target instanceof VarOrFieldUse varUse) {
-            targetString = varUse.getName();
-            varUseSecrecy = this.visit(varUse);
-        }
-        
-        Iterator<ProgramCountNode> iter = programConfidentiality.iterator();
-        while (iter.hasNext()) {
-            ProgramCountNode node = iter.next();
-            if (node.levelChangingNode.equals(targetString)) {
-                iter.remove();
-            }
-        }
-
-        stmtVisitor.updateProgramPoint(programConfidentiality);
-
-        String minLevel = secrecyLatticeStructure.join(secrecyLatticeStructure.getMinSecrecyLevel(), varUseSecrecy);
-
-        return secrecyLatticeStructure.join(minLevel, secrecyLatticeStructure.evaluateListLevel(programConfidentiality));
-    }
-
-    /**
      * Visit function for call expressions.
      * 
      * @param functionCall - the expression for which we want to retrieve the secrecylevel.
@@ -198,7 +143,7 @@ public class FlowSensitiveExpVisitor extends SecrecyExpVisitor {
             List<PureExp> calledParams = functionCall.getParamList();
             int numberOfDefinedParameters = parameterList.getNumChild();
 
-            //TODO check here wether the called method is secure (if the caller is in the same class - ThisExp)
+            // check here wether the called method is secure (if the caller is in the same class - ThisExp)
             Exp caller = functionCall.getCallee();
             
             //Check if it's a ThisExp
@@ -234,9 +179,7 @@ public class FlowSensitiveExpVisitor extends SecrecyExpVisitor {
                 }
             }
 
-            //TODO think about the _maxSecrecy/_currentSecrecy level here and what it will/would/should say
-            //secrecyLevel = _maxSecrecy.get(calledMethod);
-            secrecyLevel = _currentSecrecy.get(calledMethod);
+            secrecyLevel = _maxSecrecy.get(calledMethod);
             
             if (secrecyLevel != null) {
                 return secrecyLatticeStructure.join(secrecyLevel, listLevel);
@@ -246,93 +189,11 @@ public class FlowSensitiveExpVisitor extends SecrecyExpVisitor {
         return listLevel;
     }
 
-    /**
-     * Visit function fnApp expressions.
-     * 
-     * @param fnApp - the expression for which we want to retrieve the secrecylevel.
-     * @return - the join of the secrecylevel of the variable or field and the secrecylevel of the current program point.
-     * if there is no secrecy attached to the variable or field then use the lowest value from the lattice structure.
-     */
-    public String visit(FnApp fnApp) {
-
-        List<PureExp> fnAppParameters = fnApp.getParamList();
-        String secrecy = null;
-        String listLevel = secrecyLatticeStructure.evaluateListLevel(programConfidentiality);
-
-        for(PureExp fnAppParam : fnAppParameters) {
-
-            String paramSecrecy = this.visit(fnAppParam);
-
-            if (secrecy != null) {
-                secrecy = secrecyLatticeStructure.join(secrecy, paramSecrecy);
-            } else {
-                secrecy = paramSecrecy;
-            }
-        }
-
-        if (secrecy != null) {
-            return secrecyLatticeStructure.join(secrecy, listLevel);
-        }
-
-        return listLevel;
-    }
-
-    private ClassDecl findImplementingClassHelper (Model m, MethodSig inMethod) {
-
-        ClassDecl result = null;
-
-        for (CompilationUnit cu : m.getCompilationUnits()) {
-            for (ModuleDecl moduleDecl : cu.getModuleDecls()) {
-                for (Decl decl : moduleDecl.getDecls()) {
-                    if (decl instanceof ClassDecl classDecl) {
-                        result = classDecl;
-                        for (MethodImpl method : classDecl.getMethods()) {
-                            if(inMethod == method.getMethodSig()) {
-                                return result;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        return null;
-    }
-
-    public ClassDecl findClassByName (Model m, String className) {
-
-        ClassDecl result = null;
-
-        for (CompilationUnit cu : m.getCompilationUnits()) {
-            for (ModuleDecl moduleDecl : cu.getModuleDecls()) {
-                for (Decl decl : moduleDecl.getDecls()) {
-                    if (decl instanceof ClassDecl classDecl) {
-                        if (classDecl.getName().equals(className)) {
-                            return classDecl;
-                        }
-                    }
-                }
-            }
-        }
-
-        return null;
-    }
-
-    private MethodImpl findMethodImpl(ClassDecl parentClass, MethodSig inMethod) {
-        for (MethodImpl method : parentClass.getMethods()) {
-            if (method.getMethodSig() == inMethod) return method;
-        }
-        return null;
-    }
 
     /**
-     * Allows to update the current program secrecy list on a change.
-     * @param newConfidentiality - the list but with the new changes.
+     * Setter method to update the current secrecy hashmap to a new hashmap including an update.
+     * @param newCurrentSecrecy - the new hashmap including the update.
      */
-    public void updateProgramPoint(LinkedList<ProgramCountNode> newConfidentiality) {
-        programConfidentiality = newConfidentiality;
-    }
-
     public void updateCurrentSecrecy(HashMap<ASTNode<?>, String> newCurrentSecrecy) {
         this._currentSecrecy = newCurrentSecrecy;
     }

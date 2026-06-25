@@ -3,12 +3,12 @@
  * This file is licensed under the terms of the Modified BSD License.
  * Written by @Maximilian_Paul for questions please refer to uukln@student.kit.edu
  */
-package org.abs_models.frontend.typechecker.ext;
+package org.abs_models.frontend.typechecker.ext.secrecytype;
 
 import java.util.HashMap;
-import java.util.Set;
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.Set;
 
 /**
  * Class that is used to handover the user input for the --secrecy option to the SecrecyAnnotationChecker
@@ -27,8 +27,6 @@ public class SecrecyLatticeStructure {
      * (default: (Low, [High]), (High, []))
      */
     private final HashMap<String, Set<String>> latticeOrder;
-
-    private final Boolean flowInsensitive;
     
     /**
      * Is the highest secrecyvalue for a lattice.
@@ -46,10 +44,9 @@ public class SecrecyLatticeStructure {
      * @param levels - the set of all different existing levels in a lattice
      * @param order - the order defining structure
      */
-    public SecrecyLatticeStructure(Set<String> levels, HashMap<String, Set<String>> order, Boolean flowInsensitive) {
+    public SecrecyLatticeStructure(Set<String> levels, HashMap<String, Set<String>> order) {
         this.secrecyLevels = new HashSet<>(levels);
         this.latticeOrder = new HashMap<>(order);
-        this.flowInsensitive = flowInsensitive;
 
         calculateMaxAndMin();
         //System.out.println("Lowest: " + minSecrecyLevel + "\nHighest: " + maxSecrecyLevel);
@@ -86,10 +83,6 @@ public class SecrecyLatticeStructure {
                 break;
             }
         }
-    }
-    
-    public Boolean getFlowInsensitive() {
-        return flowInsensitive;
     }
 
     /**

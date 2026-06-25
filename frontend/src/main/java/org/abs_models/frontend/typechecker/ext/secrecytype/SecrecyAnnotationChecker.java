@@ -3,18 +3,19 @@
  * This file is licensed under the terms of the Modified BSD License.
  * Written by @Maximilian_Paul for questions please refer to uukln@student.kit.edu
  */
-package org.abs_models.frontend.typechecker.ext;
+package org.abs_models.frontend.typechecker.ext.secrecytype;
 
-import java.util.HashSet;
-import java.util.Set;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.Set;
 
-import org.abs_models.frontend.analyser.ErrorMessage;
-import org.abs_models.frontend.analyser.TypeError;
 import org.abs_models.frontend.ast.*;
-import org.abs_models.frontend.analyser.SemanticConditionList;
+import org.abs_models.frontend.analyser.ErrorMessage;
 import org.abs_models.frontend.analyser.SemanticCondition;
+import org.abs_models.frontend.analyser.SemanticConditionList;
+import org.abs_models.frontend.analyser.TypeError;
+import org.abs_models.frontend.typechecker.ext.DefaultTypeSystemExtension;
 
 /**
  * This class is using two phases which both run over the model. 
@@ -29,7 +30,6 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
      */
     private HashMap<ASTNode<?>,String> _maxSecrecy = new HashMap<>();
 
-    //todo current secrecy is here 
     /**
      * Stores mappings between ASTNode's (declarations) and the assigned current secrecy values.
      * Meaning e.g. a variable may hold a vlaue smaller than it's max secrecy value which would allow certain actions. 
@@ -51,17 +51,26 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
      */
     private LinkedList<ProgramCountNode> programConfidentiality;
 
+    /**
+     * The model that is currently being checked for secrecytype errors.
+     */
     private Model m; 
     
+    /**
+     * The list of methods that contain a call to another possibly insecure method of the same class.
+     */
     private LinkedList<CalledMethod> methodsCallingOthers = new LinkedList<CalledMethod>();
 
+    /**
+     * The list of methods of a certain class storing info about check and security status.
+     */
     private LinkedList<SecrecyMethod> methodList = new LinkedList<SecrecyMethod>();
 
     /**
      * The constructor for the SecrecyAnnotationChecker a class that checks a given model.
      * @param m - the ABS model that we want to check, is already parsed before.
      */
-    protected SecrecyAnnotationChecker(Model m) {
+    public SecrecyAnnotationChecker(Model m) {
         super(m);
 
         this.m = m;
@@ -86,19 +95,18 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
         }
 
         firstExtractionPhasePass(model);
+        System.out.println("MaxHashmapAfterExtraction: " + _maxSecrecy);
 
         visitor = new FlowSensitiveStmtVisitor(m, _maxSecrecy, _currentSecrecy, secrecyLatticeStructure, errors, programConfidentiality, methodsCallingOthers);
         
-        if(secrecyLatticeStructure.getFlowInsensitive()) {
+        if(m.flowInsensitiveFlag) {
+            System.out.println("Choosen flow-insensitive analysis");
             visitor = new FlowInsensitiveStmtVisitor(m, _maxSecrecy, secrecyLatticeStructure, errors, programConfidentiality, methodsCallingOthers);
         }
 
         secondTypecheckPhasePass(model); 
+        //Todo implement a filter method for the errors list that ensures each secrecy type error doesn get printed twice but only once
         
-
-        //todo if there is something I need/want to do as last thing I can/should do it here
-        
-        //todo to be removed later
         System.out.println("Print new annotated Values (MAX): " + _maxSecrecy.toString());
         System.out.println("Print new annotated Values (CURR): " + _currentSecrecy.toString());
         System.out.println("Print all Levels: " + secrecyLatticeStructure.getSecrecyLevels().toString());
@@ -217,7 +225,6 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
 
         List<Annotation> annotations = null;
 
-        //TODO check which of these are used at any time
         if (declNode instanceof ParamDecl param) {
             annotations = param.getAnnotationList();
         } else if (declNode instanceof FieldDecl field) {
@@ -263,26 +270,6 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
      * @param model - the ABS model on which we want to check the respecting of the secrecy typerules
      */
     private void secondTypecheckPhasePass(Model model){
-        /*
-        for (CompilationUnit cu : model.getCompilationUnits()) {
-            for (ModuleDecl moduleDecl : cu.getModuleDecls()) {
-                for (Decl decl : moduleDecl.getDecls()) {
-                    if (decl instanceof ClassDecl classDecl) {
-                        //TODO this is to "later" reset the current secrecy before we check the next method
-                        //_currentSecrecy = new HashMap<>(_maxSecrecy);
-                        for (MethodImpl method : classDecl.getMethods()) {
-                            //For each method of that class
-                            //TODO probably it's best to start a check here and after each method check we have to reset the current to be the same as max
-                            Block block = method.getBlock();
-                            //Get the block and then perform a check on each statement in the block!
-                            for (Stmt stmt : block.getStmtList()) {
-                                stmt.accept(visitor);
-                            }
-                        }
-                    }
-                }
-            }
-        }*/
         //Check the main block
         for (CompilationUnit cu : model.getCompilationUnits()) {
             if (cu.hasMainBlock()) {
@@ -306,6 +293,9 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
         //This should now be replaceable by instead checking each method in the methodList
         for (SecrecyMethod methodToCheck : methodList) {
             if(!methodToCheck.getIsChecked()) {
+                visitor.updateCurrentSecrecy(new HashMap<>(_maxSecrecy));
+
+                //todo hier fehlt das wir die current resetten ?!
 
                 MethodImpl methodToCheckImpl = methodToCheck.getMethodNode();
                 MethodSig methodToCheckSig = methodToCheckImpl.getMethodSig();
@@ -325,13 +315,12 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
                     System.out.println(methodToCheck);
                 }
                 methodToCheck.setIsChecked(true);
+                visitor.updateCurrentSecrecy(new HashMap<>(_maxSecrecy));
             }
         }
 
-        //TODO idea => add the corresponding SecrecyMethod to the CalledMethod so that we don't have to search it twice !!
         for(CalledMethod called : methodsCallingOthers) {
             
-            //get the corresponding SecrecyMethod
             SecrecyMethod key = new SecrecyMethod(called.getCallParentClass(), called.getMethodImpl());
             SecrecyMethod found = null;
 
@@ -461,6 +450,13 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
         }
     }
     
+    /**
+     * Helper method adding the new input method to the list of called methods.
+     * @param parentClass - the parent class of the two methods where one calls the other
+     * @param functionCall - the function call from method A to method B
+     * @param calledMethodImpl - the implementation of the called method B
+     * @param methodsCallingOthers - the list of methods that contain a call to another methods
+     */
     public static void addCalledMethod(ClassDecl parentClass, Call functionCall, MethodImpl calledMethodImpl, LinkedList<CalledMethod> methodsCallingOthers) {
         methodsCallingOthers.add(new CalledMethod(parentClass, functionCall, calledMethodImpl));
     }

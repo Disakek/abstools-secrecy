@@ -5,3 +5,13 @@
 51:Leakage Error from High: EqExp(thisChar,paramChar) to Low: charsMatch
 54:Leakage Error from High: False() to Low: pwdCorrect
 57:Leakage Error from High: AddAddExp(i,IntLiteral(1)) to Low: i
+49:Leakage Error from High: FnApp(password,i,AddAddExp(i,IntLiteral(1))) to Low: thisChar
+50:Leakage Error from High: FnApp(password,i,AddAddExp(i,IntLiteral(1))) to Low: paramChar
+51:Leakage Error from High: EqExp(thisChar,paramChar) to Low: charsMatch
+54:Leakage Error from High: False() to Low: pwdCorrect
+57:Leakage Error from High: AddAddExp(i,IntLiteral(1)) to Low: i
+49:Leakage Error from High: FnApp(password,i,AddAddExp(i,IntLiteral(1))) to Low: thisChar
+50:Leakage Error from High: FnApp(password,i,AddAddExp(i,IntLiteral(1))) to Low: paramChar
+51:Leakage Error from High: EqExp(thisChar,paramChar) to Low: charsMatch
+54:Leakage Error from High: False() to Low: pwdCorrect
+57:Leakage Error from High: AddAddExp(i,IntLiteral(1)) to Low: i

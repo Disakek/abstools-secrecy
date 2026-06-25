@@ -3,17 +3,17 @@
  * This file is licensed under the terms of the Modified BSD License.
  * Written by @Maximilian_Paul for questions please refer to uukln@student.kit.edu
  */
-package org.abs_models.frontend.typechecker.ext;
+package org.abs_models.frontend.typechecker.ext.secrecytype;
 
 import java.util.HashMap;
-import java.util.Set;
 import java.util.LinkedList;
+import java.util.Set;
 
 import org.abs_models.frontend.ast.*;
 import org.abs_models.frontend.analyser.ErrorMessage;
-import org.abs_models.frontend.analyser.TypeError;
 import org.abs_models.frontend.analyser.SemanticConditionList;
-
+import org.abs_models.frontend.analyser.SemanticCondition;
+import org.abs_models.frontend.analyser.TypeError;
 
 /**
  * This class is used to extract the secrecylevels for the different statements and enforce rules with it.
@@ -50,26 +50,7 @@ public class FlowSensitiveStmtVisitor extends SecrecyStmtVisitor{
         this._maxSecrecy = _maxSecrecy;
         this._currentSecrecy = _currentSecrecy;
         
-        /*
-        this.m = m;
-        this._maxSecrecy = _maxSecrecy;
-        this._currentSecrecy = _currentSecrecy;
-        this.secrecyLatticeStructure = secrecyLatticeStructure;
-        this.errors = errors;
-        this.programConfidentiality = programConfidentiality;
-        this.methodsCallingOthers = methodsCallingOthers;
-        */
-
         ExpVisitor = new FlowSensitiveExpVisitor(m, _maxSecrecy, _currentSecrecy, secrecyLatticeStructure, errors, programConfidentiality, this, methodsCallingOthers);
-    }
-
-    /**
-     * Visit function for statements.
-     * Depending on the kind of statement we call the matching implementation of visit. 
-     * @param stmt - the stmt we want to visit and check.
-     */
-    public void visit(Stmt stmt) {
-        return;
     }
 
     /**
@@ -81,20 +62,6 @@ public class FlowSensitiveStmtVisitor extends SecrecyStmtVisitor{
     public void visit(AssignStmt assignStmt){
 
         Boolean hasDeclassify = isDeclassifying(assignStmt);
-        //TODO add functionality for Declassify keyword here !!
-        /*
-        If we have a declassification then we allow the assignment of confidential information to a lower lhs.
-
-        The change in functionality consists of 2 changes:
-        1. We do not add a type error no matter what!! (add "!hasDeclassify" to the condition for the type error)
-        2. We've said we want to set the actual level of the lhs differently 
-        (I believe it was the highest value that lhs is allowed to take and that is equal to or lower than the rhs?)
-
-        For 2. taking LHS joined with pc should be fine:
-        - declassify only makes sense if lhs is lower than rhs so no lhs value can represent the value of rhs !! => take max possible of LHS
-        - we need to consider pc as well so join that to it !! => join(pc, maxOfLHS)
-        */
-
         ASTNode<?> LHS = assignStmt.getVar().getDecl();
         Exp RhsExp = assignStmt.getValue();
 
@@ -105,30 +72,32 @@ public class FlowSensitiveStmtVisitor extends SecrecyStmtVisitor{
         String possibleLHSLevel = _maxSecrecy.get(LHS);
         String possibleRHSLevel = RhsExp.accept(ExpVisitor);
 
-        //System.out.println("LHS: " + possibleLHSLevel + " should be higher/equal than this RHS: " + possibleRHSLevel);
-        //System.out.println("PC SECRECY: " + secrecyLatticeStructure.evaluateListLevel(programConfidentiality));
+        if(possibleLHSLevel != null) {
+            
+            LHSsecLevel = possibleLHSLevel;
+            
+        } else {
+            //When the lhs is not in the max hashmap then it has lowest possible value and thus it should also be written as that into the current!! 
+            //We only do this however once it is used as otherwise it has a lot of overhead
+            _currentSecrecy.put(LHS, minSecLevel);
+        }
 
-        if(possibleLHSLevel != null)LHSsecLevel = possibleLHSLevel;
         if(possibleRHSLevel != null)RHSsecLevel = possibleRHSLevel;
         
         Set<String> LHScontainedIn = secrecyLatticeStructure.getSetForSecrecyLevel(LHSsecLevel);
         
         if(!hasDeclassify && LHScontainedIn.contains(RHSsecLevel)) {
-            //System.out.println("THIS ONES AN ERROR:" + LHSsecLevel + " := " + RHSsecLevel);
             errors.add(new TypeError(assignStmt, ErrorMessage.SECRECY_LEAKAGE_ERROR_FROM_TO, RHSsecLevel, assignStmt.getValue().toString(), LHSsecLevel, assignStmt.getVar().getName()));
+        } else {
+            
+            if(hasDeclassify) {
+                String listLevel = secrecyLatticeStructure.evaluateListLevel(programConfidentiality);
+                _currentSecrecy.put(LHS, secrecyLatticeStructure.join(LHSsecLevel, listLevel));
+            } else {
+                _currentSecrecy.put(LHS, RHSsecLevel); 
+            }
         }
         
-        //TODO in order to enforce the double check with the fields respecting max we have to remove the return (e.g. outcomment)
-        //Also we have to change the currentSecrecy for the left handside in general and not only if lhs has a max higher than min!!
-        //TODO check that this below is working as intended
-        if(hasDeclassify) {
-            String listLevel = secrecyLatticeStructure.evaluateListLevel(programConfidentiality);
-            _currentSecrecy.put(LHS, secrecyLatticeStructure.join(LHSsecLevel, listLevel));
-            //System.out.println("WORKS GOOD HERE!! ASSIGNSTMT");
-        } else {
-            _currentSecrecy.put(LHS, RHSsecLevel); 
-            //Update the current secrecy level if it has a max level != to the min secrecy level (minLevel is not added to the structure)
-        }
     }
 
     /**
@@ -141,7 +110,6 @@ public class FlowSensitiveStmtVisitor extends SecrecyStmtVisitor{
      */
     public void visit(AwaitStmt awaitStmt) {
 
-        //TODO update the documentation
         checkFieldsRespectMax(awaitStmt);
 
         Guard getGuard = awaitStmt.getGuard();
@@ -149,18 +117,6 @@ public class FlowSensitiveStmtVisitor extends SecrecyStmtVisitor{
     
     }
 
-    /**
-     * Visit function for block statements. We check every statement in the block with this visitor.
-     * @param blockStmt - the blockstmt from which we want to visit each stmt.
-     */
-    public void visit(Block blockStmt){
-        for(Stmt stmt : blockStmt.getStmtList()) {
-            stmt.accept(this);
-        }
-    }
-
-    //TODO 1. Update the documentation for this to contain a description of the FnApp addition I wrote
-    //TODO 2. Once the differentiation between max/curr secrecy is added we want to return the level for the variable stored in curr
     /**
      * Visit function for expression statements. 
      * For an expression statement we want the expression below to be handled by the expression visitor.
@@ -214,15 +170,14 @@ public class FlowSensitiveStmtVisitor extends SecrecyStmtVisitor{
     public void visit(IfStmt ifStmt){
 
         Exp condition = ifStmt.getCondition();
-        //System.out.println("If-condition: " + condition + " with " + condition.accept(ExpVisitor));
 
         if(condition.accept(ExpVisitor) != null) {
-            ProgramCountNode ifNode = new ProgramCountNode("ifStmt", condition.accept(ExpVisitor));
-            programConfidentiality.add(ifNode);
-            //The print below can be used when one is not sure that the if-stmt's work properly
-            //if(!ifNode.getSecrecyLevel().equals("Low")) System.out.println("Created new if stmt with secrecy level: " + ifNode.getSecrecyLevel());
 
+            ProgramCountNode ifNode = new ProgramCountNode("ifStmt", condition.accept(ExpVisitor));
+
+            programConfidentiality.add(ifNode);
             ExpVisitor.updateProgramPoint(programConfidentiality);
+
             Stmt thenCase = ifStmt.getThen();
             thenCase.accept(this);
 
@@ -283,9 +238,26 @@ public class FlowSensitiveStmtVisitor extends SecrecyStmtVisitor{
     public void visit(VarDeclStmt varDeclStmt) {
 
         Boolean hasDeclassify = isDeclassifying(varDeclStmt);
-        //TODO add functionality for Declassify keyword here !!
-
+        
         VarDecl varDecl = varDeclStmt.getVarDecl();
+        List<Annotation> annotations = varDeclStmt.getAnnotationList();
+        for (Annotation ann : annotations) {
+            if (ann instanceof TypedAnnotation typedAnn) {
+
+                ASTNode<?> valueNode = typedAnn.getChild(0);
+                ASTNode<?> nameNode  = typedAnn.getChild(1);
+
+                if ("Secrecy".equals(nameNode.toString()) && valueNode instanceof DataConstructorExp dataCon) {
+                    String levelName = dataCon.getConstructor();
+
+                    if (!secrecyLatticeStructure.isValidLabel(levelName)) {
+                        errors.add(new TypeError(typedAnn, ErrorMessage.SECRECY_WRONG_ANNOTATION_VALUE, levelName));
+                        return;
+                    }
+                    _maxSecrecy.put(varDecl, levelName);
+                }
+            }
+        }
 
         //We need to get the level here for the check because we can't find it in the usual list
         //until after this check is performed (I assume)
@@ -301,19 +273,38 @@ public class FlowSensitiveStmtVisitor extends SecrecyStmtVisitor{
             Set<String> rhsLevelSet = secrecyLatticeStructure.getSetForSecrecyLevel(rhsLevel);
             
             if(!hasDeclassify && !(lhsLevel.equals(rhsLevel) || rhsLevelSet.contains(lhsLevel))) {
+                
                 errors.add(new TypeError(varDeclStmt, ErrorMessage.SECRECY_LEAKAGE_ERROR_FROM_TO, rhsLevel, initExp.toString(), lhsLevel, varDecl.getName()));
-            }
-
-            //TODO missing here functionality that updates the current level!! even important for a vardeclstmt I think
-            //TODO check if this below is all it took!!
-            if(hasDeclassify) {
-                String listLevel = secrecyLatticeStructure.evaluateListLevel(programConfidentiality);
-                _currentSecrecy.put(varDecl, secrecyLatticeStructure.join(lhsLevel, listLevel));
-                //System.out.println("WORKS GOOD HERE!! VARDECLSTMT");
+            
             } else {
-                _currentSecrecy.put(varDecl, rhsLevel);
+
+                if(hasDeclassify) {
+                    String listLevel = secrecyLatticeStructure.evaluateListLevel(programConfidentiality);
+                    _currentSecrecy.put(varDecl, secrecyLatticeStructure.join(lhsLevel, listLevel));
+                } else {
+                    _currentSecrecy.put(varDecl, rhsLevel);
+                }
             }
         }
+    }
+
+    /**
+     * Visitor method calling the actual check.
+     * This class requires the while stmt's to be checked more than once to find interloop leakages.
+     * We don't know how often to unroll a loop but assume errors mostly appear in the first two iterations.
+     * Thus to ensure some level of precision while keeping performance, we unroll it three times
+     * @param whileStmt - the while stmt that has to respect the while rule.
+     * It is very similar to the if-stmt (without an else).
+     */
+    public void visit(WhileStmt whileStmt) {
+
+        //1.Iteration of the loop
+        visitWhileHelper(whileStmt);
+        //2.Iteration of the loop
+        visitWhileHelper(whileStmt);
+        //3.Iteration of the loop
+        visitWhileHelper(whileStmt);
+
     }    
 
     /**
@@ -324,18 +315,7 @@ public class FlowSensitiveStmtVisitor extends SecrecyStmtVisitor{
      * @param whileStmt - the while stmt that has to respect the while rule.
      * It is very similar to the if-stmt (without an else).
      */
-    public void visit(WhileStmt whileStmt) {
-        
-        //1.Iteration of the loop
-        visitWhileHelper(whileStmt);
-        //2.Iteration of the loop
-        visitWhileHelper(whileStmt);
-        //3.Iteration of the loop
-        visitWhileHelper(whileStmt);
-    
-    }
-
-    private void visitWhileHelper(WhileStmt whileStmt) {
+    public void visitWhileHelper(WhileStmt whileStmt) {
 
         Exp condition = whileStmt.getCondition();
 
@@ -385,52 +365,11 @@ public class FlowSensitiveStmtVisitor extends SecrecyStmtVisitor{
     }
 
     /**
-     * Allows to update the current program secrecy list on a change.
-     * @param newConfidentiality - the list but with the new changes.
+     * Helper method to find the class containing a method (or the constructor) that contains a certain statement.
+     * @param m - the model that is currently checked.
+     * @param stmt - the statement of which we need to find the Class it is part of.
+     * @return - null if we can't find a class that contains the method, otherwise the classDecl of that class.
      */
-    public void updateProgramPoint(LinkedList<ProgramCountNode> newConfidentiality) {
-        programConfidentiality = newConfidentiality;
-    }
-
-    //TODO doc missing
-    public boolean containsFnAppHelper(Exp expression) {
-
-        if(expression instanceof FnApp) {
-            return true;
-        }
-
-        if(expression instanceof Unary unaryExp) {
-            containsFnAppHelper(unaryExp);
-        } else if(expression instanceof Binary binaryExp) {
-            if (containsFnAppHelper(binaryExp.getLeft()) || (containsFnAppHelper(binaryExp.getRight()))) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    //TODO doc missing
-    public FnApp getFnAppHelper(Exp expression) {
-
-        if(expression instanceof FnApp fnapp) {
-            return fnapp;
-        }
-
-        if(expression instanceof Unary unaryExp) {
-            getFnAppHelper(unaryExp);
-        } else if(expression instanceof Binary binaryExp) {
-            if (containsFnAppHelper(binaryExp.getLeft())) {
-                getFnAppHelper(binaryExp.getRight());
-            } else if (containsFnAppHelper(binaryExp.getRight())) {
-                getFnAppHelper(binaryExp.getRight());
-            }
-        }
-
-        return null;
-    }
-
-    //TODO doc missing
     private ClassDecl findContainingClass(Model m, Stmt stmt) {
         ASTNode<?> current = stmt;
         while (current != null) {
@@ -443,11 +382,14 @@ public class FlowSensitiveStmtVisitor extends SecrecyStmtVisitor{
         return null;
     }
 
-    //TODO doc missing
+    /**
+     * This method ensures that the fields of a class don't contain something with a higher secrecy level than allowed,
+     * when reaching an await statement. This could otherwise lead to a leak by supsension and access through another process.
+     * @param awaitStmt - the awaitStmt at which point we need to ensure the fields don't exceed their maximum allowed secrecy level.
+     */
     private void checkFieldsRespectMax(AwaitStmt awaitStmt) {
-        //System.out.println();
-        //TODO - in this class ensure that each field only contains something where the current secrecy is smaller or equal to the max secrecy  
-        //String className = awaitStmt.getClassName();
+
+        //In this class ensure that each field only contains something where the current secrecy is smaller or equal to the max secrecy  
         ClassDecl classContainingAwait = findContainingClass(m, awaitStmt);
         String minimumSecLevel = secrecyLatticeStructure.getMinSecrecyLevel();
 
@@ -467,38 +409,16 @@ public class FlowSensitiveStmtVisitor extends SecrecyStmtVisitor{
             Set<String> setOfCurrent = secrecyLatticeStructure.getSetForSecrecyLevel(currentSecOfField); 
             
             if(!(setOfCurrent.contains(maxSecOfField)) && !(maxSecOfField.equals(currentSecOfField))) {
-
-                //TODO add a new SECRECY_AWAIT_FIELD_VIOLATION error message that describes this error
                 errors.add(new TypeError(awaitStmt, ErrorMessage.SECRECY_AWAIT_FIELD_VIOLATION, fieldDecl.getName(), currentSecOfField, maxSecOfField));
             }
         }
     }
 
-    private Boolean isDeclassifying(Stmt stmt) {
-        
-        List<Annotation> annotations = stmt.getAnnotationList();
-
-        if(annotations != null && annotations.getNumChild() > 0) {
-
-            for (Annotation ann : annotations) {
-
-                Exp value = ann.getValue();
-
-                if(value instanceof DataConstructorExp dataCon) {
-
-                    if(("Declassify").equals(dataCon.getConstructor())) {
-                        //System.out.println("DataCon is Declassify");
-                        return true;
-                    }
-                    
-                }
-            }
-        }
-
-        return false;
-    }
-
-    //TODO doc missing
+    /**
+     * This method is used to write an update to the current secrecy level hashmap.
+     * The update also has to be written to the instance of the expression visitor.
+     * @param newCurrentSecrecy - the new current secrecy hashmap including the update.
+     */
     public void updateCurrentSecrecy(HashMap<ASTNode<?>, String> newCurrentSecrecy) {
         this._currentSecrecy = newCurrentSecrecy;
         ExpVisitor.updateCurrentSecrecy(_currentSecrecy);

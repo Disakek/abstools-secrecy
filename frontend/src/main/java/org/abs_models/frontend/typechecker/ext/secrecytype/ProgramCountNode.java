@@ -3,27 +3,28 @@
  * This file is licensed under the terms of the Modified BSD License.
  * Written by @Maximilian_Paul for questions please refer to uukln@student.kit.edu
  */
-package org.abs_models.frontend.typechecker.ext;
+package org.abs_models.frontend.typechecker.ext.secrecytype;
 
 /**
- * This class is used to store the changes for the programConfidentiality
+ * This class is used to store the changes for the secrecy level of a program point.
+ * By default it contains a node describing the lowest possible level which counts for each program point.
  */
-public class ProgramCountNode {
+class ProgramCountNode {
 
     /**
      * Name of the node that lead to a change. (for if/while just ifStmt/whileStmt)
      */
-    String  levelChangingNode;
+    public String levelChangingNode;
 
     /**
      * Secrecy level the node is associated with.
      */
-    String secrecyLevel;
+    public String secrecyLevel;
 
     /**
      * This is the constructor for a new ProgramCountNode.
      * @param levelChangingNode - the name of the new Object
-     * @param secrecylevel - the level of the new Object
+     * @param secrecyLevel - the level of the new Object
      */
     public ProgramCountNode(String levelChangingNode, String secrecyLevel) {
         this.levelChangingNode = levelChangingNode;

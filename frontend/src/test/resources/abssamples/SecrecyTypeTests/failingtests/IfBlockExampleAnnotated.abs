@@ -29,10 +29,10 @@ class IFBlockExamples(Int in_low) {
     }
 
     Int insecure_1([Secrecy: High] Int l) {
-        Int l1 = l;
+        Int l1 = l; //TODO HERE THIS SHOULD BE AN ERROR => which it isn't because the varDeclStmt is probably wrong !!
         low = low+1;
 
-        { l1 = l1+1; }
+        { l1 = l1 + 1; } 
 
         return l1;
     }

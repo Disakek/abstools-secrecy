@@ -3,10 +3,11 @@
  * This file is licensed under the terms of the Modified BSD License.
  * Written by @Maximilian_Paul for questions please refer to uukln@student.kit.edu
  */
+import org.abs_models.frontend.typechecker.ext.secrecytype.*;
 
 /**
- * Used to handover the user input for the --secrecy option to the SecrecyAnnotationChecker
- * default case is a secrecy lattice defined by Low < High
+ * Used to handover the user input for the --secrecy option to the SecrecyAnnotationChecker.
+ * Default case is a secrecy lattice defined by "Low < High".
  *
  * @author Maximilian Paul
  */

@@ -17,7 +17,7 @@ class Voter {
         while (i < low_NUM_OF_VOTERS) {
 
             [Secrecy: High] Int high_vote = this.inputVote(); 
-            //Here is a bug now !!
+            //Here is a bug now !! => VarDeclStmt probably didn't get extracted right
 
             {
                 [Secrecy: High] Bool validCheck = this.isValid(high_vote);

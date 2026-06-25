@@ -102,6 +102,12 @@ public class SecrecyTypeTests extends FrontendTest {
     }
 
     @Test
+    public void passwordFileWithDeclassify() throws Exception {
+        String fileName = "abssamples/SecrecyTypeTests/passingtests/SecurePasswordFileDeclassifyingAnnotated.abs";
+        assertTypeCheckFileOk(fileName);
+    }
+
+    @Test
     public void simpleEvoting() throws Exception {
         String fileName = "abssamples/SecrecyTypeTests/passingtests/SimpleEvotingExampleAnnotated.abs";
         assertTypeCheckFileOk(fileName);
@@ -198,7 +204,7 @@ public class SecrecyTypeTests extends FrontendTest {
 
         assertEquals(loadExpectedErrors(fileName.replace(".abs", ".txt")), getLinesAndErrors(m.getTypeErrors()));
     }
-
+    
     @Test
     public void sumExample() throws Exception {
         String fileName = "abssamples/SecrecyTypeTests/failingtests/SumExampleAnnotated.abs";
@@ -223,6 +229,168 @@ public class SecrecyTypeTests extends FrontendTest {
         assertEquals(loadExpectedErrors(fileName.replace(".abs", ".txt")), getLinesAndErrors(m.getTypeErrors()));
     }
 
+
+    //BELOW HERE ARE THE FLOW_INSENSITIVE TESTS!!
+    /*
+     @Test
+    public void ifEfficiencyExample() throws Exception {
+        //name of the folders and at the end the name of the file
+        String fileName = "abssamples/SecrecyTypeTests/passingtests/IfEfficiencyExampleAnnotated.abs";
+        //ensuring that no type errors occur!
+        assertTypeCheckFileOk(fileName);
+    }
+
+    @Test
+    public void conditionalConfidential() throws Exception {
+        String fileName = "abssamples/SecrecyTypeTests/passingtests/ConditionalConfidentialExampleAnnotated.abs";
+        assertTypeCheckFileOk(fileName);
+    }
+
+    @Test
+    public void amtOftBanerjee1() throws Exception {
+        String fileName = "abssamples/SecrecyTypeTests/passingtests/AmtoftBanerjeeAnnotated1.abs";
+        assertTypeCheckFileOk(fileName);
+    }
+
+    @Test
+    public void amtOftBanerjee2() throws Exception {
+        String fileName = "abssamples/SecrecyTypeTests/passingtests/AmtoftBanerjeeAnnotated2.abs";
+        assertTypeCheckFileOk(fileName);
+    }
+
+    @Test
+    public void naumann() throws Exception {
+        String fileName = "abssamples/SecrecyTypeTests/passingtests/NaumannAnnotated.abs";
+        assertTypeCheckFileOk(fileName);
+    }
+
+    @Test
+    public void simpleEvoting() throws Exception {
+        String fileName = "abssamples/SecrecyTypeTests/passingtests/SimpleEvotingExampleAnnotated.abs";
+        assertTypeCheckFileOk(fileName);
+    }
+
+    @Test
+    public void bankingExample2() throws Exception {
+        String fileName = "abssamples/SecrecyTypeTests/passingtests/BankingExampleAnnotated2.abs";
+        assertTypeCheckFileOk(fileName);
+    }
+
+    */
+    //Below are tests that have 1 or more (expected) secrecy type errors
+    /*
+    @Test
+    public void ifBlockExample() throws Exception {
+        //name of the folders and at the end the name of the file
+        //the file with the expected secrecy errors has to have the same name but as a .txt file
+        String fileName = "abssamples/SecrecyTypeTests/failingtests/IfBlockExampleAnnotated.abs";
+        //trying to get the model of the source code file
+        Model m = assertParseFileOk(fileName);
+        m.flowInsensitiveFlag = true;
+        //ensuring that the secrecy type errors are exactly those that we specify in the .txt file (same folder and same name)
+        assertEquals(loadExpectedErrors(fileName.replace(".abs", ".txt")), getLinesAndErrors(m.getTypeErrors()));
+    }
+    
+    @Test
+    public void ifLoopExamples() throws Exception {
+        String fileName = "abssamples/SecrecyTypeTests/failingtests/IfLoopExamplesAnnotated.abs";
+        Model m = assertParseFileOk(fileName);
+
+        assertEquals(loadExpectedErrors(fileName.replace(".abs", ".txt")), getLinesAndErrors(m.getTypeErrors()));
+    }
+    
+    @Test
+    public void ifMethodContract() throws Exception {
+        String fileName = "abssamples/SecrecyTypeTests/failingtests/IfMethodContractAnnotated.abs";
+        Model m = assertParseFileOk(fileName);
+
+        assertEquals(loadExpectedErrors(fileName.replace(".abs", ".txt")), getLinesAndErrors(m.getTypeErrors()));
+    }
+
+    @Test
+    public void aliasingExamples() throws Exception {
+        String fileName = "abssamples/SecrecyTypeTests/failingtests/AliasingExamplesAnnotated.abs";
+        Model m = assertParseFileOk(fileName);
+
+        assertEquals(loadExpectedErrors(fileName.replace(".abs", ".txt")), getLinesAndErrors(m.getTypeErrors()));
+    }
+    
+    @Test
+    public void differenceSeqLocset() throws Exception {
+        String fileName = "abssamples/SecrecyTypeTests/failingtests/DifferenceSeqLocsetAnnotated.abs";
+        Model m = assertParseFileOk(fileName);
+
+        assertEquals(loadExpectedErrors(fileName.replace(".abs", ".txt")), getLinesAndErrors(m.getTypeErrors()));
+    }
+    
+    @Test
+    public void miniExamples() throws Exception {
+        String fileName = "abssamples/SecrecyTypeTests/failingtests/MiniExamplesAnnotated.abs";
+        Model m = assertParseFileOk(fileName);
+
+        assertEquals(loadExpectedErrors(fileName.replace(".abs", ".txt")), getLinesAndErrors(m.getTypeErrors()));
+    }
+    
+    @Test
+    public void miniExamplesLecture() throws Exception {
+        String fileName = "abssamples/SecrecyTypeTests/failingtests/MiniExamplesLectureAnnotated.abs";
+        Model m = assertParseFileOk(fileName);
+
+        assertEquals(loadExpectedErrors(fileName.replace(".abs", ".txt")), getLinesAndErrors(m.getTypeErrors()));
+    }
+
+    @Test
+    public void amtOftBanerjee3() throws Exception {
+        String fileName = "abssamples/SecrecyTypeTests/failingtests/AmtoftBanerjeeAnnotated3.abs";
+        Model m = assertParseFileOk(fileName);
+
+        assertEquals(loadExpectedErrors(fileName.replace(".abs", ".txt")), getLinesAndErrors(m.getTypeErrors()));
+    }
+
+    @Test
+    public void objectOrientation() throws Exception {
+        String fileName = "abssamples/SecrecyTypeTests/failingtests/ObjectorientationAnnotated.abs";
+        Model m = assertParseFileOk(fileName);
+
+        assertEquals(loadExpectedErrors(fileName.replace(".abs", ".txt")), getLinesAndErrors(m.getTypeErrors()));
+    }
+
+    @Test
+    public void passwordFile() throws Exception {
+        String fileName = "abssamples/SecrecyTypeTests/failingtests/SecurePasswordFileAnnotated.abs";
+        Model m = assertParseFileOk(fileName);
+
+        assertEquals(loadExpectedErrors(fileName.replace(".abs", ".txt")), getLinesAndErrors(m.getTypeErrors()));
+    }
+
+    @Test
+    public void sumExample() throws Exception {
+        String fileName = "abssamples/SecrecyTypeTests/failingtests/SumExampleAnnotated.abs";
+        Model m = assertParseFileOk(fileName);
+
+        assertEquals(loadExpectedErrors(fileName.replace(".abs", ".txt")), getLinesAndErrors(m.getTypeErrors()));
+    }
+    */
+
+    @Test
+    public void bankingExample1FLOWINSENSITIVE() throws Exception {
+        String fileName = "abssamples/SecrecyTypeTests/failingtests/BankingExampleAnnotated1.abs";
+        Model m = assertParseFileOk(fileName);
+        //m.flowInsensitiveFlag = true;
+
+        assertEquals(loadExpectedErrors(fileName.replace(".abs", ".txt")), getLinesAndErrors(m.getTypeErrors()));
+    }
+
+    /*
+    @Test
+    public void toyVoting() throws Exception {
+        String fileName = "abssamples/SecrecyTypeTests/failingtests/VoterAnnotated.abs";
+        Model m = assertParseFileOk(fileName);
+
+        assertEquals(loadExpectedErrors(fileName.replace(".abs", ".txt")), getLinesAndErrors(m.getTypeErrors()));
+    }
+
+    */
     //These are helper methods to verify the failing files fail on the exact erros we expect them to
 
     /**
@@ -253,7 +421,8 @@ public class SecrecyTypeTests extends FrontendTest {
                msg == ErrorMessage.SECRECY_PARAMETER_TO_HIGH ||
                msg == ErrorMessage.SECRECY_FNAPP_NOT_EQUAL ||
                msg == ErrorMessage.SECRECY_AWAIT_FIELD_VIOLATION ||
-               msg == ErrorMessage.SECRECY_LEVEL_NON_EXISTANT;
+               msg == ErrorMessage.SECRECY_LEVEL_NON_EXISTANT ||
+               msg == ErrorMessage.SECRECY_CALLING_INSECURE_METHOD;
     }
 
     /**
