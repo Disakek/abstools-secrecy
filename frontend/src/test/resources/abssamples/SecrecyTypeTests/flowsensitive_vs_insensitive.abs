@@ -1,0 +1,11 @@
+module Test;
+
+class C {
+    [Secrecy: High] Int someValue = 3;
+    
+    Int exampleMethod() {
+        someValue = 8;
+        return someValue;
+    }
+
+}

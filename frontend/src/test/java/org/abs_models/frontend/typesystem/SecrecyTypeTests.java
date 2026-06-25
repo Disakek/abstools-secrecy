@@ -52,6 +52,10 @@ import static java.nio.file.Files.lines;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import org.abs_models.frontend.parser.Main;
+import java.io.File;
+import java.util.Arrays;
+
 public class SecrecyTypeTests extends FrontendTest {
 
     /*
@@ -373,10 +377,12 @@ public class SecrecyTypeTests extends FrontendTest {
     */
 
     @Test
-    public void bankingExample1_FlowInsensitive() throws Exception {
-        String fileName = "abssamples/SecrecyTypeTests/failingtests/BankingExampleAnnotated1.abs";
-        Model m = assertParseFileOk(fileName);
-        m.flowInsensitiveFlag = true;
+    public void flowsensitive_vs_flowinsensitive() throws Exception {
+        String fileName = "abssamples/SecrecyTypeTests/flowsensitive_vs_insensitive.abs";
+        Main main = new Main();
+        main.arguments.flowInsensitive = true;
+        Model m = main.parse(Arrays.asList(new File(resolveFileName(fileName))));
+        m.evaluateAllProductDeclarations();
 
         assertEquals(loadExpectedErrors(fileName.replace(".abs", ".txt")), getLinesAndErrors(m.getTypeErrors()));
     }
