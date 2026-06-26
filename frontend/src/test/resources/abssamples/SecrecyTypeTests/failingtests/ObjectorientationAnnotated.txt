@@ -1,11 +1,19 @@
-46:Leakage Error from High: high_object to Low: o0
-63:Leakage Error from High: NewExp(IntLiteral(0),Opt()) to Low: o0
-64:Leakage Error from High: NewExp(IntLiteral(1),Opt()) to Low: o1
-66:Leakage Error from High: NewExp(IntLiteral(1),Opt()) to Low: o1
-67:Leakage Error from High: NewExp(IntLiteral(0),Opt()) to Low: o0
-73:Leakage Error from High: NewExp(IntLiteral(0),Opt()) to Low: o0
-74:Leakage Error from High: NewExp(IntLiteral(1),Opt()) to Low: o1
-75:Calls method with parameter of secrecy level High but obj was only allowed to be Low at most!
-77:Leakage Error from High: NewExp(IntLiteral(1),Opt()) to Low: o1
-78:Leakage Error from High: NewExp(IntLiteral(0),Opt()) to Low: o0
+46:Leakage Error from High: high_object to Low: o0 
+63:Calls method with parameter of secrecy level High but i was only allowed to be Low at most!
+63:Leakage Error from High: NewExp(IntLiteral(0),Opt()) to Low: o0 
+64:Calls method with parameter of secrecy level High but i was only allowed to be Low at most!
+64:Leakage Error from High: NewExp(IntLiteral(1),Opt()) to Low: o1 
+66:Calls method with parameter of secrecy level High but i was only allowed to be Low at most!
+66:Leakage Error from High: NewExp(IntLiteral(1),Opt()) to Low: o1 
+67:Calls method with parameter of secrecy level High but i was only allowed to be Low at most!
+67:Leakage Error from High: NewExp(IntLiteral(0),Opt()) to Low: o0 
+73:Calls method with parameter of secrecy level High but i was only allowed to be Low at most!
+73:Leakage Error from High: NewExp(IntLiteral(0),Opt()) to Low: o0 
+74:Calls method with parameter of secrecy level High but i was only allowed to be Low at most! 
+74:Leakage Error from High: NewExp(IntLiteral(1),Opt()) to Low: o1 
+75:Calls method with parameter of secrecy level High but obj was only allowed to be Low at most! 
+77:Calls method with parameter of secrecy level High but i was only allowed to be Low at most! 
+77:Leakage Error from High: NewExp(IntLiteral(1),Opt()) to Low: o1 
+78:Calls method with parameter of secrecy level High but i was only allowed to be Low at most! 
+78:Leakage Error from High: NewExp(IntLiteral(0),Opt()) to Low: o0 
 79:Calls method with parameter of secrecy level High but obj was only allowed to be Low at most!

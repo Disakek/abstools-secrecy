@@ -112,12 +112,6 @@ public class SecrecyTypeTests extends FrontendTest {
     }
 
     @Test
-    public void simpleEvoting() throws Exception {
-        String fileName = "abssamples/SecrecyTypeTests/passingtests/SimpleEvotingExampleAnnotated.abs";
-        assertTypeCheckFileOk(fileName);
-    }
-
-    @Test
     public void bankingExample2() throws Exception {
         String fileName = "abssamples/SecrecyTypeTests/passingtests/BankingExampleAnnotated2.abs";
         assertTypeCheckFileOk(fileName);
@@ -136,12 +130,18 @@ public class SecrecyTypeTests extends FrontendTest {
         //ensuring that the secrecy type errors are exactly those that we specify in the .txt file (same folder and same name)
         assertEquals(loadExpectedErrors(fileName.replace(".abs", ".txt")), getLinesAndErrors(m.getTypeErrors()));
     }
+
+    @Test
+    public void simpleEvoting() throws Exception {
+        String fileName = "abssamples/SecrecyTypeTests/failingtests/SimpleEvotingExampleAnnotated.abs";
+        Model m = assertParseFileOk(fileName);
+        assertEquals(loadExpectedErrors(fileName.replace(".abs", ".txt")), getLinesAndErrors(m.getTypeErrors()));
+    }
     
     @Test
     public void ifLoopExamples() throws Exception {
         String fileName = "abssamples/SecrecyTypeTests/failingtests/IfLoopExamplesAnnotated.abs";
         Model m = assertParseFileOk(fileName);
-
         assertEquals(loadExpectedErrors(fileName.replace(".abs", ".txt")), getLinesAndErrors(m.getTypeErrors()));
     }
     
@@ -149,7 +149,6 @@ public class SecrecyTypeTests extends FrontendTest {
     public void ifMethodContract() throws Exception {
         String fileName = "abssamples/SecrecyTypeTests/failingtests/IfMethodContractAnnotated.abs";
         Model m = assertParseFileOk(fileName);
-
         assertEquals(loadExpectedErrors(fileName.replace(".abs", ".txt")), getLinesAndErrors(m.getTypeErrors()));
     }
 

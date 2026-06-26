@@ -80,8 +80,8 @@ public abstract class SecrecyExpVisitor {
         else if (expression instanceof Unary u)  { return this.visit(u); }
         else if (expression instanceof FnApp f)  { return this.visit(f); }
         else if (expression instanceof GetExp g) { return this.visit(g); }
-        else if (expression instanceof NewExp n)   return this.visit(n);
-           
+        else if (expression instanceof NewExp n) { return this.visit(n); }
+                   
         return secrecyLatticeStructure.evaluateListLevel(programConfidentiality);
     }
 
@@ -94,7 +94,6 @@ public abstract class SecrecyExpVisitor {
     public String visit(Binary binaryExp) {
         
         String leftLevelAccept = binaryExp.getLeft().accept(this);
-        String leftLevelVisit = this.visit(binaryExp.getLeft());
         String rightLevel = binaryExp.getRight().accept(this);
         String combined = secrecyLatticeStructure.join(leftLevelAccept, rightLevel);
 

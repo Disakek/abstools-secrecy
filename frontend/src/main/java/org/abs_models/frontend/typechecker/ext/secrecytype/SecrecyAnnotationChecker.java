@@ -167,8 +167,14 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
 
                         //3.
                         for (MethodImpl method : classDecl.getMethods()) {
+                            
+                            //methodList.add(new SecrecyMethod(classDecl, method));
+                            SecrecyMethod candidate = new SecrecyMethod(classDecl, method);
 
-                            methodList.add(new SecrecyMethod(classDecl, method));
+                            if (!methodList.contains(candidate)) {
+                                methodList.add(candidate);
+                            }
+                            
                             MethodSig methodSigNat = method.getMethodSig();
 
                             //3.1
