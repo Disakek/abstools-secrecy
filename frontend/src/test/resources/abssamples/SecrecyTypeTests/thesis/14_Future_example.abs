@@ -1,0 +1,18 @@
+module ThesisExamples;
+
+class C {
+    
+    Unit someMethod() {
+        Fut<Int> f = this!expensiveCalculation();
+        await f?;
+        /* any combination of statements */
+        Int result = f.get;
+        /* ... */
+    }
+
+    Int expensiveCalculation() {
+        Int result = 0;
+        /* some expensive caluclations */
+        return result;
+    }
+}

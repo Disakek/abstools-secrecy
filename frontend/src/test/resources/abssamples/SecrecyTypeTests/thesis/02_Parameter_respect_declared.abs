@@ -1,0 +1,26 @@
+module ThesisExamples;
+
+interface PrinterI {
+    Unit printValue([Secrecy: High] Int a);
+}
+
+class A implements PrinterI {
+    Unit printValue([Secrecy: Low] Int a) {
+        print(toString(a));
+    }
+}
+
+class B implements PrinterI {
+    Unit printValue([Secrecy: High] Int a) {
+        Int randomNumber = 8;
+        print(toString(a+randomNumber));
+    }
+}
+
+class C (PrinterI somePrinterImpl) {
+    [Secrecy: High] Int result = 4;
+
+    Unit printResult() {
+        somePrinterImpl.printValue(result);
+    }
+}

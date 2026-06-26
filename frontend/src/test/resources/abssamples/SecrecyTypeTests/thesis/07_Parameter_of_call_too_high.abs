@@ -1,0 +1,15 @@
+module ThesisExamples;
+
+class C {
+    [Secrecy: High] Int someValue = 3;
+    
+    Int exampleMethod(Int x) {
+        return x;
+    }
+
+    Int callingMethod() {
+        Int result = this.exampleMethod(someValue);
+        
+        return result;
+    }
+}

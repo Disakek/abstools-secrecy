@@ -1,0 +1,35 @@
+module ThesisExamples;
+
+interface CI {
+    [Secrecy: Low] Int getAccount (Int userID, List<Int> users);
+}
+
+class C implements CI {
+    [Secrecy: Low] Int getAccount (Int userID, List<Int> users) {
+        Int result = 0;
+        Int i = 0;
+        while (i < length(users)) {
+            Int nthUser = nth(users, i);
+            if(nthUser == userID) {
+                result = nthUser;
+            }
+            i = i + 1;
+        }
+
+        return result;
+    }
+}
+
+//Main method
+{
+    CI c = new C();
+    List<Int> users = list[1,2,3,4,5]; 
+
+    [Secrecy: High] Bool isCorrectPwd = False; 
+
+    if (isCorrectPwd) {
+        [Secrecy: Low] Int userAccountLink = c.getAccount(4, users); //isCorrectPwd is high making params and assignment wrong
+    } else {
+        print("unallowed login try");
+    }
+}

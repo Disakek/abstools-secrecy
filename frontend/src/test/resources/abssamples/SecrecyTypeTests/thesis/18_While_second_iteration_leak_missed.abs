@@ -1,0 +1,20 @@
+module ThesisExamples;
+
+class C {
+    [Secrecy: High] Int highValue = 8;
+    [Secrecy: Low] Int a = 7;
+    [Secrecy: Low] Int b = 2;
+    [Secrecy: Low] Int c = 6;
+
+    Unit someMethod() {
+    
+        while(a > 5) {
+
+            if(a == c) {
+                b = highValue;
+            }
+            
+            a = a - 1;
+        }
+    }
+}

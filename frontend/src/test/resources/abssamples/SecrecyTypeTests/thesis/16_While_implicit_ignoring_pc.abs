@@ -1,0 +1,13 @@
+module ThesisExamples;
+
+class C {
+    [Secrecy: High] Bool highCondition = True;
+    [Secrecy: Low] Int a = 0;
+    
+    Unit someMethod() {
+        
+        while(highCondition) {
+            a = 1;
+        }
+    }
+}

@@ -1,0 +1,15 @@
+module ThesisExamples;
+
+class C {
+    [Secrecy: High] Int someValue = 3;
+    
+    Int getSomeValue() {
+        return someValue;
+    }
+
+    Int callingMethod() {
+        [Secrecy: Low] Int result = this.getSomeValue();
+        
+        return 6;
+    }
+}

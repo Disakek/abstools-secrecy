@@ -1,4 +1,4 @@
-module Test;
+module ThesisExamples;
 
 class C {
     [Secrecy: High] Int someValue = 3;

@@ -1,0 +1,13 @@
+module ThesisExamples;
+
+class C {
+    [Secrecy: High] Int someValue = 3;
+    
+    Int exampleMethod() {
+        Int result = 0;
+
+        result = someValue;
+
+        return result;
+    }
+}

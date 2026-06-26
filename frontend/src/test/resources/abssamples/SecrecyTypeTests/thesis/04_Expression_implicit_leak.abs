@@ -1,0 +1,12 @@
+module ThesisExamples;
+
+class C {
+    [Secrecy: High] Bool flag = True;
+    [Secrecy: Low] Int result = 0;
+
+    Unit exampleMethod() {
+        if (flag) {
+            result = 1;
+        }
+    }
+}

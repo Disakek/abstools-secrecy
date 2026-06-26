@@ -1,0 +1,21 @@
+module ThesisExamples;
+
+class C {
+    [Secrecy: High] Int highValue = 8;
+    [Secrecy: High] Int e = 8;
+    [Secrecy: High] Int c = 8;
+    [Secrecy: High] Int d = 8;
+    [Secrecy: Low] Int a = 10;
+    [Secrecy: Low] Int b = 2;
+    
+    Unit someMethod() {
+        c = b;
+
+        while(a > 4) {
+            b = c;
+            c = d;
+            d = highValue;
+            a = a - 1;
+        }
+    }
+}

@@ -1,0 +1,16 @@
+module ThesisExamples;
+
+class C {
+    [Secrecy: High] Bool isActive = False;
+    [Secrecy: Low] Int result = 4;
+
+    Int calculateSomething(){
+        return 4;
+    }
+
+    Unit someMethod() {
+        await isActive == True;
+        result = this.calculateSomething();
+    }
+
+}

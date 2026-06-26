@@ -1,0 +1,19 @@
+module ThesisExamples;
+
+class C {
+
+    [Secrecy: Low] Bool isCorrectPwd = False;
+    
+    [Secrecy: High] Bool comparePwd ([Secrecy: High] Int storedPwd, [Secrecy: High] Int inputPwd) {
+        [Secrecy: High] Bool result = False;
+
+        if (storedPwd == inputPwd) {result = True;}
+
+        return result;
+    }
+
+    Unit someMethod() {
+        isCorrectPwd = this.comparePwd(4, 5);
+    }
+
+}

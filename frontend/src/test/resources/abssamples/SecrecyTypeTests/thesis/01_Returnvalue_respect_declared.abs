@@ -1,0 +1,27 @@
+module ThesisExamples;
+
+interface CalculatorI {
+    [Secrecy: Low] Int calculation(Int a, Int b);
+}
+
+class A implements CalculatorI {
+    [Secrecy: Low] Int calculation(Int a, Int b) {
+        return a+b;
+    }
+}
+
+class B implements CalculatorI {
+    [Secrecy: High] Int calculation(Int a, Int b) {
+        return a+b;
+    }
+}
+
+class C (CalculatorI someCalcImpl) {
+    [Secrecy: Low] Int result = 4;
+
+    Unit printResult() {
+        Int result = someCalcImpl.calculation(3,6);
+    
+        println(toString(result));
+    }
+}

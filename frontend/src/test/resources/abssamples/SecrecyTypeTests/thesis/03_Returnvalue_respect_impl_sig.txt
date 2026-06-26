@@ -1,0 +1,2 @@
+7:Leakage Error from High: returnStmt to Low: returnDefinition
+11:The call is calling an insecure method called getSomeValue in the same class and thus can't be secure!

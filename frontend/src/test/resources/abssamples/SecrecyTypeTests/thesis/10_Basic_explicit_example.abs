@@ -1,0 +1,10 @@
+module ThesisExamples;
+
+class C {
+    [Secrecy: High] Int secretVariable = 4;
+    [Secrecy: Low] Int observableVariable = 3; 
+
+    Unit errorMethod() {
+        observableVariable = secretVariable; 
+    }
+}

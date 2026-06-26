@@ -1,0 +1,23 @@
+module ThesisExamples;
+
+interface CI {
+    [Secrecy: Low] Unit printField();
+}
+
+class C implements CI {
+    [Secrecy: Low] Int fieldValue = 0;
+
+    Unit someMethod() {
+        [Secrecy: High] Int highValue = 42;
+        
+        fieldValue = highValue;
+        
+        await duration(1, 1);
+        
+        this.printField();
+    }
+    
+    [Secrecy: Low] Unit printField() {
+        print(toString(fieldValue));
+    }
+}
