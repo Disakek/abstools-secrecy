@@ -233,6 +233,14 @@ public class SecrecyTypeTests extends FrontendTest {
         assertEquals(loadExpectedErrors(fileName.replace(".abs", ".txt")), getLinesAndErrors(m.getTypeErrors()));
     }
 
+    @Test
+    public void newTooHighClassParams() throws Exception {
+        String fileName = "abssamples/SecrecyTypeTests/failingtests/thesis/06_New_too_high_class_param.abs";
+        Model m = assertParseFileOk(fileName);
+
+        assertEquals(loadExpectedErrors(fileName.replace(".abs", ".txt")), getLinesAndErrors(m.getTypeErrors()));
+    }
+
 
     //BELOW HERE ARE THE FLOW_INSENSITIVE TESTS!!
     /*

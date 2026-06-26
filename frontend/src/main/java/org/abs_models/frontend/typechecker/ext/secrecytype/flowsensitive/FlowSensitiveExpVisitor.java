@@ -65,16 +65,6 @@ public class FlowSensitiveExpVisitor extends SecrecyExpVisitor {
         return listLevel;
     }
 
-    public String visit(Binary binaryExp) {
-
-        String leftLevelAccept = binaryExp.getLeft().accept(this);
-        String leftLevelVisit = this.visit(binaryExp.getLeft());
-        String rightLevel = binaryExp.getRight().accept(this);
-        String combined = secrecyLatticeStructure.join(leftLevelAccept, rightLevel);
-
-        return secrecyLatticeStructure.join(combined, secrecyLatticeStructure.evaluateListLevel(programConfidentiality));
-    }
-
     /**
      * Visit function for a new expression.
      * When creating a new object of a class we have to ensure that the parameters with which we want to create the new object respect the maximum allowed secrecy levels.
@@ -99,7 +89,7 @@ public class FlowSensitiveExpVisitor extends SecrecyExpVisitor {
                 String calledSecrecy = this.visit(calledParams.getChild(i));
                 //Retrieve the _maxSecrecy for the class parameters of the class we try to create an object for                
                 String definedSecrecy = _maxSecrecy.get(declaredParams.getChild(i));
-                
+
                 if(definedSecrecy == null) { 
                     definedSecrecy = secrecyLatticeStructure.getMinSecrecyLevel();
                 }

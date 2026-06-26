@@ -1,0 +1,25 @@
+module ThesisExamples;
+
+interface CI {
+//    Unit print();
+}
+
+class C ([Secrecy: Low] Int number) implements CI {
+    //Init method of class C
+    Unit someMethod() {
+    this.printClassParam();
+    }
+
+    Unit printClassParam() {
+        print(toString(number));
+    }
+}
+
+//Main method
+{
+
+    [Secrecy: High] Int secretNumber = 5; 
+
+    CI newObjectOfC = new C(secretNumber); //This should lead to a leak because the class param should only be allowed to be low!!
+    
+}

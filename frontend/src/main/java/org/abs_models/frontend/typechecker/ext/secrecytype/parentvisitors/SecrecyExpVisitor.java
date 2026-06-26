@@ -80,6 +80,7 @@ public abstract class SecrecyExpVisitor {
         else if (expression instanceof Unary u)  { return this.visit(u); }
         else if (expression instanceof FnApp f)  { return this.visit(f); }
         else if (expression instanceof GetExp g) { return this.visit(g); }
+        else if (expression instanceof NewExp n)   return this.visit(n);
            
         return secrecyLatticeStructure.evaluateListLevel(programConfidentiality);
     }
@@ -124,6 +125,8 @@ public abstract class SecrecyExpVisitor {
      * @return - the join of the unary expression's secrecylevel and the secrecylevel of the current program point.
      */
     public abstract String visit(VarOrFieldUse varOrFieldUse);
+
+    public abstract String visit(NewExp newExp);
 
     /**
      * Visit function for get expressions.
