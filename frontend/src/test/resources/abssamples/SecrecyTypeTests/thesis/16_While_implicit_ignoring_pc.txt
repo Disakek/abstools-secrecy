@@ -1,0 +1,3 @@
+10:Leakage Error from High: IntLiteral(1) to Low: a
+10:Leakage Error from High: IntLiteral(1) to Low: a
+10:Leakage Error from High: IntLiteral(1) to Low: a

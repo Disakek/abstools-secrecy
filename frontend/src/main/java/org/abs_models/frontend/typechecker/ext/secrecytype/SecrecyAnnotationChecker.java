@@ -446,8 +446,9 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
                     if(!implementationLevel.equals(definitionLevel)){
                         implementationSet = secrecyLatticeStructure.getSetForSecrecyLevel(implementationLevel);
 
-                        if(!implementationSet.contains(definitionLevel)) {
-                            errors.add(new TypeError(implementation.getReturnType(), ErrorMessage.SECRECY_LEAKAGE_ERROR_AT_MOST, definitionLevel, implementationLevel));
+                        if(implementationSet.contains(definitionLevel)) {
+                            // TODO CHANGE THE ERROR MESSAGE THAT MAKES NO SENSE OTHERWISE
+                            errors.add(new TypeError(implementation.getReturnType(), ErrorMessage.SECRECY_LEAKAGE_ERROR_AT_LEAST, definitionLevel, implementationLevel));
                         }
                     }
                 }

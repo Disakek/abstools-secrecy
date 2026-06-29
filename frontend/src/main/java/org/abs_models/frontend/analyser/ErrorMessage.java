@@ -136,6 +136,7 @@ public enum ErrorMessage {
     SECRECY_WRONG_ANNOTATION_VALUE("Wrong value %s in secrecy annotation, this value doesn't exist."),
     SECRECY_LEAKAGE_ERROR_FROM_TO("Leakage Error from %s: %s to %s: %s"),
     SECRECY_LEAKAGE_ERROR_AT_MOST("Leakage is expected to be at most %s but is implemented as %s"),
+    SECRECY_LEAKAGE_ERROR_AT_LEAST("Leakage is expected to be at least %s but is implemented as %s"),
     SECRECY_PARAMETER_TO_HIGH("Calls method with parameter of secrecy level %s but %s was only allowed to be %s at most!"),
     SECRECY_AWAIT_FIELD_VIOLATION("The field %s currently has a value with secrecy level %s but may at most be %s"),
     SECRECY_FNAPP_NOT_EQUAL("The level of the variable %s doesn't match the expected of %s but is %s instead!"),

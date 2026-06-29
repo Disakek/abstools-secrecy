@@ -233,6 +233,14 @@ public class SecrecyTypeTests extends FrontendTest {
     }
 
     @Test
+    public void interLoopLeak() throws Exception {
+        String fileName = "abssamples/SecrecyTypeTests/failingtests/InterLoopLeakExampleAnnotated.abs";
+        Model m = assertParseFileOk(fileName);
+
+        assertEquals(loadExpectedErrors(fileName.replace(".abs", ".txt")), getLinesAndErrors(m.getTypeErrors()));
+    }
+
+    @Test
     public void thesis_example_01_flow_sensitive() throws Exception {
         String fileName = "abssamples/SecrecyTypeTests/thesis/01_Returnvalue_respect_declared.abs";
         Model m = assertParseFileOk(fileName);
@@ -342,6 +350,65 @@ public class SecrecyTypeTests extends FrontendTest {
         assertEquals(loadExpectedErrors(flowInsensitiveFileName), getLinesAndErrors(m.getTypeErrors()));
     }
 
+    @Test
+    public void thesis_example_12_flow_sensitive() throws Exception {
+        String fileName = "abssamples/SecrecyTypeTests/thesis/12_Field_exceeds_declared.abs";
+        Model m = assertParseFileOk(fileName);
+
+        assertEquals(loadExpectedErrors(fileName.replace(".abs", ".txt")), getLinesAndErrors(m.getTypeErrors()));
+    }
+
+    @Test
+    public void thesis_example_13_flow_sensitive() throws Exception {
+        String fileName = "abssamples/SecrecyTypeTests/thesis/13_Await_continue_leak.abs";
+        Model m = assertParseFileOk(fileName);
+
+        assertEquals(loadExpectedErrors(fileName.replace(".abs", ".txt")), getLinesAndErrors(m.getTypeErrors()));
+    }
+
+    @Test
+    public void thesis_example_14_flow_sensitive() throws Exception {
+        String fileName = "abssamples/SecrecyTypeTests/thesis/14_Future_example.abs";
+        assertTypeCheckFileOk(fileName);
+    }
+
+    @Test
+    public void thesis_example_15_flow_sensitive() throws Exception {
+        String fileName = "abssamples/SecrecyTypeTests/thesis/15_If_implicit_leak.abs";
+        Model m = assertParseFileOk(fileName);
+
+        assertEquals(loadExpectedErrors(fileName.replace(".abs", ".txt")), getLinesAndErrors(m.getTypeErrors()));
+    }
+
+    @Test
+    public void thesis_example_16_flow_sensitive() throws Exception {
+        String fileName = "abssamples/SecrecyTypeTests/thesis/16_While_implicit_ignoring_pc.abs";
+        Model m = assertParseFileOk(fileName);
+
+        assertEquals(loadExpectedErrors(fileName.replace(".abs", ".txt")), getLinesAndErrors(m.getTypeErrors()));
+    }
+
+    @Test
+    public void thesis_example_17_flow_sensitive() throws Exception {
+        String fileName = "abssamples/SecrecyTypeTests/thesis/17_While_missed_leak.abs";
+        assertTypeCheckFileOk(fileName);
+    }
+
+    @Test
+    public void thesis_example_18_flow_sensitive() throws Exception {
+        String fileName = "abssamples/SecrecyTypeTests/thesis/18_While_second_iteration_leak_missed.abs";
+        Model m = assertParseFileOk(fileName);
+
+        assertEquals(loadExpectedErrors(fileName.replace(".abs", ".txt")), getLinesAndErrors(m.getTypeErrors()));
+    }
+
+    @Test
+    public void thesis_example_19_flow_sensitive() throws Exception {
+        String fileName = "abssamples/SecrecyTypeTests/thesis/19_While_second_iteration_leak_findable.abs";
+        Model m = assertParseFileOk(fileName);
+
+        assertEquals(loadExpectedErrors(fileName.replace(".abs", ".txt")), getLinesAndErrors(m.getTypeErrors()));
+    }
     
     //These are helper methods to verify the failing files fail on the exact erros we expect them to
 
@@ -354,7 +421,9 @@ public class SecrecyTypeTests extends FrontendTest {
         for (SemanticCondition cond : errorList) {
             if(cond.msg != null && isSecrecyError(cond.msg)){
                 if (cond.isError() || cond.isWarning()) {  // Filter errors/warnings
-                    String key = cond.getLine() + ":" + cond.getMessage();  // Adjust getters as needed
+                    String message = cond.getMessage().replaceAll("tmp\\d+", "tmpXXX");
+                    //String key = cond.getLine() + ":" + cond.getMessage();  // Adjust getters as needed
+                    String key = cond.getLine() + ":" + message;
                     actual.add(key);
                 }
             }
@@ -370,6 +439,7 @@ public class SecrecyTypeTests extends FrontendTest {
         return msg == ErrorMessage.SECRECY_WRONG_ANNOTATION_VALUE ||
                msg == ErrorMessage.SECRECY_LEAKAGE_ERROR_FROM_TO ||
                msg == ErrorMessage.SECRECY_LEAKAGE_ERROR_AT_MOST ||
+               msg == ErrorMessage.SECRECY_LEAKAGE_ERROR_AT_LEAST || 
                msg == ErrorMessage.SECRECY_PARAMETER_TO_HIGH ||
                msg == ErrorMessage.SECRECY_FNAPP_NOT_EQUAL ||
                msg == ErrorMessage.SECRECY_AWAIT_FIELD_VIOLATION ||
@@ -385,7 +455,8 @@ public class SecrecyTypeTests extends FrontendTest {
      */
     private List<String> loadExpectedErrors(String expectedFilePath) throws Exception {
         Path expectedPath = Paths.get("src/test/resources/", expectedFilePath);
-        return lines(expectedPath).map(String::trim).filter(line -> !line.isEmpty()).toList();
+        //return lines(expectedPath).map(String::trim).filter(line -> !line.isEmpty()).toList();
+        return lines(expectedPath).map(String::trim).map(line -> line.replaceAll("tmp\\d+", "tmpXXX")).filter(line -> !line.isEmpty()).toList();
     }
 
 }
