@@ -233,8 +233,8 @@ public class SecrecyTypeTests extends FrontendTest {
     }
 
     @Test
-    public void interLoopLeak() throws Exception {
-        String fileName = "abssamples/SecrecyTypeTests/failingtests/InterLoopLeakExampleAnnotated.abs";
+    public void whileInterLoopLeak() throws Exception {
+        String fileName = "abssamples/SecrecyTypeTests/failingtests/WhileInterLoopLeak.abs";
         Model m = assertParseFileOk(fileName);
 
         assertEquals(loadExpectedErrors(fileName.replace(".abs", ".txt")), getLinesAndErrors(m.getTypeErrors()));
