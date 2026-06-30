@@ -252,7 +252,14 @@ public class FlowInsensitiveStmtVisitor extends SecrecyStmtVisitor{
      * It is very similar to the if-stmt (without an else).
      */
     public void visit(WhileStmt whileStmt) {
+
+        //1.Iteration of the loop
         visitWhileHelper(whileStmt);
+        //2.Iteration of the loop
+        visitWhileHelper(whileStmt);
+        //3.Iteration of the loop
+        visitWhileHelper(whileStmt);
+        
     }
 
     /**
