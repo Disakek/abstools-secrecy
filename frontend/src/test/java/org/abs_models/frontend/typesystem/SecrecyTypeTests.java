@@ -242,7 +242,7 @@ public class SecrecyTypeTests extends FrontendTest {
 
     @Test
     public void thesis_example_01_flow_sensitive() throws Exception {
-        String fileName = "abssamples/SecrecyTypeTests/thesis/01_Returnvalue_respect_declared.abs";
+        String fileName = "abssamples/SecrecyTypeTests/thesis_examples/01_Returnvalue_respect_declared.abs";
         Model m = assertParseFileOk(fileName);
 
         assertEquals(loadExpectedErrors(fileName.replace(".abs", ".txt")), getLinesAndErrors(m.getTypeErrors()));
@@ -250,7 +250,7 @@ public class SecrecyTypeTests extends FrontendTest {
 
     @Test
     public void thesis_example_02_flow_sensitive() throws Exception {
-        String fileName = "abssamples/SecrecyTypeTests/thesis/02_Parameter_respect_declared.abs";
+        String fileName = "abssamples/SecrecyTypeTests/thesis_examples/02_Parameter_respect_declared.abs";
         Model m = assertParseFileOk(fileName);
 
         assertEquals(loadExpectedErrors(fileName.replace(".abs", ".txt")), getLinesAndErrors(m.getTypeErrors()));
@@ -258,7 +258,7 @@ public class SecrecyTypeTests extends FrontendTest {
 
     @Test
     public void thesis_example_03_flow_sensitive() throws Exception {
-        String fileName = "abssamples/SecrecyTypeTests/thesis/03_Returnvalue_respect_impl_sig.abs";
+        String fileName = "abssamples/SecrecyTypeTests/thesis_examples/03_Returnvalue_respect_impl_sig.abs";
         Model m = assertParseFileOk(fileName);
 
         assertEquals(loadExpectedErrors(fileName.replace(".abs", ".txt")), getLinesAndErrors(m.getTypeErrors()));
@@ -266,7 +266,7 @@ public class SecrecyTypeTests extends FrontendTest {
 
     @Test
     public void thesis_example_04_flow_sensitive() throws Exception {
-        String fileName = "abssamples/SecrecyTypeTests/thesis/04_Expression_implicit_leak.abs";
+        String fileName = "abssamples/SecrecyTypeTests/thesis_examples/04_Expression_implicit_leak.abs";
         Model m = assertParseFileOk(fileName);
 
         assertEquals(loadExpectedErrors(fileName.replace(".abs", ".txt")), getLinesAndErrors(m.getTypeErrors()));
@@ -274,7 +274,7 @@ public class SecrecyTypeTests extends FrontendTest {
 
     @Test
     public void thesis_example_05_flow_sensitive() throws Exception {
-        String fileName = "abssamples/SecrecyTypeTests/thesis/05_Expression_only_pc_level.abs";
+        String fileName = "abssamples/SecrecyTypeTests/thesis_examples/05_Expression_only_pc_level.abs";
         Model m = assertParseFileOk(fileName);
 
         assertEquals(loadExpectedErrors(fileName.replace(".abs", ".txt")), getLinesAndErrors(m.getTypeErrors()));
@@ -282,7 +282,7 @@ public class SecrecyTypeTests extends FrontendTest {
 
     @Test
     public void thesis_example_06_flow_sensitive() throws Exception {
-        String fileName = "abssamples/SecrecyTypeTests/thesis/06_New_too_high_class_param.abs";
+        String fileName = "abssamples/SecrecyTypeTests/thesis_examples/06_New_too_high_class_param.abs";
         Model m = assertParseFileOk(fileName);
 
         assertEquals(loadExpectedErrors(fileName.replace(".abs", ".txt")), getLinesAndErrors(m.getTypeErrors()));
@@ -290,7 +290,7 @@ public class SecrecyTypeTests extends FrontendTest {
 
     @Test
     public void thesis_example_07_flow_sensitive() throws Exception {
-        String fileName = "abssamples/SecrecyTypeTests/thesis/07_Parameter_of_call_too_high.abs";
+        String fileName = "abssamples/SecrecyTypeTests/thesis_examples/07_Parameter_of_call_too_high.abs";
         Model m = assertParseFileOk(fileName);
 
         assertEquals(loadExpectedErrors(fileName.replace(".abs", ".txt")), getLinesAndErrors(m.getTypeErrors()));
@@ -298,7 +298,7 @@ public class SecrecyTypeTests extends FrontendTest {
 
     @Test
     public void thesis_example_08_flow_sensitive() throws Exception {
-        String fileName = "abssamples/SecrecyTypeTests/thesis/08_Call_only_pc_leak_miss.abs";
+        String fileName = "abssamples/SecrecyTypeTests/thesis_examples/08_Call_only_pc_leak_miss.abs";
         Model m = assertParseFileOk(fileName);
 
         assertEquals(loadExpectedErrors(fileName.replace(".abs", ".txt")), getLinesAndErrors(m.getTypeErrors()));
@@ -306,7 +306,7 @@ public class SecrecyTypeTests extends FrontendTest {
 
     @Test
     public void thesis_example_09_flow_sensitive() throws Exception {
-        String fileName = "abssamples/SecrecyTypeTests/thesis/09_Call_only_returnlevel_miss.abs";
+        String fileName = "abssamples/SecrecyTypeTests/thesis_examples/09_Call_only_returnlevel_miss.abs";
         Model m = assertParseFileOk(fileName);
 
         assertEquals(loadExpectedErrors(fileName.replace(".abs", ".txt")), getLinesAndErrors(m.getTypeErrors()));
@@ -314,7 +314,7 @@ public class SecrecyTypeTests extends FrontendTest {
 
     @Test
     public void thesis_example_10_flow_sensitive() throws Exception {
-        String fileName = "abssamples/SecrecyTypeTests/thesis/10_Basic_explicit_example.abs";
+        String fileName = "abssamples/SecrecyTypeTests/thesis_examples/10_Basic_explicit_example.abs";
         Model m = assertParseFileOk(fileName);
 
         assertEquals(loadExpectedErrors(fileName.replace(".abs", ".txt")), getLinesAndErrors(m.getTypeErrors()));
@@ -325,7 +325,7 @@ public class SecrecyTypeTests extends FrontendTest {
 
         //Test 11 from the thesis that is made to highlight the difference between flow-sensitive and flow-insensitive analysis
         //Only contains error when checked with flow-insensitive rules (this one here is a passing test)
-        String fileName = "abssamples/SecrecyTypeTests/thesis/11_flow_in_sensitivity_example.abs";
+        String fileName = "abssamples/SecrecyTypeTests/thesis_examples/11_flow_in_sensitivity_example.abs";
         assertTypeCheckFileOk(fileName);
     }
 
@@ -336,7 +336,7 @@ public class SecrecyTypeTests extends FrontendTest {
 
     @Test
     public void thesis_example_12_flow_sensitive() throws Exception {
-        String fileName = "abssamples/SecrecyTypeTests/thesis/12_Field_exceeds_declared.abs";
+        String fileName = "abssamples/SecrecyTypeTests/thesis_examples/12_Field_exceeds_declared.abs";
         Model m = assertParseFileOk(fileName);
 
         assertEquals(loadExpectedErrors(fileName.replace(".abs", ".txt")), getLinesAndErrors(m.getTypeErrors()));
@@ -344,7 +344,7 @@ public class SecrecyTypeTests extends FrontendTest {
 
     @Test
     public void thesis_example_13_flow_sensitive() throws Exception {
-        String fileName = "abssamples/SecrecyTypeTests/thesis/13_Await_continue_leak.abs";
+        String fileName = "abssamples/SecrecyTypeTests/thesis_examples/13_Await_continue_leak.abs";
         Model m = assertParseFileOk(fileName);
 
         assertEquals(loadExpectedErrors(fileName.replace(".abs", ".txt")), getLinesAndErrors(m.getTypeErrors()));
@@ -352,13 +352,13 @@ public class SecrecyTypeTests extends FrontendTest {
 
     @Test
     public void thesis_example_14_flow_sensitive() throws Exception {
-        String fileName = "abssamples/SecrecyTypeTests/thesis/14_Future_example.abs";
+        String fileName = "abssamples/SecrecyTypeTests/thesis_examples/14_Future_example.abs";
         assertTypeCheckFileOk(fileName);
     }
 
     @Test
     public void thesis_example_15_flow_sensitive() throws Exception {
-        String fileName = "abssamples/SecrecyTypeTests/thesis/15_If_implicit_leak.abs";
+        String fileName = "abssamples/SecrecyTypeTests/thesis_examples/15_If_implicit_leak.abs";
         Model m = assertParseFileOk(fileName);
 
         assertEquals(loadExpectedErrors(fileName.replace(".abs", ".txt")), getLinesAndErrors(m.getTypeErrors()));
@@ -366,7 +366,7 @@ public class SecrecyTypeTests extends FrontendTest {
 
     @Test
     public void thesis_example_16_flow_sensitive() throws Exception {
-        String fileName = "abssamples/SecrecyTypeTests/thesis/16_While_implicit_ignoring_pc.abs";
+        String fileName = "abssamples/SecrecyTypeTests/thesis_examples/16_While_implicit_ignoring_pc.abs";
         Model m = assertParseFileOk(fileName);
 
         assertEquals(loadExpectedErrors(fileName.replace(".abs", ".txt")), getLinesAndErrors(m.getTypeErrors()));
@@ -374,13 +374,13 @@ public class SecrecyTypeTests extends FrontendTest {
 
     @Test
     public void thesis_example_17_flow_sensitive() throws Exception {
-        String fileName = "abssamples/SecrecyTypeTests/thesis/17_While_missed_leak.abs";
+        String fileName = "abssamples/SecrecyTypeTests/thesis_examples/17_While_missed_leak.abs";
         assertTypeCheckFileOk(fileName);
     }
 
     @Test
     public void thesis_example_18_flow_sensitive() throws Exception {
-        String fileName = "abssamples/SecrecyTypeTests/thesis/18_While_second_iteration_leak_missed.abs";
+        String fileName = "abssamples/SecrecyTypeTests/thesis_examples/18_While_second_iteration_leak_missed.abs";
         Model m = assertParseFileOk(fileName);
 
         assertEquals(loadExpectedErrors(fileName.replace(".abs", ".txt")), getLinesAndErrors(m.getTypeErrors()));
@@ -388,7 +388,7 @@ public class SecrecyTypeTests extends FrontendTest {
 
     @Test
     public void thesis_example_19_flow_sensitive() throws Exception {
-        String fileName = "abssamples/SecrecyTypeTests/thesis/19_While_second_iteration_leak_findable.abs";
+        String fileName = "abssamples/SecrecyTypeTests/thesis_examples/19_While_second_iteration_leak_findable.abs";
         Model m = assertParseFileOk(fileName);
 
         assertEquals(loadExpectedErrors(fileName.replace(".abs", ".txt")), getLinesAndErrors(m.getTypeErrors()));
@@ -684,7 +684,7 @@ public class SecrecyTypeTests extends FrontendTest {
 
     @Test
     public void thesis_example_01_flow_insensitive() throws Exception {
-        String fileName = "abssamples/SecrecyTypeTests/thesis/01_Returnvalue_respect_declared.abs";
+        String fileName = "abssamples/SecrecyTypeTests/thesis_examples/01_Returnvalue_respect_declared.abs";
         
         Main main = new Main();
         main.arguments.flowInsensitive = true;
@@ -697,7 +697,7 @@ public class SecrecyTypeTests extends FrontendTest {
 
     @Test
     public void thesis_example_02_flow_insensitive() throws Exception {
-        String fileName = "abssamples/SecrecyTypeTests/thesis/02_Parameter_respect_declared.abs";
+        String fileName = "abssamples/SecrecyTypeTests/thesis_examples/02_Parameter_respect_declared.abs";
         
         Main main = new Main();
         main.arguments.flowInsensitive = true;
@@ -710,7 +710,7 @@ public class SecrecyTypeTests extends FrontendTest {
 
     @Test
     public void thesis_example_03_flow_insensitive() throws Exception {
-        String fileName = "abssamples/SecrecyTypeTests/thesis/03_Returnvalue_respect_impl_sig.abs";
+        String fileName = "abssamples/SecrecyTypeTests/thesis_examples/03_Returnvalue_respect_impl_sig.abs";
         
         Main main = new Main();
         main.arguments.flowInsensitive = true;
@@ -723,7 +723,7 @@ public class SecrecyTypeTests extends FrontendTest {
 
     @Test
     public void thesis_example_04_flow_insensitive() throws Exception {
-        String fileName = "abssamples/SecrecyTypeTests/thesis/04_Expression_implicit_leak.abs";
+        String fileName = "abssamples/SecrecyTypeTests/thesis_examples/04_Expression_implicit_leak.abs";
         
         Main main = new Main();
         main.arguments.flowInsensitive = true;
@@ -736,7 +736,7 @@ public class SecrecyTypeTests extends FrontendTest {
 
     @Test
     public void thesis_example_05_flow_insensitive() throws Exception {
-        String fileName = "abssamples/SecrecyTypeTests/thesis/05_Expression_only_pc_level.abs";
+        String fileName = "abssamples/SecrecyTypeTests/thesis_examples/05_Expression_only_pc_level.abs";
         
         Main main = new Main();
         main.arguments.flowInsensitive = true;
@@ -749,7 +749,7 @@ public class SecrecyTypeTests extends FrontendTest {
 
     @Test
     public void thesis_example_06_flow_insensitive() throws Exception {
-        String fileName = "abssamples/SecrecyTypeTests/thesis/06_New_too_high_class_param.abs";
+        String fileName = "abssamples/SecrecyTypeTests/thesis_examples/06_New_too_high_class_param.abs";
         
         Main main = new Main();
         main.arguments.flowInsensitive = true;
@@ -762,7 +762,7 @@ public class SecrecyTypeTests extends FrontendTest {
 
     @Test
     public void thesis_example_07_flow_insensitive() throws Exception {
-        String fileName = "abssamples/SecrecyTypeTests/thesis/07_Parameter_of_call_too_high.abs";
+        String fileName = "abssamples/SecrecyTypeTests/thesis_examples/07_Parameter_of_call_too_high.abs";
         
         Main main = new Main();
         main.arguments.flowInsensitive = true;
@@ -775,7 +775,7 @@ public class SecrecyTypeTests extends FrontendTest {
 
     @Test
     public void thesis_example_08_flow_insensitive() throws Exception {
-        String fileName = "abssamples/SecrecyTypeTests/thesis/08_Call_only_pc_leak_miss.abs";
+        String fileName = "abssamples/SecrecyTypeTests/thesis_examples/08_Call_only_pc_leak_miss.abs";
         
         Main main = new Main();
         main.arguments.flowInsensitive = true;
@@ -788,7 +788,7 @@ public class SecrecyTypeTests extends FrontendTest {
 
     @Test
     public void thesis_example_09_flow_insensitive() throws Exception {
-        String fileName = "abssamples/SecrecyTypeTests/thesis/09_Call_only_returnlevel_miss.abs";
+        String fileName = "abssamples/SecrecyTypeTests/thesis_examples/09_Call_only_returnlevel_miss.abs";
         
         Main main = new Main();
         main.arguments.flowInsensitive = true;
@@ -801,7 +801,7 @@ public class SecrecyTypeTests extends FrontendTest {
 
     @Test
     public void thesis_example_10_flow_insensitive() throws Exception {
-        String fileName = "abssamples/SecrecyTypeTests/thesis/10_Basic_explicit_example.abs";
+        String fileName = "abssamples/SecrecyTypeTests/thesis_examples/10_Basic_explicit_example.abs";
         
         Main main = new Main();
         main.arguments.flowInsensitive = true;
@@ -814,21 +814,21 @@ public class SecrecyTypeTests extends FrontendTest {
 
     @Test
     public void thesis_example_11_flow_insensitive() throws Exception {
-        String fileName = "abssamples/SecrecyTypeTests/thesis/11_flow_in_sensitivity_example.abs";
+        String fileName = "abssamples/SecrecyTypeTests/thesis_examples/11_flow_in_sensitivity_example.abs";
         
         Main main = new Main();
         main.arguments.flowInsensitive = true;
         Model m = main.parse(Arrays.asList(new File(resolveFileName(fileName))));
         m.evaluateAllProductDeclarations();
 
-        String flowInsensitiveFileName = "abssamples/SecrecyTypeTests/thesis/11_flow_in_sensitivity_example_flowInsensitive.txt";
+        String flowInsensitiveFileName = "abssamples/SecrecyTypeTests/thesis_examples/11_flow_in_sensitivity_example_flowInsensitive.txt";
 
         assertEquals(loadExpectedErrors(flowInsensitiveFileName), getLinesAndErrors(m.getTypeErrors()));
     }
 
     @Test
     public void thesis_example_12_flow_insensitive() throws Exception {
-        String fileName = "abssamples/SecrecyTypeTests/thesis/12_Field_exceeds_declared.abs";
+        String fileName = "abssamples/SecrecyTypeTests/thesis_examples/12_Field_exceeds_declared.abs";
         
         Main main = new Main();
         main.arguments.flowInsensitive = true;
@@ -841,7 +841,7 @@ public class SecrecyTypeTests extends FrontendTest {
 
     @Test
     public void thesis_example_13_flow_insensitive() throws Exception {
-        String fileName = "abssamples/SecrecyTypeTests/thesis/13_Await_continue_leak.abs";
+        String fileName = "abssamples/SecrecyTypeTests/thesis_examples/13_Await_continue_leak.abs";
         
         Main main = new Main();
         main.arguments.flowInsensitive = true;
@@ -854,13 +854,13 @@ public class SecrecyTypeTests extends FrontendTest {
 
     @Test
     public void thesis_example_14_flow_insensitive() throws Exception {
-        String fileName = "abssamples/SecrecyTypeTests/thesis/14_Future_example.abs";
+        String fileName = "abssamples/SecrecyTypeTests/thesis_examples/14_Future_example.abs";
         assertTypeCheckFileOk(fileName);
     }
 
     @Test
     public void thesis_example_15_flow_insensitive() throws Exception {
-        String fileName = "abssamples/SecrecyTypeTests/thesis/15_If_implicit_leak.abs";
+        String fileName = "abssamples/SecrecyTypeTests/thesis_examples/15_If_implicit_leak.abs";
         
         Main main = new Main();
         main.arguments.flowInsensitive = true;
@@ -873,7 +873,7 @@ public class SecrecyTypeTests extends FrontendTest {
 
     @Test
     public void thesis_example_16_flow_insensitive() throws Exception {
-        String fileName = "abssamples/SecrecyTypeTests/thesis/16_While_implicit_ignoring_pc.abs";
+        String fileName = "abssamples/SecrecyTypeTests/thesis_examples/16_While_implicit_ignoring_pc.abs";
         
         Main main = new Main();
         main.arguments.flowInsensitive = true;
@@ -886,13 +886,13 @@ public class SecrecyTypeTests extends FrontendTest {
 
     @Test
     public void thesis_example_17_flow_insensitive() throws Exception {
-        String fileName = "abssamples/SecrecyTypeTests/thesis/17_While_missed_leak.abs";
+        String fileName = "abssamples/SecrecyTypeTests/thesis_examples/17_While_missed_leak.abs";
         assertTypeCheckFileOk(fileName);
     }
 
     @Test
     public void thesis_example_18_flow_insensitive() throws Exception {
-        String fileName = "abssamples/SecrecyTypeTests/thesis/18_While_second_iteration_leak_missed.abs";
+        String fileName = "abssamples/SecrecyTypeTests/thesis_examples/18_While_second_iteration_leak_missed.abs";
         
         Main main = new Main();
         main.arguments.flowInsensitive = true;
@@ -905,7 +905,7 @@ public class SecrecyTypeTests extends FrontendTest {
 
     @Test
     public void thesis_example_19_flow_insensitive() throws Exception {
-        String fileName = "abssamples/SecrecyTypeTests/thesis/19_While_second_iteration_leak_findable.abs";
+        String fileName = "abssamples/SecrecyTypeTests/thesis_examples/19_While_second_iteration_leak_findable.abs";
         
         Main main = new Main();
         main.arguments.flowInsensitive = true;
