@@ -51,9 +51,16 @@
 1017:Leakage Error from High: FnApp(acquiredInstances,nullWorkAround) to Low: acquiredInstances
 1020:Leakage Error from High: FnApp(killedInstances,nullWorkAround) to Low: killedInstances
 1021:Leakage Error from High: AsyncCall(instance,) to Low: tmpXXX
+1021:The field acquiredInstances currently has a value with secrecy level High but may at most be Low
+1021:The field killedInstances currently has a value with secrecy level High but may at most be Low
 1021:Leakage Error from High: GetExp(tmpXXX) to Low: shutdown_duration
+1022:The field acquiredInstances currently has a value with secrecy level High but may at most be Low
+1022:The field killedInstances currently has a value with secrecy level High but may at most be Low
 1026:Leakage Error from High: FnApp(launchedInstances,nullWorkAround) to Low: launchedInstances
 1028:Leakage Error from High: AsyncCall(instance,) to Low: tmpXXX
+1028:The field launchedInstances currently has a value with secrecy level High but may at most be Low
+1028:The field acquiredInstances currently has a value with secrecy level High but may at most be Low
+1028:The field killedInstances currently has a value with secrecy level High but may at most be Low
 1028:Leakage Error from High: GetExp(tmpXXX) to Low: cost
 1029:Leakage Error from High: AddAddExp(accumulatedCostOfKilledDCs,cost) to Low: accumulatedCostOfKilledDCs
 1033:Leakage Error from High: IntLiteral(0) to Low: result
