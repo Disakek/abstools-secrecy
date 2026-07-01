@@ -76,44 +76,44 @@ public class SecrecyTypeTests extends FrontendTest {
     @Test
     public void ifEfficiencyExample_flow_sensitive() throws Exception {
         //name of the folders and at the end the name of the file
-        String fileName = "abssamples/SecrecyTypeTests/passingtests/IfEfficiencyExampleAnnotated.abs";
+        String fileName = "abssamples/SecrecyTypeTests/KeY_Examples/passingtests/IfEfficiencyExampleAnnotated.abs";
         //ensuring that no type errors occur!
         assertTypeCheckFileOk(fileName);
     }
 
     @Test
     public void conditionalConfidential_flow_sensitive() throws Exception {
-        String fileName = "abssamples/SecrecyTypeTests/passingtests/ConditionalConfidentialExampleAnnotated.abs";
+        String fileName = "abssamples/SecrecyTypeTests/KeY_Examples/passingtests/ConditionalConfidentialExampleAnnotated.abs";
         assertTypeCheckFileOk(fileName);
     }
 
     @Test
     public void amtOftBanerjee1_flow_sensitive() throws Exception {
-        String fileName = "abssamples/SecrecyTypeTests/passingtests/AmtoftBanerjeeAnnotated1.abs";
+        String fileName = "abssamples/SecrecyTypeTests/KeY_Examples/passingtests/AmtoftBanerjeeAnnotated1.abs";
         assertTypeCheckFileOk(fileName);
     }
 
     @Test
     public void amtOftBanerjee2_flow_sensitive() throws Exception {
-        String fileName = "abssamples/SecrecyTypeTests/passingtests/AmtoftBanerjeeAnnotated2.abs";
+        String fileName = "abssamples/SecrecyTypeTests/KeY_Examples/passingtests/AmtoftBanerjeeAnnotated2.abs";
         assertTypeCheckFileOk(fileName);
     }
 
     @Test
     public void naumann_flow_sensitive() throws Exception {
-        String fileName = "abssamples/SecrecyTypeTests/passingtests/NaumannAnnotated.abs";
+        String fileName = "abssamples/SecrecyTypeTests/KeY_Examples/passingtests/NaumannAnnotated.abs";
         assertTypeCheckFileOk(fileName);
     }
 
     @Test
     public void passwordFileWithDeclassify_flow_sensitive() throws Exception {
-        String fileName = "abssamples/SecrecyTypeTests/passingtests/SecurePasswordFileDeclassifyingAnnotated.abs";
+        String fileName = "abssamples/SecrecyTypeTests/KeY_Examples/passingtests/SecurePasswordFileDeclassifyingAnnotated.abs";
         assertTypeCheckFileOk(fileName);
     }
 
     @Test
     public void bankingExample2_flow_sensitive() throws Exception {
-        String fileName = "abssamples/SecrecyTypeTests/passingtests/BankingExampleAnnotated2.abs";
+        String fileName = "abssamples/SecrecyTypeTests/KeY_Examples/passingtests/BankingExampleAnnotated2.abs";
         assertTypeCheckFileOk(fileName);
     }
 
@@ -124,7 +124,7 @@ public class SecrecyTypeTests extends FrontendTest {
     public void ifBlockExample_flow_sensitive() throws Exception {
         //name of the folders and at the end the name of the file
         //the file with the expected secrecy errors has to have the same name but as a .txt file
-        String fileName = "abssamples/SecrecyTypeTests/failingtests/IfBlockExampleAnnotated.abs";
+        String fileName = "abssamples/SecrecyTypeTests/KeY_Examples/failingtests/IfBlockExampleAnnotated.abs";
         //trying to get the model of the source code file
         Model m = assertParseFileOk(fileName);
         //ensuring that the secrecy type errors are exactly those that we specify in the .txt file (same folder and same name)
@@ -133,28 +133,28 @@ public class SecrecyTypeTests extends FrontendTest {
 
     @Test
     public void simpleEvoting_flow_sensitive() throws Exception {
-        String fileName = "abssamples/SecrecyTypeTests/failingtests/SimpleEvotingExampleAnnotated.abs";
+        String fileName = "abssamples/SecrecyTypeTests/KeY_Examples/failingtests/SimpleEvotingExampleAnnotated.abs";
         Model m = assertParseFileOk(fileName);
         assertEquals(loadExpectedErrors(fileName.replace(".abs", ".txt")), getLinesAndErrors(m.getTypeErrors()));
     }
     
     @Test
     public void ifLoopExamples_flow_sensitive() throws Exception {
-        String fileName = "abssamples/SecrecyTypeTests/failingtests/IfLoopExamplesAnnotated.abs";
+        String fileName = "abssamples/SecrecyTypeTests/KeY_Examples/failingtests/IfLoopExamplesAnnotated.abs";
         Model m = assertParseFileOk(fileName);
         assertEquals(loadExpectedErrors(fileName.replace(".abs", ".txt")), getLinesAndErrors(m.getTypeErrors()));
     }
     
     @Test
     public void ifMethodContract_flow_sensitive() throws Exception {
-        String fileName = "abssamples/SecrecyTypeTests/failingtests/IfMethodContractAnnotated.abs";
+        String fileName = "abssamples/SecrecyTypeTests/KeY_Examples/failingtests/IfMethodContractAnnotated.abs";
         Model m = assertParseFileOk(fileName);
         assertEquals(loadExpectedErrors(fileName.replace(".abs", ".txt")), getLinesAndErrors(m.getTypeErrors()));
     }
 
     @Test
     public void aliasingExamples_flow_sensitive() throws Exception {
-        String fileName = "abssamples/SecrecyTypeTests/failingtests/AliasingExamplesAnnotated.abs";
+        String fileName = "abssamples/SecrecyTypeTests/KeY_Examples/failingtests/AliasingExamplesAnnotated.abs";
         Model m = assertParseFileOk(fileName);
 
         assertEquals(loadExpectedErrors(fileName.replace(".abs", ".txt")), getLinesAndErrors(m.getTypeErrors()));
@@ -162,7 +162,7 @@ public class SecrecyTypeTests extends FrontendTest {
     
     @Test
     public void differenceSeqLocset_flow_sensitive() throws Exception {
-        String fileName = "abssamples/SecrecyTypeTests/failingtests/DifferenceSeqLocsetAnnotated.abs";
+        String fileName = "abssamples/SecrecyTypeTests/KeY_Examples/failingtests/DifferenceSeqLocsetAnnotated.abs";
         Model m = assertParseFileOk(fileName);
 
         assertEquals(loadExpectedErrors(fileName.replace(".abs", ".txt")), getLinesAndErrors(m.getTypeErrors()));
@@ -170,7 +170,7 @@ public class SecrecyTypeTests extends FrontendTest {
     
     @Test
     public void miniExamples_flow_sensitive() throws Exception {
-        String fileName = "abssamples/SecrecyTypeTests/failingtests/MiniExamplesAnnotated.abs";
+        String fileName = "abssamples/SecrecyTypeTests/KeY_Examples/failingtests/MiniExamplesAnnotated.abs";
         Model m = assertParseFileOk(fileName);
 
         assertEquals(loadExpectedErrors(fileName.replace(".abs", ".txt")), getLinesAndErrors(m.getTypeErrors()));
@@ -178,7 +178,7 @@ public class SecrecyTypeTests extends FrontendTest {
     
     @Test
     public void miniExamplesLecture_flow_sensitive() throws Exception {
-        String fileName = "abssamples/SecrecyTypeTests/failingtests/MiniExamplesLectureAnnotated.abs";
+        String fileName = "abssamples/SecrecyTypeTests/KeY_Examples/failingtests/MiniExamplesLectureAnnotated.abs";
         Model m = assertParseFileOk(fileName);
 
         assertEquals(loadExpectedErrors(fileName.replace(".abs", ".txt")), getLinesAndErrors(m.getTypeErrors()));
@@ -186,7 +186,7 @@ public class SecrecyTypeTests extends FrontendTest {
 
     @Test
     public void amtOftBanerjee3_flow_sensitive() throws Exception {
-        String fileName = "abssamples/SecrecyTypeTests/failingtests/AmtoftBanerjeeAnnotated3.abs";
+        String fileName = "abssamples/SecrecyTypeTests/KeY_Examples/failingtests/AmtoftBanerjeeAnnotated3.abs";
         Model m = assertParseFileOk(fileName);
 
         assertEquals(loadExpectedErrors(fileName.replace(".abs", ".txt")), getLinesAndErrors(m.getTypeErrors()));
@@ -194,7 +194,7 @@ public class SecrecyTypeTests extends FrontendTest {
 
     @Test
     public void objectOrientation_flow_sensitive() throws Exception {
-        String fileName = "abssamples/SecrecyTypeTests/failingtests/ObjectorientationAnnotated.abs";
+        String fileName = "abssamples/SecrecyTypeTests/KeY_Examples/failingtests/ObjectorientationAnnotated.abs";
         Model m = assertParseFileOk(fileName);
 
         assertEquals(loadExpectedErrors(fileName.replace(".abs", ".txt")), getLinesAndErrors(m.getTypeErrors()));
@@ -202,7 +202,7 @@ public class SecrecyTypeTests extends FrontendTest {
 
     @Test
     public void passwordFile_flow_sensitive() throws Exception {
-        String fileName = "abssamples/SecrecyTypeTests/failingtests/SecurePasswordFileAnnotated.abs";
+        String fileName = "abssamples/SecrecyTypeTests/KeY_Examples/failingtests/SecurePasswordFileAnnotated.abs";
         Model m = assertParseFileOk(fileName);
 
         assertEquals(loadExpectedErrors(fileName.replace(".abs", ".txt")), getLinesAndErrors(m.getTypeErrors()));
@@ -210,7 +210,7 @@ public class SecrecyTypeTests extends FrontendTest {
     
     @Test
     public void sumExample_flow_sensitive() throws Exception {
-        String fileName = "abssamples/SecrecyTypeTests/failingtests/SumExampleAnnotated.abs";
+        String fileName = "abssamples/SecrecyTypeTests/KeY_Examples/failingtests/SumExampleAnnotated.abs";
         Model m = assertParseFileOk(fileName);
 
         assertEquals(loadExpectedErrors(fileName.replace(".abs", ".txt")), getLinesAndErrors(m.getTypeErrors()));
@@ -218,7 +218,7 @@ public class SecrecyTypeTests extends FrontendTest {
 
     @Test
     public void bankingExample1_flow_sensitive() throws Exception {
-        String fileName = "abssamples/SecrecyTypeTests/failingtests/BankingExampleAnnotated1.abs";
+        String fileName = "abssamples/SecrecyTypeTests/KeY_Examples/failingtests/BankingExampleAnnotated1.abs";
         Model m = assertParseFileOk(fileName);
 
         assertEquals(loadExpectedErrors(fileName.replace(".abs", ".txt")), getLinesAndErrors(m.getTypeErrors()));
@@ -226,7 +226,7 @@ public class SecrecyTypeTests extends FrontendTest {
 
     @Test
     public void toyVoting_flow_sensitive() throws Exception {
-        String fileName = "abssamples/SecrecyTypeTests/failingtests/VoterAnnotated.abs";
+        String fileName = "abssamples/SecrecyTypeTests/KeY_Examples/failingtests/VoterAnnotated.abs";
         Model m = assertParseFileOk(fileName);
 
         assertEquals(loadExpectedErrors(fileName.replace(".abs", ".txt")), getLinesAndErrors(m.getTypeErrors()));
@@ -234,7 +234,7 @@ public class SecrecyTypeTests extends FrontendTest {
 
     @Test
     public void whileInterLoopLeak_flow_sensitive() throws Exception {
-        String fileName = "abssamples/SecrecyTypeTests/failingtests/WhileInterLoopLeak.abs";
+        String fileName = "abssamples/SecrecyTypeTests/KeY_Examples/failingtests/WhileInterLoopLeak.abs";
         Model m = assertParseFileOk(fileName);
 
         assertEquals(loadExpectedErrors(fileName.replace(".abs", ".txt")), getLinesAndErrors(m.getTypeErrors()));
@@ -404,7 +404,7 @@ public class SecrecyTypeTests extends FrontendTest {
     @Test
     public void ifEfficiencyExample_flow_insensitive() throws Exception {
         //name of the folders and at the end the name of the file
-        String fileName = "abssamples/SecrecyTypeTests/passingtests/IfEfficiencyExampleAnnotated.abs";
+        String fileName = "abssamples/SecrecyTypeTests/KeY_Examples/passingtests/IfEfficiencyExampleAnnotated.abs";
         //ensuring that no type errors occur!
         
         Main main = new Main();
@@ -417,7 +417,7 @@ public class SecrecyTypeTests extends FrontendTest {
 
     @Test
     public void conditionalConfidential_flow_insensitive() throws Exception {
-        String fileName = "abssamples/SecrecyTypeTests/passingtests/ConditionalConfidentialExampleAnnotated.abs";
+        String fileName = "abssamples/SecrecyTypeTests/KeY_Examples/passingtests/ConditionalConfidentialExampleAnnotated.abs";
         
         Main main = new Main();
         main.arguments.flowInsensitive = true;
@@ -429,7 +429,7 @@ public class SecrecyTypeTests extends FrontendTest {
 
     @Test
     public void amtOftBanerjee1_flow_insensitive() throws Exception {
-        String fileName = "abssamples/SecrecyTypeTests/passingtests/AmtoftBanerjeeAnnotated1.abs";
+        String fileName = "abssamples/SecrecyTypeTests/KeY_Examples/passingtests/AmtoftBanerjeeAnnotated1.abs";
         
         Main main = new Main();
         main.arguments.flowInsensitive = true;
@@ -441,7 +441,7 @@ public class SecrecyTypeTests extends FrontendTest {
 
     @Test
     public void amtOftBanerjee2_flow_insensitive() throws Exception {
-        String fileName = "abssamples/SecrecyTypeTests/passingtests/AmtoftBanerjeeAnnotated2.abs";
+        String fileName = "abssamples/SecrecyTypeTests/KeY_Examples/passingtests/AmtoftBanerjeeAnnotated2.abs";
         
         Main main = new Main();
         main.arguments.flowInsensitive = true;
@@ -453,7 +453,7 @@ public class SecrecyTypeTests extends FrontendTest {
 
     @Test
     public void naumann_flow_insensitive() throws Exception {
-        String fileName = "abssamples/SecrecyTypeTests/passingtests/NaumannAnnotated.abs";
+        String fileName = "abssamples/SecrecyTypeTests/KeY_Examples/passingtests/NaumannAnnotated.abs";
 
         Main main = new Main();
         main.arguments.flowInsensitive = true;
@@ -465,7 +465,7 @@ public class SecrecyTypeTests extends FrontendTest {
 
     @Test
     public void passwordFileWithDeclassify_flow_insensitive() throws Exception {
-        String fileName = "abssamples/SecrecyTypeTests/passingtests/SecurePasswordFileDeclassifyingAnnotated.abs";
+        String fileName = "abssamples/SecrecyTypeTests/KeY_Examples/passingtests/SecurePasswordFileDeclassifyingAnnotated.abs";
 
         Main main = new Main();
         main.arguments.flowInsensitive = true;
@@ -477,7 +477,7 @@ public class SecrecyTypeTests extends FrontendTest {
 
     @Test
     public void bankingExample2_flow_insensitive() throws Exception {
-        String fileName = "abssamples/SecrecyTypeTests/passingtests/BankingExampleAnnotated2.abs";
+        String fileName = "abssamples/SecrecyTypeTests/KeY_Examples/passingtests/BankingExampleAnnotated2.abs";
         
         Main main = new Main();
         main.arguments.flowInsensitive = true;
@@ -492,7 +492,7 @@ public class SecrecyTypeTests extends FrontendTest {
     
     @Test
     public void ifBlockExample_flow_insensitive() throws Exception {
-        String fileName = "abssamples/SecrecyTypeTests/failingtests/IfBlockExampleAnnotated.abs";
+        String fileName = "abssamples/SecrecyTypeTests/KeY_Examples/failingtests/IfBlockExampleAnnotated.abs";
         
         //Same errors as flow_sensitive one
         Main main = new Main();
@@ -505,7 +505,7 @@ public class SecrecyTypeTests extends FrontendTest {
     
     @Test
     public void simpleEvoting_flow_insensitive() throws Exception {
-        String fileName = "abssamples/SecrecyTypeTests/failingtests/SimpleEvotingExampleAnnotated.abs";
+        String fileName = "abssamples/SecrecyTypeTests/KeY_Examples/failingtests/SimpleEvotingExampleAnnotated.abs";
         
         Main main = new Main();
         main.arguments.flowInsensitive = true;
@@ -517,7 +517,7 @@ public class SecrecyTypeTests extends FrontendTest {
     
     @Test
     public void ifLoopExamples_flow_insensitive() throws Exception {
-        String fileName = "abssamples/SecrecyTypeTests/failingtests/IfLoopExamplesAnnotated.abs";
+        String fileName = "abssamples/SecrecyTypeTests/KeY_Examples/failingtests/IfLoopExamplesAnnotated.abs";
         
         Main main = new Main();
         main.arguments.flowInsensitive = true;
@@ -529,7 +529,7 @@ public class SecrecyTypeTests extends FrontendTest {
     
     @Test
     public void ifMethodContract_flow_insensitive() throws Exception {
-        String fileName = "abssamples/SecrecyTypeTests/failingtests/IfMethodContractAnnotated.abs";
+        String fileName = "abssamples/SecrecyTypeTests/KeY_Examples/failingtests/IfMethodContractAnnotated.abs";
         
         Main main = new Main();
         main.arguments.flowInsensitive = true;
@@ -541,7 +541,7 @@ public class SecrecyTypeTests extends FrontendTest {
 
     @Test
     public void aliasingExamples_flow_insensitive() throws Exception {
-        String fileName = "abssamples/SecrecyTypeTests/failingtests/AliasingExamplesAnnotated.abs";
+        String fileName = "abssamples/SecrecyTypeTests/KeY_Examples/failingtests/AliasingExamplesAnnotated.abs";
         
         Main main = new Main();
         main.arguments.flowInsensitive = true;
@@ -554,7 +554,7 @@ public class SecrecyTypeTests extends FrontendTest {
     
     @Test
     public void differenceSeqLocset_flow_insensitive() throws Exception {
-        String fileName = "abssamples/SecrecyTypeTests/failingtests/DifferenceSeqLocsetAnnotated.abs";
+        String fileName = "abssamples/SecrecyTypeTests/KeY_Examples/failingtests/DifferenceSeqLocsetAnnotated.abs";
         
         Main main = new Main();
         main.arguments.flowInsensitive = true;
@@ -567,7 +567,7 @@ public class SecrecyTypeTests extends FrontendTest {
     
     @Test
     public void miniExamples_flow_insensitive() throws Exception {
-        String fileName = "abssamples/SecrecyTypeTests/failingtests/MiniExamplesAnnotated.abs";
+        String fileName = "abssamples/SecrecyTypeTests/KeY_Examples/failingtests/MiniExamplesAnnotated.abs";
         
         Main main = new Main();
         main.arguments.flowInsensitive = true;
@@ -580,7 +580,7 @@ public class SecrecyTypeTests extends FrontendTest {
     
     @Test
     public void miniExamplesLecture_flow_insensitive() throws Exception {
-        String fileName = "abssamples/SecrecyTypeTests/failingtests/MiniExamplesLectureAnnotated.abs";
+        String fileName = "abssamples/SecrecyTypeTests/KeY_Examples/failingtests/MiniExamplesLectureAnnotated.abs";
         
         Main main = new Main();
         main.arguments.flowInsensitive = true;
@@ -593,7 +593,7 @@ public class SecrecyTypeTests extends FrontendTest {
 
     @Test
     public void amtOftBanerjee3_flow_insensitive() throws Exception {
-        String fileName = "abssamples/SecrecyTypeTests/failingtests/AmtoftBanerjeeAnnotated3.abs";
+        String fileName = "abssamples/SecrecyTypeTests/KeY_Examples/failingtests/AmtoftBanerjeeAnnotated3.abs";
         
         Main main = new Main();
         main.arguments.flowInsensitive = true;
@@ -606,7 +606,7 @@ public class SecrecyTypeTests extends FrontendTest {
 
     @Test
     public void objectOrientation_flow_insensitive() throws Exception {
-        String fileName = "abssamples/SecrecyTypeTests/failingtests/ObjectorientationAnnotated.abs";
+        String fileName = "abssamples/SecrecyTypeTests/KeY_Examples/failingtests/ObjectorientationAnnotated.abs";
         
         Main main = new Main();
         main.arguments.flowInsensitive = true;
@@ -619,7 +619,7 @@ public class SecrecyTypeTests extends FrontendTest {
 
     @Test
     public void passwordFile_flow_insensitive() throws Exception {
-        String fileName = "abssamples/SecrecyTypeTests/failingtests/SecurePasswordFileAnnotated.abs";
+        String fileName = "abssamples/SecrecyTypeTests/KeY_Examples/failingtests/SecurePasswordFileAnnotated.abs";
         
         Main main = new Main();
         main.arguments.flowInsensitive = true;
@@ -632,7 +632,7 @@ public class SecrecyTypeTests extends FrontendTest {
     
     @Test
     public void sumExample_flow_insensitive() throws Exception {
-        String fileName = "abssamples/SecrecyTypeTests/failingtests/SumExampleAnnotated.abs";
+        String fileName = "abssamples/SecrecyTypeTests/KeY_Examples/failingtests/SumExampleAnnotated.abs";
         
         Main main = new Main();
         main.arguments.flowInsensitive = true;
@@ -645,7 +645,7 @@ public class SecrecyTypeTests extends FrontendTest {
 
     @Test
     public void bankingExample1_flow_insensitive() throws Exception {
-        String fileName = "abssamples/SecrecyTypeTests/failingtests/BankingExampleAnnotated1.abs";
+        String fileName = "abssamples/SecrecyTypeTests/KeY_Examples/failingtests/BankingExampleAnnotated1.abs";
         
         Main main = new Main();
         main.arguments.flowInsensitive = true;
@@ -658,7 +658,7 @@ public class SecrecyTypeTests extends FrontendTest {
 
     @Test
     public void toyVoting_flow_insensitive() throws Exception {
-        String fileName = "abssamples/SecrecyTypeTests/failingtests/VoterAnnotated.abs";
+        String fileName = "abssamples/SecrecyTypeTests/KeY_Examples/failingtests/VoterAnnotated.abs";
         
         Main main = new Main();
         main.arguments.flowInsensitive = true;
@@ -671,7 +671,7 @@ public class SecrecyTypeTests extends FrontendTest {
 
     @Test
     public void whileInterLoopLeak_flow_insensitive() throws Exception {
-        String fileName = "abssamples/SecrecyTypeTests/failingtests/WhileInterLoopLeak.abs";
+        String fileName = "abssamples/SecrecyTypeTests/KeY_Examples/failingtests/WhileInterLoopLeak.abs";
         
         Main main = new Main();
         main.arguments.flowInsensitive = true;
