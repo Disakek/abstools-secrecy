@@ -4,3 +4,5 @@
 155:Leakage Error from High: AddAddExp(l1,IntLiteral(1)) to Low: l1
 155:Leakage Error from High: AddAddExp(l1,IntLiteral(1)) to Low: l1
 155:Leakage Error from High: AddAddExp(l1,IntLiteral(1)) to Low: l1
+158:Leakage Error from High: AddAddExp(l1,IntLiteral(1)) to Low: l1
+159:Leakage Error from High: l1 to Low: low

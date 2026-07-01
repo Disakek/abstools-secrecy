@@ -15,3 +15,6 @@
 51:Leakage Error from High: EqExp(thisChar,paramChar) to Low: charsMatch
 54:Leakage Error from High: False() to Low: pwdCorrect
 57:Leakage Error from High: AddAddExp(i,IntLiteral(1)) to Low: i
+64:Leakage Error from High: IntLiteral(0) to Low: incorrectLogins
+66:Leakage Error from High: AddAddExp(incorrectLogins,IntLiteral(1)) to Low: incorrectLogins
+69:Leakage Error from High: returnStmt to Low: returnDefinition
