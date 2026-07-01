@@ -1,0 +1,67 @@
+module InterfaceImplementation;
+
+interface InterfaceImplementationI {
+    Int secure_actual_low_to_at_most_expected_low([Secrecy: Low] Int x);
+    Int secure_actual_low_to_at_most_expected_high([Secrecy: High] Int x);
+    Int insecure_actual_high_to_at_most_expected_low([Secrecy: Low] Int x);
+    Int secure_actual_high_to_at_most_expected_high([Secrecy: High] Int x);
+    
+    [Secrecy:Low] Int secure_return_actual_low_to_at_most_expected_low();
+    [Secrecy:High] Int secure_return_actual_low_to_at_most_expected_high();
+    [Secrecy:Low] Int insecure_return_actual_high_to_at_most_expected_low();
+    [Secrecy:High] Int secure_return_actual_high_to_at_most_expected_high();
+}
+
+class InterfaceImplementation implements InterfaceImplementationI {
+
+//Checks for the parameter(s) from the actual implementation in context to the declaration in the interface
+//actual parameter may at most be as high as declared in an interface
+
+//meant to pass
+Int secure_actual_low_to_at_most_expected_low([Secrecy: Low] Int x) {
+    return 3;
+}
+
+//meant to pass
+Int secure_actual_low_to_at_most_expected_high([Secrecy: Low] Int x) {
+    return 3;
+}
+
+//meant to fail | insecure_actual_high_to_at_most_expected_low =>
+// has a parameter Int x: High but in the interface is defined as parameter Int x:Low 
+// => using higher where we at most want to allow low is a violation !!
+Int insecure_actual_high_to_at_most_expected_low([Secrecy: High] Int x) {
+    return 3;
+}
+
+//meant to pass
+Int secure_actual_high_to_at_most_expected_high([Secrecy: High] Int x) {
+    return 3;
+}
+
+//Checks for the return from the actual implementation in context to the declaration in the interface
+//actual return may at most be as high as declared in an interface
+
+//meant to pass
+[Secrecy:Low] Int secure_return_actual_low_to_at_most_expected_low() {
+    return 3;
+}
+
+//meant to pass
+[Secrecy:Low] Int secure_return_actual_low_to_at_most_expected_high() {
+    return 3;
+}
+
+//meant to fail | insecure_return_actual_high_to_at_most_expected_low:low =>
+// implementing a method with a return high when we expect it to be low at most in the declaration in the interface is a violation
+[Secrecy:High] Int insecure_return_actual_high_to_at_most_expected_low() {
+    return 3;
+}
+
+//meant to pass
+[Secrecy:High] Int secure_return_actual_high_to_at_most_expected_high() {
+    return 3;
+}
+
+
+}

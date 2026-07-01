@@ -1,0 +1,60 @@
+module FutureExamples;
+
+class FutureExamples {
+
+    [Secrecy: High] Int highVariable = 8;
+    [Secrecy: Low] Int lowVariable = 0;
+    [Secrecy: Low] Int otherLow = 0;
+
+    Int futureExampleMethodCallingLowReturn() {
+        Fut<Int> someFuture = this!lowReturnHelperMethod();
+
+        lowVariable = otherLow;
+        lowVariable = highVariable;
+
+        Int result = someFuture.get;
+
+        return  result;
+    }
+
+    Int futureExampleMethodCallingHighReturLowFuture() {
+        Fut<Int> someFuture = this!highReturnHelperMethod();
+
+        lowVariable = otherLow;
+        lowVariable = highVariable;
+
+        Int result = someFuture.get;
+
+        return  result;
+    }
+
+    [Secrecy: High] Int futureExampleMethodCallingLowReturHighFuture() {
+        [Secrecy: High] Fut<Int> someFuture = this!lowReturnHelperMethod();
+
+        lowVariable = otherLow; //this should be during a high pc and thus fail I think
+        lowVariable = highVariable;
+
+        [Secrecy: High] Int result = someFuture.get;
+
+        return  result;
+    }
+
+    [Secrecy: High] Int futureExampleMethodCallingHighReturHighFuture() {
+        [Secrecy: High] Fut<Int> someFuture = this!highReturnHelperMethod();
+
+        lowVariable = otherLow;
+        lowVariable = highVariable;
+
+        [Secrecy: High] Int result = someFuture.get;
+
+        return  result;
+    }
+
+    Int lowReturnHelperMethod() {
+        return 8;
+    }
+
+    [Secrecy: High] Int highReturnHelperMethod() {
+        return 8;
+    }
+}

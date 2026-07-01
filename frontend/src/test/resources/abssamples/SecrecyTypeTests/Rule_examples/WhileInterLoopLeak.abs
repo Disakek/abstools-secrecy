@@ -1,0 +1,23 @@
+module InterloopLeak;
+
+class InterloopLeak {
+
+    [Secrecy: High] Int secretVar = 8;
+    [Secrecy: High] Int someHigh = 8;
+    [Secrecy: Low] Int someLow = 0;
+
+    Int methodA(Int c) {
+
+        Int result = 0;
+        secretVar = someLow;
+
+        while(secretVar > 2) { // Gamma curr so low here
+            result = result + c;
+            someLow = secretVar; //Assign a possibly high value (secretVar) to a low value (someLow) | only for flow-sensitive analysis relevant
+            secretVar = someHigh;
+        }
+
+        return result;
+    }
+
+}

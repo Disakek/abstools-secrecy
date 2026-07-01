@@ -916,6 +916,97 @@ public class SecrecyTypeTests extends FrontendTest {
         assertEquals(loadExpectedErrors(fileName.replace(".abs", ".txt")), getLinesAndErrors(m.getTypeErrors()));
     }
 
+    //TODO add the Rule_example Tests here:
+    //Clone these and make the cloned ones flow-insensitive => Move these up because they are flow-sensitive then
+    @Test
+    public void assign_rule_examples_flow_sensitive() throws Exception {
+        String fileName = "abssamples/SecrecyTypeTests/Rule_examples/Assign_Examples.abs";
+        Model m = assertParseFileOk(fileName);
+
+        assertEquals(loadExpectedErrors(fileName.replace(".abs", ".txt")), getLinesAndErrors(m.getTypeErrors()));
+    }
+
+    @Test
+    public void await_rule_examples_flow_sensitive() throws Exception {
+        String fileName = "abssamples/SecrecyTypeTests/Rule_examples/Await_Examples.abs";
+        Model m = assertParseFileOk(fileName);
+
+        assertEquals(loadExpectedErrors(fileName.replace(".abs", ".txt")), getLinesAndErrors(m.getTypeErrors()));
+    }
+
+    @Test
+    public void awaitcall_rule_examples_flow_sensitive() throws Exception {
+        String fileName = "abssamples/SecrecyTypeTests/Rule_examples/Await-Call_Examples.abs";
+        Model m = assertParseFileOk(fileName);
+
+        assertEquals(loadExpectedErrors(fileName.replace(".abs", ".txt")), getLinesAndErrors(m.getTypeErrors()));
+    }
+    
+    @Test
+    public void expression_rule_examples_flow_sensitive() throws Exception {
+        String fileName = "abssamples/SecrecyTypeTests/Rule_examples/Expression_Examples.abs";
+        Model m = assertParseFileOk(fileName);
+
+        assertEquals(loadExpectedErrors(fileName.replace(".abs", ".txt")), getLinesAndErrors(m.getTypeErrors()));
+    }
+
+    @Test
+    public void future_rule_examples_flow_sensitive() throws Exception {
+        String fileName = "abssamples/SecrecyTypeTests/Rule_examples/Future_Examples.abs";
+        Model m = assertParseFileOk(fileName);
+
+        assertEquals(loadExpectedErrors(fileName.replace(".abs", ".txt")), getLinesAndErrors(m.getTypeErrors()));
+    }
+
+    @Test
+    public void if_rule_examples_flow_sensitive() throws Exception {
+        String fileName = "abssamples/SecrecyTypeTests/Rule_examples/If_Examples.abs";
+        Model m = assertParseFileOk(fileName);
+
+        assertEquals(loadExpectedErrors(fileName.replace(".abs", ".txt")), getLinesAndErrors(m.getTypeErrors()));
+    }
+
+    @Test
+    public void Interface_implementation_rule_examples_flow_sensitive() throws Exception {
+        String fileName = "abssamples/SecrecyTypeTests/Rule_examples/Interface_Implementation_Examples.abs";
+        Model m = assertParseFileOk(fileName);
+
+        assertEquals(loadExpectedErrors(fileName.replace(".abs", ".txt")), getLinesAndErrors(m.getTypeErrors()));
+    }
+
+    @Test
+    public void new_rule_examples_flow_sensitive() throws Exception {
+        String fileName = "abssamples/SecrecyTypeTests/Rule_examples/New_Examples.abs";
+        Model m = assertParseFileOk(fileName);
+
+        assertEquals(loadExpectedErrors(fileName.replace(".abs", ".txt")), getLinesAndErrors(m.getTypeErrors()));
+    }
+
+    @Test
+    public void return_rule_examples_flow_sensitive() throws Exception {
+        String fileName = "abssamples/SecrecyTypeTests/Rule_examples/Return_Examples.abs";
+        Model m = assertParseFileOk(fileName);
+
+        assertEquals(loadExpectedErrors(fileName.replace(".abs", ".txt")), getLinesAndErrors(m.getTypeErrors()));
+    }
+
+    @Test
+    public void while_rule_examples_flow_sensitive() throws Exception {
+        String fileName = "abssamples/SecrecyTypeTests/Rule_examples/While_Examples.abs";
+        Model m = assertParseFileOk(fileName);
+
+        assertEquals(loadExpectedErrors(fileName.replace(".abs", ".txt")), getLinesAndErrors(m.getTypeErrors()));
+    }
+
+    @Test
+    public void while_interloopleak_rule_examples_flow_sensitive() throws Exception {
+        String fileName = "abssamples/SecrecyTypeTests/Rule_examples/WhileInterLoopLeak.abs";
+        Model m = assertParseFileOk(fileName);
+
+        assertEquals(loadExpectedErrors(fileName.replace(".abs", ".txt")), getLinesAndErrors(m.getTypeErrors()));
+    }
+
+
     //These are helper methods to verify the failing files fail on the exact erros we expect them to
 
     /**

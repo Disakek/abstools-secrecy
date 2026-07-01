@@ -1,0 +1,36 @@
+module ReturnExamples;
+
+class ReturnExamples {
+
+    [Secrecy: High] Int high = 20;
+
+    [Secrecy: Low] Int low = 3;
+
+    [Secrecy: Low] Int c = 2;
+
+    //meant to pass | expect Low return Low (const val)
+    Int secure_return_low_const() {
+        return 3;
+    }
+
+    //meant to pass | expect Low return Low (var)
+    Int secure_return_low() {
+        return low;
+    }
+    
+    //meant to pass | expect High return Low (is allowed)
+    [Secrecy: High] Int secure_return_low_can_be_high() {
+        return low;
+    }
+
+    //meant to fail | expect Low return High (is forbidden)
+    Int insecure_return_high() {
+        return high;
+    }
+
+    //meant to pass | expect High return High (is allowed)
+    [Secrecy: High] Int secure_return_high() {
+        return high;
+    }
+    
+}

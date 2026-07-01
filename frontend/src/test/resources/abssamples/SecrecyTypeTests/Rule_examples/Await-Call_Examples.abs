@@ -1,0 +1,67 @@
+module AwaitCallExamples;
+
+interface SomeExampleI {
+    Int callWithLowReturn();
+    
+    [Secrecy: High] Int callWithHighReturn();
+    
+    Int callWithLowReturnAndParam([Secrecy: High]  Int a);
+}
+
+class Some implements SomeExampleI {
+    Int callWithLowReturn() {
+        return 2;
+    }
+    
+    [Secrecy: High] Int callWithHighReturn() {
+        return 2;
+    }
+
+    Int callWithLowReturnAndParam([Secrecy: High]  Int a) {
+        return 4;
+    }
+}
+
+class Annotated(SomeExampleI something) {
+
+    [Secrecy: High] Int highVariable = 8;
+    [Secrecy: Low] Int lowVariable = 0;
+    [Secrecy: Low] Int otherLow = 0;
+
+    Int someMethod() {
+
+        Int v = 2;
+        Int rhs = 8;
+
+        //Check fields don't exceed their declared max secrecy levels
+        otherLow = lowVariable; //meant to pass (sanity check)
+        lowVariable = highVariable; //meant to fail (wrong assignment to check fields exceeding max)
+        //Fields exceeding max only happening for flow-sensitive analysis
+
+        //Calls
+        v = await something!callWithLowReturn();
+        v = await something!callWithHighReturn(); //meant to fail
+        
+        //Self-Calls
+        v = await this!selfCallWithLowReturn(); 
+        v = await this!selfCallWithHighReturn(); //meant to fail
+
+        //Parameter
+        v = await this!selfCallWithLowReturnAndParam(v); //meant to pass
+        v = await something!callWithLowReturnAndParam(v); //meant to pass
+
+        return v;
+    }
+
+    Int selfCallWithLowReturnAndParam([Secrecy: Low] Int x) {
+        return 4;
+    }
+
+    Int selfCallWithLowReturn() {
+        return 4;
+    }
+
+    [Secrecy: High] Int selfCallWithHighReturn() {
+        return 4;
+    }
+}

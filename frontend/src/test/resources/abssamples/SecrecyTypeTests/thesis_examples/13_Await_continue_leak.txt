@@ -12,8 +12,8 @@
 949:Calls method with parameter of secrecy level High but d was only allowed to be Low at most!
 949:Leakage Error from High: SyncCall(ThisExp(),name,d) to Low: result
 949:The call is calling an insecure method called createInstance in the same class and thus can't be secure!
-950:Leakage Error from High: AsyncCall(result,) to Low: tmp47925969
-950:Leakage Error from High: GetExp(tmp47925969) to Low: startup_duration
+950:Leakage Error from High: AsyncCall(result,) to Low: tmpXXX
+950:Leakage Error from High: GetExp(tmpXXX) to Low: startup_duration
 952:Leakage Error from High: returnStmt to Low: returnDefinition
 956:Leakage Error from High: FnApp(instanceDescriptions,instancename) to Low: mconfig
 957:Leakage Error from High: NullExp() to Low: dc
@@ -22,8 +22,8 @@
 960:Calls method with parameter of secrecy level High but d was only allowed to be Low at most!
 960:Leakage Error from High: SyncCall(ThisExp(),AddAddExp(AddAddExp(name,StringLiteral(-)),instancename),config) to Low: dc
 960:The call is calling an insecure method called createInstance in the same class and thus can't be secure!
-961:Leakage Error from High: AsyncCall(dc,) to Low: tmp1874919946
-961:Leakage Error from High: GetExp(tmp1874919946) to Low: startup_duration
+961:Leakage Error from High: AsyncCall(dc,) to Low: tmpXXX
+961:Leakage Error from High: GetExp(tmpXXX) to Low: startup_duration
 964:Leakage Error from High: returnStmt to Low: returnDefinition
 968:Calls method with parameter of secrecy level High but d was only allowed to be Low at most!
 968:Leakage Error from High: SyncCall(ThisExp(),d) to Low: result
@@ -37,8 +37,8 @@
 977:Leakage Error from High: FnApp(acquiredInstances,nullableWorkAround) to Low: acquiredInstances
 979:Leakage Error from High: returnStmt to Low: returnDefinition
 983:Leakage Error from High: True() to Low: result
-984:Leakage Error from High: AsyncCall(instance,) to Low: tmp1466066315
-984:Leakage Error from High: GetExp(tmp1466066315) to Low: cp
+984:Leakage Error from High: AsyncCall(instance,) to Low: tmpXXX
+984:Leakage Error from High: GetExp(tmpXXX) to Low: cp
 985:Leakage Error from High: instance to Low: nullableWorkAround
 988:Leakage Error from High: False() to Low: result
 991:Leakage Error from High: False() to Low: result
@@ -50,29 +50,29 @@
 1014:Leakage Error from High: instance to Low: nullWorkAround
 1017:Leakage Error from High: FnApp(acquiredInstances,nullWorkAround) to Low: acquiredInstances
 1020:Leakage Error from High: FnApp(killedInstances,nullWorkAround) to Low: killedInstances
-1021:Leakage Error from High: AsyncCall(instance,) to Low: tmp640275932
-1021:Leakage Error from High: GetExp(tmp640275932) to Low: shutdown_duration
+1021:Leakage Error from High: AsyncCall(instance,) to Low: tmpXXX
+1021:Leakage Error from High: GetExp(tmpXXX) to Low: shutdown_duration
 1026:Leakage Error from High: FnApp(launchedInstances,nullWorkAround) to Low: launchedInstances
-1028:Leakage Error from High: AsyncCall(instance,) to Low: tmp630642676
-1028:Leakage Error from High: GetExp(tmp630642676) to Low: cost
+1028:Leakage Error from High: AsyncCall(instance,) to Low: tmpXXX
+1028:Leakage Error from High: GetExp(tmpXXX) to Low: cost
 1029:Leakage Error from High: AddAddExp(accumulatedCostOfKilledDCs,cost) to Low: accumulatedCostOfKilledDCs
 1033:Leakage Error from High: IntLiteral(0) to Low: result
 1034:Leakage Error from High: FnApp() to Low: t
-1035:Leakage Error from High: FnApp(launchedInstances) to Low: tmp766445308
-1035:Leakage Error from High: FnApp(tmp766445308) to Low: dc
-1035:Leakage Error from High: FnApp(tmp766445308) to Low: tmp766445308
-1036:Leakage Error from High: AsyncCall(dc,) to Low: tmp1117802526
-1036:Leakage Error from High: GetExp(tmp1117802526) to Low: cost
+1035:Leakage Error from High: FnApp(launchedInstances) to Low: tmpXXX
+1035:Leakage Error from High: FnApp(tmpXXX) to Low: dc
+1035:Leakage Error from High: FnApp(tmpXXX) to Low: tmpXXX
+1036:Leakage Error from High: AsyncCall(dc,) to Low: tmpXXX
+1036:Leakage Error from High: GetExp(tmpXXX) to Low: cost
 1037:Leakage Error from High: AddAddExp(result,cost) to Low: result
-1035:Leakage Error from High: FnApp(tmp766445308) to Low: dc
-1035:Leakage Error from High: FnApp(tmp766445308) to Low: tmp766445308
-1036:Leakage Error from High: AsyncCall(dc,) to Low: tmp1117802526
-1036:Leakage Error from High: GetExp(tmp1117802526) to Low: cost
+1035:Leakage Error from High: FnApp(tmpXXX) to Low: dc
+1035:Leakage Error from High: FnApp(tmpXXX) to Low: tmpXXX
+1036:Leakage Error from High: AsyncCall(dc,) to Low: tmpXXX
+1036:Leakage Error from High: GetExp(tmpXXX) to Low: cost
 1037:Leakage Error from High: AddAddExp(result,cost) to Low: result
-1035:Leakage Error from High: FnApp(tmp766445308) to Low: dc
-1035:Leakage Error from High: FnApp(tmp766445308) to Low: tmp766445308
-1036:Leakage Error from High: AsyncCall(dc,) to Low: tmp1117802526
-1036:Leakage Error from High: GetExp(tmp1117802526) to Low: cost
+1035:Leakage Error from High: FnApp(tmpXXX) to Low: dc
+1035:Leakage Error from High: FnApp(tmpXXX) to Low: tmpXXX
+1036:Leakage Error from High: AsyncCall(dc,) to Low: tmpXXX
+1036:Leakage Error from High: GetExp(tmpXXX) to Low: cost
 1037:Leakage Error from High: AddAddExp(result,cost) to Low: result
 1039:Leakage Error from High: returnStmt to Low: returnDefinition
 1044:Leakage Error from High: instanceDescriptions to Low: instanceDescriptions
@@ -97,13 +97,13 @@
 1203:Leakage Error from High: returnStmt to Low: returnDefinition
 1205:Leakage Error from High: True() to Low: result
 1207:Calls method with parameter of secrecy level High but instance was only allowed to be Low at most!
-1207:Leakage Error from High: AsyncCall(cloudprovider,ThisExp()) to Low: tmp111819772
-1207:Leakage Error from High: GetExp(tmp111819772) to Low: result
+1207:Leakage Error from High: AsyncCall(cloudprovider,ThisExp()) to Low: tmpXXX
+1207:Leakage Error from High: GetExp(tmpXXX) to Low: result
 1209:Leakage Error from High: returnStmt to Low: returnDefinition
 1212:Leakage Error from High: True() to Low: result
 1214:Calls method with parameter of secrecy level High but instance was only allowed to be Low at most!
-1214:Leakage Error from High: AsyncCall(cloudprovider,ThisExp()) to Low: tmp1850055104
-1214:Leakage Error from High: GetExp(tmp1850055104) to Low: result
+1214:Leakage Error from High: AsyncCall(cloudprovider,ThisExp()) to Low: tmpXXX
+1214:Leakage Error from High: GetExp(tmpXXX) to Low: result
 1216:Leakage Error from High: returnStmt to Low: returnDefinition
 1221:Leakage Error from High: True() to Low: is_shutdown
 1222:Leakage Error from High: Just(FnApp()) to Low: shutdownTime

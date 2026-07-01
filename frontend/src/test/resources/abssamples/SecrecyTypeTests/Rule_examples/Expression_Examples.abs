@@ -1,0 +1,101 @@
+module ExpressionExamples;
+
+class ExpressionExamples {
+
+    /*
+    Support is currently done for:
+    - Unary / VarOrFieldUse - these two are tested at the same time as we can't split them anyways
+    - Binary
+
+    - Async Call / GetExp
+    - Async Call
+    - Sync Call - works the same as async so we could disregard tests for one of them technically
+    - FnApp
+
+    Instead of using assert as above I introduced a new fnApp with the signature secrecy(VarOrFieldRef) => usually it makes only sense to use a variable.
+    This allows us to retrieve the secrecy level of an expression. Only for the (a)sync calls however we can only do it by assigning it to a variable and then 
+    evaluating the level of the variable. (This is not working fully as long as there is no difference between max/current secrecy levels!)
+    */
+
+    Unit checkUnary(){
+        
+        Int low = 6;
+        [Secrecy: High] Int high = 2;
+        Bool lowBool = False;
+        [Secrecy: High] Bool highBool = False;
+
+        secrecy(-low, "Low"); //returns nothing if the level of the exp is equal to the expected
+        secrecy(-high, "High"); //returns an error otherwise (like for this line because it is not as the expected but low!)
+
+        secrecy(!lowBool, "Low");
+        secrecy(!highBool, "High");
+    }
+
+    Unit checkBinary(){
+        
+        Int low = 6;
+        [Secrecy: High] Int high = 2;
+
+        secrecy(low + low, "Low"); //returns nothing if the level of the exp is equal to the expected
+        secrecy(low * low, "High"); //returns an error otherwise (like for this line because it is not as the expected but low!)
+        secrecy(low / high, "High");
+        secrecy(high - low, "High");
+        secrecy(high - high, "High"); //even though this is zero it will be expected to be high => flow-sensitive and has to be simplified to be seen!
+    }
+    
+    //TODO for get the difference in where it is in relation to await and other statements is also interesting 
+    // so probably more tests for that in an extra test file for the future rule
+    
+    //TODO this wont work fully as intended as long as we dont differentiate between max/curr secrecy
+    //meant to pass
+    Unit checkGet() {
+        Fut<Int> lowFuture = this!lowHelper();
+        [Secrecy: High] Fut<Int> highFuture = this!highHelper();
+
+        Int a = lowFuture.get;
+        [Secrecy: High] Int b = highFuture.get;
+
+        secrecy(a, "Low");
+        secrecy(b, "High");
+    }
+
+    //TODO this wont work fully as intended as long as we dont differentiate between max/curr secrecy
+    //meant to pass
+    Unit checkAsync() {
+        Fut<Int> lowAsync = this!lowHelper();
+        [Secrecy: High] Fut<Int> highAsync = this!highHelper();
+
+        secrecy(lowAsync, "Low");
+        secrecy(highAsync, "High");
+    }
+
+    //TODO this wont work fully as intended as long as we dont differentiate between max/curr secrecy
+    //meant to pass
+    Unit checkSync() {
+        Int lowSync = this.lowHelper();
+        [Secrecy: High] Int highSync = this.highHelper();
+
+        secrecy(lowSync, "Low");
+        secrecy(highSync, "High");
+    }
+
+    //meant to pass
+    Unit checkFnApps() {
+        List<Int> lowFnApp = list[1, 2, 3];
+        [Secrecy: High] List<Int> highFnApp = list[1, 2, 3];
+
+        secrecy(nth(lowFnApp, 0), "Low");
+        secrecy(nth(highFnApp, 0), "High"); 
+    } 
+
+    //low helper method just returns 2 is needed for the asynchronous and synchronous method calls
+    Int lowHelper() {
+        return 2;
+    }
+
+    //high helper method just returns 2 is needed for the asynchronous and synchronous method calls
+    [Secrecy: High] Int highHelper() {
+        return 2;
+    }
+}
+

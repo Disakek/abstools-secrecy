@@ -1,0 +1,24 @@
+module NewExample;
+
+interface CI { }
+
+class C(Int a, [Secrecy:High] Int b) implements CI {
+}
+
+class D {
+
+  [Secrecy: High] Int highInteger = 93;
+
+
+  Int createNewObjectC() {
+    CI newObjOne = new C(4, 5); //This is a creation with low, low and thus allowed
+
+    CI newObjTwo = new C(4, highInteger); //This is a creation with low, high and thus allowed
+
+    CI newObjThree = new C(highInteger, 5); //This is a creation with high, low and thus should lead to an error
+
+    CI newObjFour = new C(highInteger, highInteger); //This is a creation with high, low and thus should lead to an error
+
+    return 1;
+  }
+}

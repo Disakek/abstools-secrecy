@@ -1,0 +1,77 @@
+module IFExamples;
+
+class IfExamples {
+
+    [Secrecy: High] Int high = 20;
+
+    [Secrecy: Low] Int low = 3;
+
+    [Secrecy: Low] Int c = 2;
+
+    //meant to fail | high can be high => if has condition:High
+    //Assigning result: Low = x:low in pc:High possibly leaks high information! 
+    Int insecure_high_if_condition(Int x) {
+        Int result = 0;
+
+        if(high > 5) {
+            result = x;
+        } else {
+            result = 0;
+        }
+
+        return result;
+    }
+    
+    //meant to pass
+    [Secrecy: High] Int secure_high_if_condition(Int x) {
+        [Secrecy: High] Int result = 0;
+
+        if(high > 5) {
+            result = x;
+        } else {
+            result = 0;
+        }
+
+        return result;
+    }
+
+    //meant to pass
+    Int secure_low_if_condition(Int x) {
+        Int result = 0;
+
+        if(low > 5) {
+            result = x;
+        } else {
+            result = 0;
+        }
+
+        return result;
+    }
+   
+   //meant to fail | Return error
+   // return result:High for insecure_low_if_Assign_Leak:Low is leaking
+   Int insecure_low_if_Assign_Leak(Int x) {
+        [Secrecy: High] Int result = 0;
+
+        if(low > 5) {
+            result = x;
+        } else {
+            result = 0;
+        }
+
+        return result;
+   }
+
+   //meant to pass
+   [Secrecy: High] Int secure_low_if_Assign_Leak(Int x) {
+        [Secrecy: High] Int result = 0;
+
+        if(low > 5) {
+            result = x;
+        } else {
+            result = 0;
+        }
+
+        return result;
+   }
+}

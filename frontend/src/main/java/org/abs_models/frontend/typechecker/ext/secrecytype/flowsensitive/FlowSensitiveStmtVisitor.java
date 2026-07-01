@@ -88,14 +88,13 @@ public class FlowSensitiveStmtVisitor extends SecrecyStmtVisitor{
         
         if(!hasDeclassify && LHScontainedIn.contains(RHSsecLevel)) {
             errors.add(new TypeError(assignStmt, ErrorMessage.SECRECY_LEAKAGE_ERROR_FROM_TO, RHSsecLevel, assignStmt.getValue().toString(), LHSsecLevel, assignStmt.getVar().getName()));
+        }
+
+        if(hasDeclassify) {
+            String listLevel = secrecyLatticeStructure.evaluateListLevel(programConfidentiality);
+            _currentSecrecy.put(LHS, secrecyLatticeStructure.join(LHSsecLevel, listLevel));
         } else {
-            
-            if(hasDeclassify) {
-                String listLevel = secrecyLatticeStructure.evaluateListLevel(programConfidentiality);
-                _currentSecrecy.put(LHS, secrecyLatticeStructure.join(LHSsecLevel, listLevel));
-            } else {
-                _currentSecrecy.put(LHS, RHSsecLevel); 
-            }
+            _currentSecrecy.put(LHS, RHSsecLevel); 
         }
         
     }
@@ -277,15 +276,15 @@ public class FlowSensitiveStmtVisitor extends SecrecyStmtVisitor{
                 
                 errors.add(new TypeError(varDeclStmt, ErrorMessage.SECRECY_LEAKAGE_ERROR_FROM_TO, rhsLevel, initExp.toString(), lhsLevel, varDecl.getName()));
             
-            } else {
-                
-                if(hasDeclassify) {
-                    String listLevel = secrecyLatticeStructure.evaluateListLevel(programConfidentiality);
-                    _currentSecrecy.put(varDecl, secrecyLatticeStructure.join(lhsLevel, listLevel));
-                } else {
-                    _currentSecrecy.put(varDecl, lhsLevel);
-                }
             }
+        
+            if(hasDeclassify) {
+                String listLevel = secrecyLatticeStructure.evaluateListLevel(programConfidentiality);
+                _currentSecrecy.put(varDecl, secrecyLatticeStructure.join(lhsLevel, listLevel));
+            } else {
+                _currentSecrecy.put(varDecl, lhsLevel);
+            }
+        
         }
     }
 

@@ -1,0 +1,46 @@
+module AwaitExamples;
+
+class AwaitExamples {
+
+    //meant to pass
+    Fut<Int> secure_await_low_to_low() {
+        Fut<Int> future = this!helper();
+
+        await future?;
+
+        return future;
+    }
+
+    //meant to pass
+    [Secrecy:High] Fut<Int> secure_await_low_to_high() {
+        Fut<Int> future = this!helper();
+
+        await future?;
+
+        return future;
+    }
+
+    //meant to fail | insecure_await_high_to_low:low =>
+    // future:High => future.get:high => low = high => violation
+    Int insecure_await_high_to_low() {
+        [Secrecy:High] Fut<Int> future = this!helper();
+
+        await future?;
+
+        return future.get;
+    }
+
+    //meant to pass
+    [Secrecy:High] Fut<Int> secure_await_high_to_high() {
+        Fut<Int> future = this!helper();
+
+        await future?;
+
+        return future;
+    }
+
+    //helper method just returns 2 is needed for the asynchronous method calls
+    Int helper() {
+        return 2;
+    }
+}

@@ -1,0 +1,68 @@
+module WhileExamples;
+
+class WhileExamples {
+
+    [Secrecy: High] Int high = 20;
+
+    [Secrecy: Low] Int low = 3;
+
+    [Secrecy: Low] Int c = 2;
+
+    //meant to fail | high can be high => while has condition:High
+    //Assigning result: Low = x:low in pc:High possibly leaks high information! 
+    Int insecure_high_while_condition(Int x) {
+        Int result = 0;
+
+        while(high > 5) {
+            result = x;
+        }
+
+        return result;
+    }
+    
+    //meant to pass
+    [Secrecy: High] Int secure_high_while_condition(Int x) {
+        [Secrecy: High] Int result = 0;
+
+        while(high > 5) {
+            result = x;
+        }
+
+        return result;
+    }
+
+    //meant to pass
+    Int secure_low_while_condition(Int x) {
+        Int result = 0;
+
+        while(low > 5) {
+            result = x;
+        }
+
+        return result;
+    }
+
+    //meant to fail | result:High =>
+    // result:High = x:Low under condition:Low is leaking (because of the assignment)
+    Int insecure_low_while_condition(Int x) {
+        [Secrecy: High] Int result = 0;
+
+        while(low > 5) {
+            result = x;
+        }
+
+        return result;
+    }
+
+    //meant to pass
+    [Secrecy: High] Int secure_low_while_condition_high_return(Int x) {
+        [Secrecy: High] Int result = 0;
+
+        while(low > 5) {
+            result = x;
+        }
+
+        return result;
+    }
+   
+}
