@@ -48,7 +48,7 @@ class IfExamples {
         return result;
     }
    
-   //meant to fail | Return error
+   //meant to fail (but only for flow-insensitive!!) | Return error
    // return result:High for insecure_low_if_Assign_Leak:Low is leaking
    Int insecure_low_if_Assign_Leak(Int x) {
         [Secrecy: High] Int result = 0;

@@ -31,4 +31,14 @@ class AssignExamples {
         high = otherHigh;
     }
 
+    //And below ones that only lead to an error for flow-insensitive analysis
+
+    // meant to fail for flow-insensitive | Assignment =>
+    // low:"Low" = high:"High" is possibly leaking
+    // flow-sensitive => sees high = 7 sets high:"Low" and allows low:"Low" = high:"Low"
+    Unit insecure_only_for_flow_insensitive() {
+        high = 7;
+        low = high;
+    }
+
 }

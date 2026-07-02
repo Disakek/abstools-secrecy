@@ -42,7 +42,7 @@ class WhileExamples {
         return result;
     }
 
-    //meant to fail | result:High =>
+    //meant to fail (only for flow-insensitive) | result:High =>
     // result:High = x:Low under condition:Low is leaking (because of the assignment)
     Int insecure_low_while_condition(Int x) {
         [Secrecy: High] Int result = 0;

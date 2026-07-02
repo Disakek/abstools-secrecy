@@ -60,7 +60,8 @@ public class FlowInsensitiveStmtVisitor extends SecrecyStmtVisitor{
         String RHSsecLevel = secrecyLatticeStructure.getMinSecrecyLevel();
 
         if(_secrecy.get(LHS) != null)LHSsecLevel = _secrecy.get(LHS);
-        if(RhsExp.accept(ExpVisitor) != null)RHSsecLevel = RhsExp.accept(ExpVisitor);
+        String rhsVisitorReturn = RhsExp.accept(ExpVisitor);
+        if(rhsVisitorReturn != null)RHSsecLevel = rhsVisitorReturn;
         Set<String> LHScontainedIn = secrecyLatticeStructure.getSetForSecrecyLevel(LHSsecLevel);
         
         if(!hasDeclassify && LHScontainedIn.contains(RHSsecLevel)) {

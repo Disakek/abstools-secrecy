@@ -1,0 +1,6 @@
+15:Leakage Error from High: AddAddExp(result,c) to Low: result
+16:Leakage Error from High: secretVar to Low: someLow
+15:Leakage Error from High: AddAddExp(result,c) to Low: result
+16:Leakage Error from High: secretVar to Low: someLow
+15:Leakage Error from High: AddAddExp(result,c) to Low: result
+16:Leakage Error from High: secretVar to Low: someLow
