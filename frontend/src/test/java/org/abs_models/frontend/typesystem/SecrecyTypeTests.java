@@ -905,9 +905,7 @@ public class SecrecyTypeTests extends FrontendTest {
         Model m = main.parse(Arrays.asList(new File(resolveFileName(fileName))));
         m.evaluateAllProductDeclarations();
 
-        String flowInsensitiveFileName = "abssamples/SecrecyTypeTests/thesis_examples/11_flow_in_sensitivity_example_flowInsensitive.txt";
-
-        assertEquals(loadExpectedErrors(flowInsensitiveFileName), getLinesAndErrors(m.getTypeErrors()));
+        assertEquals(loadExpectedErrors(fileName.replace(".abs", "_flow_insensitive.txt")), getLinesAndErrors(m.getTypeErrors()));
     }
 
     @Test
