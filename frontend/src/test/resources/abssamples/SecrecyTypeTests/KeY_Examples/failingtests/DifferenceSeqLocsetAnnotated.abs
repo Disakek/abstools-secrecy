@@ -27,7 +27,6 @@ class DifferenceSeqLocset implements DifferenceSeqLocsetI {
         l1 = new D();
         l2 = new D();
         l3 = l1;
-        return Unit;
     }
 
     Unit m() {
@@ -36,6 +35,5 @@ class DifferenceSeqLocset implements DifferenceSeqLocsetI {
         } else {
             l3 = l2;
         }
-        return Unit;
     }
 }
