@@ -2,8 +2,10 @@
 42:The field lowVariable currently has a value with secrecy level High but may at most be Low
 43:Leakage Error from High: AsyncCall(something,) to Low: tmpXXX
 43:The field lowVariable currently has a value with secrecy level High but may at most be Low
+43:Leakage Error from High: GetExp(tmpXXX) to Low: v
 46:The field lowVariable currently has a value with secrecy level High but may at most be Low
 47:Leakage Error from High: AsyncCall(ThisExp(),) to Low: tmpXXX
 47:The field lowVariable currently has a value with secrecy level High but may at most be Low
-50:The field lowVariable currently has a value with secrecy level High but may at most be Low
+47:Leakage Error from High: GetExp(tmpXXX) to Low: v
 51:The field lowVariable currently has a value with secrecy level High but may at most be Low
+52:The field lowVariable currently has a value with secrecy level High but may at most be Low

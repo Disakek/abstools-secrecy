@@ -3,6 +3,9 @@
 22:Leakage Error from High: AsyncCall(ThisExp(),) to Low: someFuture
 24:Leakage Error from High: highVariable to Low: lowVariable
 25:The field lowVariable currently has a value with secrecy level High but may at most be Low
+26:Leakage Error from High: otherLow to Low: lowVariable
+28:Leakage Error from High: GetExp(someFuture) to Low: result
+30:Leakage Error from High: returnStmt to Low: returnDefinition
 36:Leakage Error from High: highVariable to Low: lowVariable
 37:The field lowVariable currently has a value with secrecy level High but may at most be Low
 38:Leakage Error from High: otherLow to Low: lowVariable

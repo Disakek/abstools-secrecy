@@ -479,6 +479,15 @@ public class SecrecyTypeTests extends FrontendTest {
         assertEquals(loadExpectedErrors(fileName.replace(".abs", ".txt")), getLinesAndErrors(m.getTypeErrors()));
     }
 
+
+    @Test
+    public void thesis_example_20_flow_sensitive() throws Exception {
+        String fileName = "abssamples/SecrecyTypeTests/thesis_examples/20_ServerDataRequest.abs";
+        Model m = assertParseFileOk(fileName);
+
+        assertEquals(loadExpectedErrors(fileName.replace(".abs", ".txt")), getLinesAndErrors(m.getTypeErrors()));
+    }
+
     //Below this line I do the test for a flow-insensitive analysis
     //These are the tests that should work without returning any type errors for the secrecy type
 
@@ -988,6 +997,19 @@ public class SecrecyTypeTests extends FrontendTest {
     @Test
     public void thesis_example_19_flow_insensitive() throws Exception {
         String fileName = "abssamples/SecrecyTypeTests/thesis_examples/19_While_second_iteration_leak_findable.abs";
+        
+        Main main = new Main();
+        main.arguments.flowInsensitive = true;
+        Model m = main.parse(Arrays.asList(new File(resolveFileName(fileName))));
+        m.evaluateAllProductDeclarations();
+        
+
+        assertEquals(loadExpectedErrors(fileName.replace(".abs", "_flow_insensitive.txt")), getLinesAndErrors(m.getTypeErrors()));
+    }
+
+    @Test
+    public void thesis_example_20_flow_insensitive() throws Exception {
+        String fileName = "abssamples/SecrecyTypeTests/thesis_examples/20_ServerDataRequest.abs";
         
         Main main = new Main();
         main.arguments.flowInsensitive = true;

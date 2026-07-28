@@ -23,7 +23,7 @@ class AwaitExamples {
     //meant to fail | insecure_await_high_to_low:low =>
     // future:High => future.get:high => low = high => violation
     Int insecure_await_high_to_low() {
-        [Secrecy:High] Fut<Int> future = this!helper();
+        [Secrecy:High] Fut<Int> future = this!highHelper();
 
         await future?;
 
@@ -41,6 +41,10 @@ class AwaitExamples {
 
     //helper method just returns 2 is needed for the asynchronous method calls
     Int helper() {
+        return 2;
+    }
+
+    [Secrecy: High] Int highHelper() {
         return 2;
     }
 }

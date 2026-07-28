@@ -238,9 +238,10 @@ public class FlowInsensitiveStmtVisitor extends SecrecyStmtVisitor{
         if(varDecl.hasInitExp()){
             Exp initExp = varDecl.getInitExp();
             String rhsLevel = initExp.accept(ExpVisitor);
-            Set<String> rhsLevelSet = secrecyLatticeStructure.getSetForSecrecyLevel(rhsLevel);
             
-            if(!(lhsLevel.equals(rhsLevel) || rhsLevelSet.contains(lhsLevel))) {
+            Set<String> setOfLHS = secrecyLatticeStructure.getSetForSecrecyLevel(lhsLevel);
+        
+            if(!hasDeclassify && setOfLHS.contains(rhsLevel)) {
                 errors.add(new TypeError(varDeclStmt, ErrorMessage.SECRECY_LEAKAGE_ERROR_FROM_TO, rhsLevel, initExp.toString(), lhsLevel, varDecl.getName()));
             }
         }

@@ -1,0 +1,53 @@
+module DetailedExample;
+
+interface ServerI {
+    [Secrecy: Low] Bool verifyClient([Secrecy: High] Int password);
+    [Secrecy: High] Int getData(Int index);
+}
+
+class SecureServer implements ServerI {
+    [Secrecy: High] Int high_serverData = 0;
+    [Secrecy: High] Int high_storedPassword = 0;
+    [Secrecy: Low] Bool low_loggedIn = False;
+
+    [Secrecy: Low] Bool verifyClient([Secrecy: High] Int password) {
+        [Declassify] Bool low_result = password == high_storedPassword;
+        return low_result;
+    }
+ 
+    [Secrecy: High] Int getData(Int index) {
+        return high_serverData;
+    }
+}
+ 
+class Client(ServerI serverInput) {
+    [Secrecy: High] Int high_password = 0;
+    [Secrecy: Low] Int low_index = 0;
+ 
+    Int secureDataRequest() {
+        Fut<Bool> fLogin = serverInput!verifyClient(high_password);
+        await fLogin?;
+        Bool low_loggedIn = fLogin.get;
+ 
+        Int low_status = 1;
+        if (low_loggedIn) {
+            [Secrecy: High] Fut<Int> fData = serverInput!getData(low_index);
+            await fData?;
+            [Secrecy: High] Int high_record = fData.get;
+            low_status = 0;
+        }
+        return low_status;
+    }
+ 
+    Int insecureDataRequest() {
+        Fut<Bool> fLogin = serverInput!verifyClient(high_password);
+        await fLogin?;
+        Bool low_loggedIn = fLogin.get;
+
+        Fut<Int> fData = serverInput!getData(low_index);
+        await fData?;
+        Int result = fData.get;
+        
+        return result;
+    }
+}

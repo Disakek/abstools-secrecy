@@ -1,6 +1,16 @@
 32:Leakage Error from High: l to Low: l1
+35:Leakage Error from High: AddAddExp(l1,IntLiteral(1)) to Low: l1
+37:Leakage Error from High: returnStmt to Low: returnDefinition
 100:Leakage Error from High: l to Low: l1
+104:Leakage Error from High: AddAddExp(l1,IntLiteral(1)) to Low: l1
+105:Leakage Error from High: AddAddExp(l1,IntLiteral(1)) to Low: l1
+106:Leakage Error from High: AddAddExp(l1,IntLiteral(1)) to Low: l1
+109:Leakage Error from High: returnStmt to Low: returnDefinition
 113:Leakage Error from High: l to Low: l1
+117:Leakage Error from High: AddAddExp(l1,IntLiteral(1)) to Low: l1
+118:Leakage Error from High: AddAddExp(l1,IntLiteral(1)) to Low: l1
+119:Leakage Error from High: AddAddExp(l1,IntLiteral(1)) to Low: l1
+122:Leakage Error from High: returnStmt to Low: returnDefinition
 155:Leakage Error from High: AddAddExp(l1,IntLiteral(1)) to Low: l1
 155:Leakage Error from High: AddAddExp(l1,IntLiteral(1)) to Low: l1
 155:Leakage Error from High: AddAddExp(l1,IntLiteral(1)) to Low: l1

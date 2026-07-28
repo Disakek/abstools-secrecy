@@ -46,6 +46,7 @@ class Annotated(SomeExampleI something) {
         v = await this!selfCallWithLowReturn(); 
         v = await this!selfCallWithHighReturn(); //meant to fail
 
+        v = 2;
         //Parameter
         v = await this!selfCallWithLowReturnAndParam(v); //meant to pass
         v = await something!callWithLowReturnAndParam(v); //meant to pass

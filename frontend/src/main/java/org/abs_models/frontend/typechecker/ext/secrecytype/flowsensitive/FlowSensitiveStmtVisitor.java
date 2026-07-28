@@ -270,21 +270,18 @@ public class FlowSensitiveStmtVisitor extends SecrecyStmtVisitor{
             Exp initExp = varDecl.getInitExp();
             String rhsLevel = initExp.accept(ExpVisitor);
             
-            Set<String> rhsLevelSet = secrecyLatticeStructure.getSetForSecrecyLevel(rhsLevel);
+            System.out.println(varDecl + " receives rhsLevel: " + rhsLevel);
+
+            Set<String> setOfLHS = secrecyLatticeStructure.getSetForSecrecyLevel(lhsLevel);
+
+            _currentSecrecy.put(varDecl, lhsLevel);
             
-            if(!hasDeclassify && !(lhsLevel.equals(rhsLevel) || rhsLevelSet.contains(lhsLevel))) {
-                
+            if(!hasDeclassify && setOfLHS.contains(rhsLevel)) {
                 errors.add(new TypeError(varDeclStmt, ErrorMessage.SECRECY_LEAKAGE_ERROR_FROM_TO, rhsLevel, initExp.toString(), lhsLevel, varDecl.getName()));
-            
+                //If an error occurs the variable receives the secrecy level of the rhs to also reveal errors that follow from this
+                _currentSecrecy.put(varDecl, rhsLevel);
             }
-        
-            if(hasDeclassify) {
-                String listLevel = secrecyLatticeStructure.evaluateListLevel(programConfidentiality);
-                _currentSecrecy.put(varDecl, secrecyLatticeStructure.join(lhsLevel, listLevel));
-            } else {
-                _currentSecrecy.put(varDecl, lhsLevel);
-            }
-        
+
         }
     }
 
